@@ -37,3 +37,5 @@ ggplot(data = mob, aes(date, residential_percent_change_from_baseline)) +
   geom_line(group = 1)
 
 ##visualisation - contact data
+
+ggplot(data = )
