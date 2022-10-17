@@ -10,7 +10,7 @@ cnts <- qs::qread(file.path(data_path,"part_cnts.qs"))
 #import mobility data
 mob <- qs::qread(file.path(data_path, "google_mob.qs"))
 
-#visualisation 
+##visualisation - google mobility data
 
 #retail and recreation
 ggplot(data = mob, aes(date, retail_and_recreation_percent_change_from_baseline)) + 
@@ -35,3 +35,5 @@ ggplot(data = mob, aes(date, workplaces_percent_change_from_baseline)) +
 #residential
 ggplot(data = mob, aes(date, residential_percent_change_from_baseline)) + 
   geom_line(group = 1)
+
+##visualisation - contact data
