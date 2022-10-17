@@ -38,4 +38,5 @@ ggplot(data = mob, aes(date, residential_percent_change_from_baseline)) +
 
 ##visualisation - contact data
 
-ggplot(data = )
+ggplot(data = cnts, aes(part_wave_uid, n_cnt_home)) + 
+  geom_line(group = 1)

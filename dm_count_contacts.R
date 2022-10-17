@@ -162,4 +162,4 @@ cnt_names <- grep("n_cnt", names(pt_cnt), value = TRUE)
 cnt_names <- c("part_wave_uid", cnt_names)
 pt_cnt <- pt_cnt[, ..cnt_names]
 
-qs::qsave(pt_cnt, "C:\\Users\\emiel\\OneDrive\\Documents\\LSHTM\\Fellowship\\Project\\Data\\part_cnts.qs")
+qs::qsave(pt_cnt, "C:\\Users\\emiel\\OneDrive\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\part_cnts.qs")
