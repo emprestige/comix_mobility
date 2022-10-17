@@ -162,4 +162,7 @@ cnt_names <- grep("n_cnt", names(pt_cnt), value = TRUE)
 cnt_names <- c("part_wave_uid", cnt_names)
 pt_cnt <- pt_cnt[, ..cnt_names]
 
-qs::qsave(pt_cnt, "C:\\Users\\emiel\\OneDrive\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\part_cnts.qs")
+#filter for just UK surveys
+pt_cnt <- pt_cnt[substr(part_wave_uid, 1, 2) == "uk"]
+
+qs::qsave(pt_cnt, "C:\\Users\\emiel\\Documents - Copy\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\part_cnts.qs")

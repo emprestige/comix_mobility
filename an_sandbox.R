@@ -1,8 +1,11 @@
 ##sandbox
 
+#load libraries
 library(ggplot2)
+library(tidyverse)
  
-data_path <-"C:\\Users\\emiel\\OneDrive\\Documents\\LSHTM\\Fellowship\\Project\\Data\\"
+#set daa path
+data_path <-"C:\\Users\\emiel\\Documents - Copy\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
 
 #import contact data
 cnts <- qs::qread(file.path(data_path,"part_cnts.qs"))
@@ -36,7 +39,7 @@ ggplot(data = mob, aes(date, workplaces_percent_change_from_baseline)) +
 ggplot(data = mob, aes(date, residential_percent_change_from_baseline)) + 
   geom_line(group = 1)
 
-##visualisation - contact data
+##calculate mean contacts for each survey round 
 
-ggplot(data = cnts, aes(part_wave_uid, n_cnt_home)) + 
-  geom_line(group = 1)
+#survey rounds
+ans <- cnts[substr(part_wave_uid, 1, 2) == "uk"]
