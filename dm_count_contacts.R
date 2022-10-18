@@ -165,4 +165,4 @@ pt_cnt <- pt_cnt[, ..cnt_names]
 #filter for just UK surveys
 pt_cnt <- pt_cnt[substr(part_wave_uid, 1, 2) == "uk"]
 
-qs::qsave(pt_cnt, "C:\\Users\\emiel\\Documents - Copy\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\part_cnts.qs")
+qs::qsave(pt_cnt, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\part_cnts.qs")

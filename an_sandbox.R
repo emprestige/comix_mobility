@@ -5,7 +5,7 @@ library(ggplot2)
 library(tidyverse)
  
 #set daa path
-data_path <-"C:\\Users\\emiel\\Documents - Copy\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
+data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
 
 #import contact data
 cnts <- qs::qread(file.path(data_path,"part_cnts.qs"))
@@ -42,4 +42,4 @@ ggplot(data = mob, aes(date, residential_percent_change_from_baseline)) +
 ##calculate mean contacts for each survey round 
 
 #survey rounds
-ans <- cnts[substr(part_wave_uid, 1, 2) == "uk"]
+#ans <- cnts[substr(part_wave_uid, 3, 4) == , m_all := mean(n_cnt)]
