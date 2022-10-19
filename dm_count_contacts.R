@@ -159,10 +159,11 @@ pt_cnt
 dta = pt_cnt[country == "uk", .(mean(n_cnt), mean(n_cnt_unq), mean(n_cnt_unq_home), mean(n_cnt_unq_workschool), mean(n_cnt_unq_other),.N), by = .(survey_round, sample_type)][order(sample_type, survey_round)]
 
 cnt_names <- grep("n_cnt", names(pt_cnt), value = TRUE)
-cnt_names <- c("part_wave_uid", cnt_names)
+cnt_names <- c("part_wave_uid", "survey_round", "date", cnt_names)
 pt_cnt <- pt_cnt[, ..cnt_names]
 
 #filter for just UK surveys
 pt_cnt <- pt_cnt[substr(part_wave_uid, 1, 2) == "uk"]
 
+#save as qs file
 qs::qsave(pt_cnt, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\part_cnts.qs")
