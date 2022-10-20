@@ -157,8 +157,7 @@ mob_v_cnt   <- merge(frac, cnt_sub, by = c("date", "week", "fortnight"),
                      all.x = F)
 
 #plot workplace daily
-ggplot(data = mob_v_cnt, aes(frac_change_work, mean_cnt_work)) +
-  geom_point()
+ggplot(data = mob_v_cnt, aes(frac_change_work, mean_cnt_work)) + geom_point()
 
 #plot workplace weekly 
 ggplot(data = mob_v_cnt, aes(mean_work_w, mean_cnt_work_w)) + geom_point()
@@ -174,3 +173,26 @@ ggplot(data = mob_v_cnt, aes(mean_res_w, mean_cnt_home_w)) + geom_point()
 
 #plot home fortnightly
 ggplot(data = mob_v_cnt, aes(mean_res_f, mean_cnt_home_f)) + geom_point()
+
+##using the same date range as lancet article 
+
+#subset data
+mob_v_cnt_sub <- mob_v_cnt[date >= "2020-03-24" & date <= "2020-12-31"]
+
+#plot workplace daily
+ggplot(data = mob_v_cnt_sub, aes(frac_change_work, mean_cnt_work)) + geom_point()
+
+#plot workplace weekly 
+ggplot(data = mob_v_cnt_sub, aes(mean_work_w, mean_cnt_work_w)) + geom_point()
+
+#plot workplace fortnightly
+ggplot(data = mob_v_cnt_sub, aes(mean_work_f, mean_cnt_work_f)) + geom_point()
+
+#plot home daily
+ggplot(data = mob_v_cnt_sub, aes(frac_change_res, mean_cnt_home)) + geom_point()
+
+#plot home weekly
+ggplot(data = mob_v_cnt_sub, aes(mean_res_w, mean_cnt_home_w)) + geom_point()
+
+#plot home fortnightly
+ggplot(data = mob_v_cnt_sub, aes(mean_res_f, mean_cnt_home_f)) + geom_point()
