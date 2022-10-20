@@ -153,7 +153,6 @@ pt_cnt[, table(is.na(n_cnt_unq))]
 
 ## check how the two counts match up.
 pt_cnt[, table(n_cnt == n_cnt_unq)]
-
 pt_cnt
 
 dta = pt_cnt[country == "uk", .(mean(n_cnt), mean(n_cnt_unq), mean(n_cnt_unq_home), mean(n_cnt_unq_workschool), mean(n_cnt_unq_other),.N), by = .(survey_round, sample_type)][order(sample_type, survey_round)]
@@ -164,6 +163,9 @@ pt_cnt <- pt_cnt[, ..cnt_names]
 
 #filter for just UK surveys
 pt_cnt <- pt_cnt[substr(part_wave_uid, 1, 2) == "uk"]
+
+#filter out contacts more than 50
+pt_cnt <- pt_cnt[n_cnt <= 50]
 
 #save as qs file
 qs::qsave(pt_cnt, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\part_cnts.qs")
