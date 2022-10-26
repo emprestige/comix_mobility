@@ -48,7 +48,8 @@ cnt_other_vars <- c(
 )
 
 cnt_vars <- c(cnt_main_vars, cnt_other_vars)
-all_vars <- c(cnt_vars, "part_wave_uid", "cnt_age_group")
+all_vars <- c(cnt_vars, "part_wave_uid")
+#all_vars <- c(cnt_vars, "part_wave_uid", "cnt_age_group")
 ct <- ct[, ..all_vars]
 
 sumna <- function(x) sum(x, na.rm = TRUE)
@@ -170,7 +171,6 @@ pt_cnt <- pt_cnt[substr(part_wave_uid, 1, 2) == "uk"]
 
 #filter out contacts more than 50
 pt_cnt <- pt_cnt[n_cnt <= 50]
-
 
 #save as qs file
 qs::qsave(pt_cnt, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\part_cnts.qs")
