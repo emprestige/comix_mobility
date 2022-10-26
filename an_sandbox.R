@@ -13,7 +13,10 @@ data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobi
 cnts <- qs::qread(file.path(data_path,"part_cnts.qs"))
 
 #order by date
-cnts_date <- cnts[order(date)]
+#cnts_date <- cnts[order(date)]
+cnts_date <- cnts %>%
+  arrange(date)
+
                   
 #import mobility data
 mob <- qs::qread(file.path(data_path, "google_mob.qs"))
