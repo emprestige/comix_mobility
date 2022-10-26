@@ -1,6 +1,7 @@
 ##sandbox
 
 #load libraries
+library(data.table)
 library(ggplot2)
 library(tidyverse)
 library(cowplot) 
@@ -13,11 +14,8 @@ data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobi
 cnts <- qs::qread(file.path(data_path,"part_cnts.qs"))
 
 #order by date
-#cnts_date <- cnts[order(date)]
-cnts_date <- cnts %>%
-  arrange(date)
+cnts_date <- cnts[order(date)]
 
-                  
 #import mobility data
 mob <- qs::qread(file.path(data_path, "google_mob.qs"))
 
