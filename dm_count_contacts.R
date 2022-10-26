@@ -48,7 +48,7 @@ cnt_other_vars <- c(
 )
 
 cnt_vars <- c(cnt_main_vars, cnt_other_vars)
-all_vars <- c(cnt_vars, "part_wave_uid")
+all_vars <- c(cnt_vars, "part_wave_uid", "cnt_age_group")
 ct <- ct[, ..all_vars]
 
 sumna <- function(x) sum(x, na.rm = TRUE)
@@ -78,12 +78,13 @@ by = part_wave_uid]
 
 tail(cp_n_cnts, 15)
 
-
+#pt_ct = merge(pt, ct, by = c("part_wave_uid"), all.x = TRUE) #binary matrix
 pt_cnt = merge(pt, cp_n_cnts, by = c("part_wave_uid"), all.x = TRUE)
 
 var_list <- names(cp_n_cnts)
 for (j in var_list){
   set(pt_cnt,which(is.na(pt_cnt[[j]])),j,0)
+  #set(pt_ct,which(is.na(pt_ct[[j]])),j,0)
 }
 
 # Count contacts ----------------------------------------------------------
@@ -101,7 +102,7 @@ ct_p[, d_phys  := cnt_phys]
 
 ct_p[part_wave_uid == "be_A3_12092"]
 ct_p[part_wave_uid == "uk_F8_64845"]
-ct[part_wave_uid == "uk_F8_64845"]
+ct_p[part_wave_uid == "uk_F8_64845"]
 
 ct_p[, table(d_school, cnt_school)]
 ct_p[, table(d_work, cnt_work)]
@@ -158,14 +159,19 @@ pt_cnt
 dta = pt_cnt[country == "uk", .(mean(n_cnt), mean(n_cnt_unq), mean(n_cnt_unq_home), mean(n_cnt_unq_workschool), mean(n_cnt_unq_other),.N), by = .(survey_round, sample_type)][order(sample_type, survey_round)]
 
 cnt_names <- grep("n_cnt", names(pt_cnt), value = TRUE)
-cnt_names <- c("part_wave_uid", "survey_round", "date", "part_age_group", cnt_names)
-pt_cnt <- pt_cnt[, ..cnt_names]
+cnt_names <- c("part_wave_uid", "survey_round", "date", cnt_names)
+#pt_cnt <- pt_cnt[, ..cnt_names]
+#ct_names <- c("part_wave_uid", "part_id", "survey_round", "date", "part_age", cnt_main_vars, cnt_other_vars, "cnt_age_group")
+#pt_ct <- pt_ct[, ..ct_names]
 
 #filter for just UK surveys
 pt_cnt <- pt_cnt[substr(part_wave_uid, 1, 2) == "uk"]
+#pt_ct <- pt_ct[substr(part_wave_uid, 1, 2) == "uk"]
 
 #filter out contacts more than 50
 pt_cnt <- pt_cnt[n_cnt <= 50]
 
+
 #save as qs file
 qs::qsave(pt_cnt, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\part_cnts.qs")
+#qs::qsave(pt_ct, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\cnts_mat.qs")
