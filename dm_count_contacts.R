@@ -49,7 +49,6 @@ cnt_other_vars <- c(
 
 cnt_vars <- c(cnt_main_vars, cnt_other_vars)
 all_vars <- c(cnt_vars, "part_wave_uid")
-#all_vars <- c(cnt_vars, "part_wave_uid", "cnt_age_group")
 ct <- ct[, ..all_vars]
 
 sumna <- function(x) sum(x, na.rm = TRUE)
@@ -79,13 +78,11 @@ by = part_wave_uid]
 
 tail(cp_n_cnts, 15)
 
-#pt_ct = merge(pt, ct, by = c("part_wave_uid"), all.x = TRUE) #binary matrix
 pt_cnt = merge(pt, cp_n_cnts, by = c("part_wave_uid"), all.x = TRUE)
 
 var_list <- names(cp_n_cnts)
 for (j in var_list){
   set(pt_cnt,which(is.na(pt_cnt[[j]])),j,0)
-  #set(pt_ct,which(is.na(pt_ct[[j]])),j,0)
 }
 
 # Count contacts ----------------------------------------------------------
@@ -161,17 +158,12 @@ dta = pt_cnt[country == "uk", .(mean(n_cnt), mean(n_cnt_unq), mean(n_cnt_unq_hom
 
 cnt_names <- grep("n_cnt", names(pt_cnt), value = TRUE)
 cnt_names <- c("part_wave_uid", "survey_round", "date", cnt_names)
-#pt_cnt <- pt_cnt[, ..cnt_names]
-#ct_names <- c("part_wave_uid", "part_id", "survey_round", "date", "part_age", cnt_main_vars, cnt_other_vars, "cnt_age_group")
-#pt_ct <- pt_ct[, ..ct_names]
 
 #filter for just UK surveys
 pt_cnt <- pt_cnt[substr(part_wave_uid, 1, 2) == "uk"]
-#pt_ct <- pt_ct[substr(part_wave_uid, 1, 2) == "uk"]
 
 #filter out contacts more than 50
 pt_cnt <- pt_cnt[n_cnt_work <= 50 & n_cnt_school <= 50 & n_cnt_other <= 50]
 
 #save as qs file
 qs::qsave(pt_cnt, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\part_cnts.qs")
-#qs::qsave(pt_ct, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\cnts_mat.qs")
