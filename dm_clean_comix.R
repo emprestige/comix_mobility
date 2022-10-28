@@ -16,11 +16,14 @@ ct <- qs::qread(file.path(dir_data_validate, "contacts.qs"))
 pt_uk <- pt[country == "uk"]
 ct_uk <- ct[country == "uk"]
 
-#recode NA values 
-var_list <- names(ct_uk)
-for (j in var_list){
-  set(ct_uk,which(is.na(pt_cnt[[j]])),j,0)
-}
+#filter out people who aren't adults 
+pt_uk <- pt_uk[part_age >= "18" & part_age <= "65"]
+# 
+# #recode NA values 
+# var_list <- names(ct_uk)
+# for (j in var_list){
+#   set(ct_uk,which(is.na(pt_c[[j]])),j,0)
+# }
 
 ages <- ct_uk %>% group_by(cnt_age_group) %>% tally()
 

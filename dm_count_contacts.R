@@ -85,6 +85,9 @@ for (j in var_list){
   set(pt_cnt,which(is.na(pt_cnt[[j]])),j,0)
 }
 
+#filter out for participants under 18 and over 65
+pt_cnt <- pt_cnt[part_age >= 18 & part_age <= 65]
+
 # Count contacts ----------------------------------------------------------
 
 
@@ -164,6 +167,7 @@ pt_cnt <- pt_cnt[substr(part_wave_uid, 1, 2) == "uk"]
 
 #filter out contacts more than 50
 pt_cnt <- pt_cnt[n_cnt_work <= 50 & n_cnt_school <= 50 & n_cnt_other <= 50]
+
 
 #save as qs file
 qs::qsave(pt_cnt, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\part_cnts.qs")
