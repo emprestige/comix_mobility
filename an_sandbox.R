@@ -20,7 +20,7 @@ cnts_date <- cnts[order(date)]
 mob <- qs::qread(file.path(data_path, "google_mob.qs"))
 
 #subset for same date range
-mob_sub <- mob[date >= "2020-03-24" & date <= "2022-03-02"]
+mob_sub <- mob[date >= "2020-03-23" & date <= "2022-03-02"]
 
 ##visualisation - google mobility data
 
