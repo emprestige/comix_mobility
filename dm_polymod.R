@@ -29,5 +29,7 @@ pnum[, parks := 0]
 pnum[, transit_stations := 0]
 pnum[, workplaces := 0]
 pnum[, residential := 0]
-
 pnum[, study := "POLYMOD"]
+
+#save
+qs::qsave(pnum, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\polymod.qs")
