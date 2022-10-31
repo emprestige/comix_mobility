@@ -85,7 +85,7 @@ mob_v_cnt3 <- merge(mob_v_cnt3, retail_recreation, by = "fortnight", all.x = F)
 colnames(mob_v_cnt3) <- c("fortnight", "other","transit", "grocery_pharmacy", "retail_recreation")
 
 #create weighted predictor
-mob_v_cnt3[, predictor := retail_recreation * 0.345 + transit * 0.445 + grocery_pharmacy * 0.210] # See "optimisation" below for how this was arrived at
+mob_v_cnt3[, predictor := retail_recreation * 0.345 + transit * 0.445 + grocery_pharmacy * 0.210] 
 
 #model using GAM
 model = gam(other ~ s(predictor), family = gaussian, data = mob_v_cnt3)
