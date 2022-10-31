@@ -21,7 +21,7 @@ poly = poly[!is.na(d_home)] # only cuts out 6 contacts.
 pnum = poly[, .(home = sum(d_home), work = sum(d_work), school = sum(d_school), other = sum(d_other)), by = .(part_id, part_age, date = ymd(sday_id))]
 pnum = pnum[, lapply(.SD, function(x) pmin(50, x)), by = .(part_id, part_age, date), .SDcols = c("home", "work", "school", "other")]
 
-#insert edxtra variables 
+#insert extra variables 
 pnum[, t := as.numeric(date - ymd("2006-01-01"))]
 pnum[, retail_recreation := 0]
 pnum[, grocery_pharmacy := 0]
