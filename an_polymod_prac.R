@@ -23,9 +23,8 @@ cnts <- qs::qread(file.path(data_path,"part_cnts.qs"))
 cnts_date <- cnts[order(date)]
 
 #create data table with subset of variables
-num <- cnts_date[, .(date = date, part_id = part_id, part_age = part_age, 
-               home = n_cnt_home, work = n_cnt_work, school = n_cnt_school, 
-               other = n_cnt_other)]
+num <- cnts_date[, .(date, part_id, part_age, home = n_cnt_home, 
+                work = n_cnt_work, school = n_cnt_school, other = n_cnt_other)]
 num[, t := as.numeric(date - ymd("2020-01-01"))]
 
 #duplicate google mobility data and rename columns
@@ -64,8 +63,10 @@ num = rbind(
 )
 
 #get fortnightly work data
-another = num[, .(work = mean(work), workplaces = mean(workplaces), transit = mean(transit_stations)), 
-              by = .(week = ifelse(study == "CoMix", week(date) %/% 2, rep(0, length(date))), study)]
+another = num[, .(work = mean(work), workplaces = mean(workplaces),
+                  transit = mean(transit_stations)), 
+              by = .(week = ifelse(study == "CoMix", week(date) %/% 2, 
+                                   rep(0, length(date))), study)]
 
 #model using GAM
 model = gam(work ~ s(workplaces), family = gaussian, data = another)
@@ -79,14 +80,16 @@ plw = ggplot(another) +
   geom_point(aes(x = workplaces, y = work, colour = study)) + 
   geom_line(data = work_f, aes(x = workplaces, y = work)) +
   ylim(0, 3.5) +
-  labs(x = "Google Mobility\n'workplaces' visits", y = "Work contacts", colour = "Study") +
+  labs(x = "Google Mobility\n'workplaces' visits", y = "Work contacts", 
+       colour = "Study") +
   theme(legend.position = "none")
 plw
 
 #get fortnightly 'other' data
 another = num[, .(other = mean(other), retail = mean(retail_recreation), 
               grocery = mean(grocery_pharmacy), transit = mean(transit_stations)), 
-              by = .(week = ifelse(study == "CoMix", week(date) %/% 2, rep(0, length(date))), study)]
+              by = .(week = ifelse(study == "CoMix", week(date) %/% 2, 
+                                   rep(0, length(date))), study)]
 
 #create predictor from weighting of variables
 another[, predictor := retail * 0.345 + transit * 0.445 + grocery * 0.210] # See "optimisation" below for how this was arrived at
@@ -102,6 +105,7 @@ other_f[, other := pmax(0.0, predict(model, other_f, type = "response"))]
 plo = ggplot(another) + 
   geom_point(aes(x = predictor, y = other, colour = study)) + 
   geom_line(data = other_f, aes(x = predictor, y = other)) +
-  xlim(0, 1.25) + ylim(0, 5) + labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits", y = "Other contacts", colour = "Study") +
+  xlim(0, 1.25) + ylim(0, 5) + labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits", 
+                                    y = "Other contacts", colour = "Study") +
   theme(legend.position = "none")
 plo
