@@ -56,29 +56,29 @@ num[, workplaces        := (100 + workplaces       ) * 0.01]
 num[, residential       := (100 + residential      ) * 0.01]
 
 #un-oversample young people from POLYMOD
-num = rbind(
+num <- rbind(
   num[study == "CoMix"],
   num[study == "POLYMOD" & part_age <= 20][seq(0, .N, by = 2)],
   num[study == "POLYMOD" & part_age > 20]
 )
 
 #get fortnightly work data
-another = num[, .(work = mean(work), workplaces = mean(workplaces),
+another <- num[, .(work = mean(work), workplaces = mean(workplaces),
                   transit = mean(transit_stations)), 
               by = .(week = ifelse(study == "CoMix", paste(year(date), "/", 
                                                      ceiling(week(date)/2)), 
                                    rep(0, length(date))), study)]
 
 #model using GAM
-model = gam(work ~ s(workplaces), family = gaussian, data = another)
+model <- gam(work ~ s(workplaces), family = gaussian, data = another)
 gam.check(model)
 
 #predict using 'new' data
-work_f = data.table(workplaces = seq(0, 1.25, by = 0.01));
+work_f <- data.table(workplaces = seq(0, 1.25, by = 0.01));
 work_f[, work := pmax(0.0, predict(model, work_f, type = "response"))]
 
 #plot
-plw = ggplot(another) + 
+plw <- ggplot(another) + 
   geom_point(aes(x = workplaces, y = work, colour = study)) + 
   geom_line(data = work_f, aes(x = workplaces, y = work)) +
   ylim(0, 3.5) +
@@ -88,7 +88,7 @@ plw = ggplot(another) +
 plw
 
 #get fortnightly 'other' data
-another = num[, .(other = mean(other), retail = mean(retail_recreation), 
+another <- num[, .(other = mean(other), retail = mean(retail_recreation), 
               grocery = mean(grocery_pharmacy), transit = mean(transit_stations)), 
               by = .(week = ifelse(study == "CoMix", paste(year(date), "/", 
                                                      ceiling(week(date)/2)), 
@@ -98,14 +98,14 @@ another = num[, .(other = mean(other), retail = mean(retail_recreation),
 another[, predictor := retail * 0.345 + transit * 0.445 + grocery * 0.210] # See "optimisation" below for how this was arrived at
 
 #model using GAM
-model = gam(other ~ s(predictor), family = gaussian, data = another)
+model <- gam(other ~ s(predictor), family = gaussian, data = another)
 
 #predict using 'new' data
-other_f = data.table(predictor = seq(0, 1.25, by = 0.01));
+other_f <- data.table(predictor = seq(0, 1.25, by = 0.01));
 other_f[, other := pmax(0.0, predict(model, other_f, type = "response"))]
 
 #plot
-plo = ggplot(another) + 
+plo <- ggplot(another) + 
   geom_point(aes(x = predictor, y = other, colour = study)) + 
   geom_line(data = other_f, aes(x = predictor, y = other)) +
   xlim(0, 1.25) + ylim(0, 5) + labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits", 
