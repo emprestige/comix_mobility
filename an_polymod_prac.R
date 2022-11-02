@@ -65,7 +65,8 @@ num = rbind(
 #get fortnightly work data
 another = num[, .(work = mean(work), workplaces = mean(workplaces),
                   transit = mean(transit_stations)), 
-              by = .(week = ifelse(study == "CoMix", week(date) %/% 2, 
+              by = .(week = ifelse(study == "CoMix", paste(year(date), "/", 
+                                                     ceiling(week(date)/2)), 
                                    rep(0, length(date))), study)]
 
 #model using GAM
@@ -88,7 +89,8 @@ plw
 #get fortnightly 'other' data
 another = num[, .(other = mean(other), retail = mean(retail_recreation), 
               grocery = mean(grocery_pharmacy), transit = mean(transit_stations)), 
-              by = .(week = ifelse(study == "CoMix", week(date) %/% 2, 
+              by = .(week = ifelse(study == "CoMix", paste(year(date), "/", 
+                                                     ceiling(week(date)/2)), 
                                    rep(0, length(date))), study)]
 
 #create predictor from weighting of variables
