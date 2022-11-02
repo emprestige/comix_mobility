@@ -71,6 +71,7 @@ another = num[, .(work = mean(work), workplaces = mean(workplaces),
 
 #model using GAM
 model = gam(work ~ s(workplaces), family = gaussian, data = another)
+gam.check(model)
 
 #predict using 'new' data
 work_f = data.table(workplaces = seq(0, 1.25, by = 0.01));
