@@ -17,7 +17,7 @@ pt_uk <- pt[country == "uk"]
 ct_uk <- ct[country == "uk"]
 
 #filter out people who aren't adults 
-pt_uk <- pt_uk[part_age >= "18" & part_age <= "65"]
+#pt_uk <- pt_uk[part_age >= "18" & part_age <= "65"]
 
 #get lower limits ofr age groups 
 ages <- ct_uk %>% group_by(cnt_age_group) %>% tally()

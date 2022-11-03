@@ -86,7 +86,7 @@ for (j in var_list){
 }
 
 #filter out for participants under 18 and over 65
-pt_cnt <- pt_cnt[part_age >= 18 & part_age <= 65]
+#pt_cnt <- pt_cnt[part_age >= 18 & part_age <= 65]
 
 # Count contacts ----------------------------------------------------------
 
