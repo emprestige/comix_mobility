@@ -29,7 +29,8 @@ for (i in 1:101) {
 rounds <- list()
 for (i in 1:101) {
   rounds[[i]] <- contact_matrix(new_survey[[i]], 
-                                age.limits = c(0, 5, 12, 18, 30, 40, 50, 60, 65, 70))
+                                age.limits = c(0, 5, 12, 18, 30, 40, 
+                                               50, 60, 65, 70))
 }
 
 #melt dataframes 
@@ -49,13 +50,14 @@ for (i in 1:101) {
 plots <- list()
 for (i in 1:101) {
   plots[[i]] <- ggplot(data = dt[[i]], aes(x = rn, y = variable, fill = value)) + 
-    geom_tile() + coord_equal()
+    geom_tile() + coord_equal() + labs(x = "Particpant Age Group", 
+                                       y = "Contact Age Group", 
+                                       fill = "Mean Number \n of Contacts")
 }
 
 #plot some to check 
 plots[[1]]
 plots[[28]]
+plots[[55]]
 plots[[101]]
 plots[[21]]
-
-dt[[21]][["rn"]]
