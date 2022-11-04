@@ -142,13 +142,12 @@ lockdowns$status <- ifelse(ymd(lockdowns$date) %within% T1, 1,
                            ifelse(ymd(lockdowns$date) %within% L2, 2, 
                            ifelse(ymd(lockdowns$date) %within% T4, 1, 
                            ifelse(ymd(lockdowns$date) %within% L3, 2, 
-                           ifelse(ymd(lockdowns$date) %within% T5, 1,
-                                  "No restrictions"))))))))
+                           ifelse(ymd(lockdowns$date) %within% T5, 1, 0))))))))
 
 #create factor
-lockdown_fac <- factor(lockdowns$status, labels = c("No restrictions",
-                                                    "Some restrictions",
-                                                    "Lockdown"))
+lockdown_fac <- factor(lockdowns$status, levels = c(0, 1, 2, 3),
+                       labels = c("No restrictions", "Some restrictions",
+                                  "Lockdown", "Pre-Pandemic"))
 lockdowns$status <- lockdown_fac
 
 #merge mobility subset and lockdown information
@@ -184,7 +183,7 @@ pnum <- qs::qread(file.path(data_path, "polymod.qs"))
 pnum[, study := "POLYMOD"]
 
 #add information for lockdown status (i.e. none)
-pnum[, status := "Pre-pandemic"]
+pnum[, status := "Pre-Pandemic"]
 
 #bind the rows together
 num <- rbind(num, pnum, fill = TRUE)
