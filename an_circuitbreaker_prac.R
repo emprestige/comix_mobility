@@ -10,11 +10,11 @@ library(mgcv)
 library(stringr)
 library(cowplot)
 
-#set data path
-data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
-
 #set cowplot theme
 theme_set(cowplot::theme_cowplot(font_size = 10) + theme(strip.background = element_blank()))
+
+#set data path
+data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
 
 #load mobility data 
 gm <- qs::qread(file.path(data_path, "google_mob_region.qs"))

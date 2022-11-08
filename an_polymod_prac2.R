@@ -6,6 +6,10 @@ library(ggplot2)
 library(tidyverse)
 library(mgcv)
 library(lubridate)
+library(cowplot)
+
+#set cowplot theme
+theme_set(cowplot::theme_cowplot(font_size = 10) + theme(strip.background = element_blank()))
 
 #set data path
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
@@ -112,8 +116,9 @@ other_f[, other := pmax(0.0, predict(model, other_f, type = "response"))]
 plo <- ggplot(another) + 
   geom_point(aes(x = predictor, y = other, colour = year)) + 
   geom_line(data = other_f, aes(x = predictor, y = other)) +
-  xlim(0, 1.25) + ylim(0, 5) + labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits", 
-                                    y = "Other contacts", colour = "Year")
+  xlim(0, 1.25) + ylim(0, 5) +
+  labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits", 
+       y = "Other contacts", colour = "Year")
 plo
 
 #create sequence of dates
@@ -230,7 +235,7 @@ plw
 another <- num[, .(status = status, other = mean(other), retail = mean(retail_recreation), 
                    grocery = mean(grocery_pharmacy), transit = mean(transit_stations)), 
                by = .(week = ifelse(study == "CoMix", paste(year(date), "/", 
-                                                            ceiling(week(date)/2)), 
+                                                      ceiling(week(date)/2)), 
                                     rep(0, length(date))), study)]
 another <- unique(another)
 
@@ -248,6 +253,7 @@ other_f[, other := pmax(0.0, predict(model, other_f, type = "response"))]
 plo <- ggplot(another) + 
   geom_point(aes(x = predictor, y = other, colour = status)) + 
   geom_line(data = other_f, aes(x = predictor, y = other)) +
-  xlim(0, 1.25) + ylim(0, 5) + labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits", 
-                                    y = "Other contacts", colour = "Status")
+  xlim(0, 1.25) + ylim(0, 5) + 
+  labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits", 
+       y = "Other contacts", colour = "Status")
 plo

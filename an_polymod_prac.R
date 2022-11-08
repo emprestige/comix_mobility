@@ -6,6 +6,11 @@ library(ggplot2)
 library(tidyverse)
 library(mgcv)
 library(lubridate)
+library(cowplot)
+
+#set cowplot theme
+theme_set(cowplot::theme_cowplot(font_size = 10) + theme(strip.background = element_blank()))
+
 
 #set data path
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
@@ -111,7 +116,8 @@ other_f[, other := pmax(0.0, predict(model, other_f, type = "response"))]
 plo <- ggplot(another) + 
   geom_point(aes(x = predictor, y = other, colour = study)) + 
   geom_line(data = other_f, aes(x = predictor, y = other)) +
-  xlim(0, 1.25) + ylim(0, 5) + labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits", 
-                                    y = "Other contacts", colour = "Study") +
+  xlim(0, 1.25) + ylim(0, 5) + 
+  labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits", 
+       y = "Other contacts", colour = "Study") +
   theme(legend.position = "none")
 plo

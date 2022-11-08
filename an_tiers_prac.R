@@ -74,7 +74,7 @@ imatch <- function(strings, table, table_attr) {
 #import match table
 result <- fread(file.path(data_path, "tiers_match_table.txt"))
 
-# #update it 
+#update it 
 tiers[, reg12 := paste(reg1, reg2, sep = " | ")]
 missing <- tiers[!reg12 %in% result[, string], reg12]
 updates <- imatch(missing, gp$place, gp$type); 
