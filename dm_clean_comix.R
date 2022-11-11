@@ -29,6 +29,8 @@ ct_nmes <- c("part_id", "cnt_age_est_min", "cnt_age_est_max",
 ct_uk <- ct_uk[, ..ct_nmes]
 ct_uk <- ct_uk[survey_round != "6"]
 pt_uk <- pt_uk[survey_round != "6"]
+ct_uk <- ct_uk[survey_round != "7"]
+pt_uk <- pt_uk[survey_round != "7"]
 
 #save data
 qs::qsave(pt_uk, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\participants.qs")
