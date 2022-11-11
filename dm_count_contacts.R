@@ -17,9 +17,13 @@ library(data.table)
   
 ## Save participant data
 dir_data_validate <- "C:\\Users\\emiel\\Filr\\Net Folders\\EPH Shared\\Comix_survey\\data\\validated\\"
+
 pt <- qs::qread(file.path(dir_data_validate, "part_min.qs"))
 ct <- qs::qread(file.path(dir_data_validate, "contacts.qs"))
 
+#filter out bad survey round
+pt <- pt[survey_round != "6"]
+ct <- ct[survey_round != "6"]
 
 # Map objects for labels --------------------------------------------------
 cnt_main_vars <- c(
@@ -48,7 +52,7 @@ cnt_other_vars <- c(
 )
 
 cnt_vars <- c(cnt_main_vars, cnt_other_vars)
-all_vars <- c(cnt_vars, "part_wave_uid")
+all_vars <- c(cnt_vars, "part_wave_uid", "weekday")
 ct <- ct[, ..all_vars]
 
 sumna <- function(x) sum(x, na.rm = TRUE)
@@ -160,7 +164,12 @@ pt_cnt
 dta = pt_cnt[country == "uk", .(mean(n_cnt), mean(n_cnt_unq), mean(n_cnt_unq_home), mean(n_cnt_unq_workschool), mean(n_cnt_unq_other),.N), by = .(survey_round, sample_type)][order(sample_type, survey_round)]
 
 cnt_names <- grep("n_cnt", names(pt_cnt), value = TRUE)
-cnt_names <- c("part_wave_uid", "survey_round", "date", cnt_names)
+cnt_names <- c("part_wave_uid", "survey_round", "date", "weekday", cnt_names)
+pt_cnt <- pt_cnt[, ..cnt_names]
+
+#create weighting based on weekday/weekend
+pt_cnt[, weight := ifelse(weekday == "Saturday", 2/7, 
+                          ifelse(weekday == "Sunday", 2/7, 5/7))]
 
 #filter for just UK surveys
 pt_cnt <- pt_cnt[substr(part_wave_uid, 1, 2) == "uk"]
