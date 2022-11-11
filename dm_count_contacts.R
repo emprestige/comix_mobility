@@ -21,9 +21,11 @@ dir_data_validate <- "C:\\Users\\emiel\\Filr\\Net Folders\\EPH Shared\\Comix_sur
 pt <- qs::qread(file.path(dir_data_validate, "part_min.qs"))
 ct <- qs::qread(file.path(dir_data_validate, "contacts.qs"))
 
-#filter out bad survey round
+#filter out bad survey rounds
 pt <- pt[survey_round != "6"]
 ct <- ct[survey_round != "6"]
+pt <- pt[survey_round != "7"]
+ct <- ct[survey_round != "7"]
 
 # Map objects for labels --------------------------------------------------
 cnt_main_vars <- c(
@@ -168,8 +170,7 @@ cnt_names <- c("part_wave_uid", "survey_round", "date", "weekday", cnt_names)
 #pt_cnt <- pt_cnt[, ..cnt_names]
 
 #create weighting based on weekday/weekend
-pt_cnt[, weight := ifelse(weekday == "Saturday", 2/7, 
-                          ifelse(weekday == "Sunday", 2/7, 5/7))]
+pt_cnt[, weight := ifelse(weekday == "Saturday", 2/7, ifelse(weekday == "Sunday", 2/7, 5/7))]
 
 #filter for just UK surveys
 pt_cnt <- pt_cnt[substr(part_wave_uid, 1, 2) == "uk"]
