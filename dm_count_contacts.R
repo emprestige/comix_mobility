@@ -165,7 +165,7 @@ dta = pt_cnt[country == "uk", .(mean(n_cnt), mean(n_cnt_unq), mean(n_cnt_unq_hom
 
 cnt_names <- grep("n_cnt", names(pt_cnt), value = TRUE)
 cnt_names <- c("part_wave_uid", "survey_round", "date", "weekday", cnt_names)
-pt_cnt <- pt_cnt[, ..cnt_names]
+#pt_cnt <- pt_cnt[, ..cnt_names]
 
 #create weighting based on weekday/weekend
 pt_cnt[, weight := ifelse(weekday == "Saturday", 2/7, 
