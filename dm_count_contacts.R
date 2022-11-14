@@ -170,7 +170,7 @@ cnt_names <- c("part_wave_uid", "survey_round", "date", "weekday", cnt_names)
 #pt_cnt <- pt_cnt[, ..cnt_names]
 
 #create weighting based on weekday/weekend
-pt_cnt[, weight := ifelse(weekday == "Saturday", 2/7, ifelse(weekday == "Sunday", 2/7, 5/7))]
+pt_cnt[, day_weight := ifelse(weekday == "Saturday", 2/7, ifelse(weekday == "Sunday", 2/7, 5/7))]
 
 #filter for just UK surveys
 pt_cnt <- pt_cnt[substr(part_wave_uid, 1, 2) == "uk"]
