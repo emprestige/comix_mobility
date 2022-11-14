@@ -23,12 +23,12 @@ pnum = pnum[, lapply(.SD, function(x) pmin(50, x)), by = .(part_id, part_age, da
 
 #insert extra variables 
 pnum[, t := as.numeric(date - ymd("2006-01-01"))]
-pnum[, retail_recreation := 0]
-pnum[, grocery_pharmacy := 0]
-pnum[, parks := 0]
-pnum[, transit_stations := 0]
-pnum[, workplaces := 0]
-pnum[, residential := 0]
+# pnum[, retail_recreation := 0]
+# pnum[, grocery_pharmacy := 0]
+# pnum[, parks := 0]
+# pnum[, transit_stations := 0]
+# pnum[, workplaces := 0]
+# pnum[, residential := 0]
 pnum[, study := "POLYMOD"]
 
 #save
