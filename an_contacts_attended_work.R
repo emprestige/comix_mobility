@@ -148,6 +148,6 @@ mob_cnt <- mob_cnt[proportion != 0]
 #plot 
 plw <- ggplot(mob_cnt) + 
   geom_point(aes(x = workplaces, y = proportion, colour = status, size = all)) + 
-  labs(x = "Google Mobility\n'workplaces' visits",
+  labs(x = "Google Mobility\n'workplaces' visits", size = "Total Employed",
        y = "Proportion of people who went to work", colour = "Status") 
 plw
