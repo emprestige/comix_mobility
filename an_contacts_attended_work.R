@@ -87,13 +87,19 @@ num_merge_full <- cnts_l[part_attend_work_yesterday == "yes" &
 num_merge_part <- cnts_l[part_attend_work_yesterday == "yes" & 
                            part_employed == "Part time"]
 num_merge_self <- cnts_l[part_attend_work_yesterday == "yes" &
-                           part_employed == "self employed"]
+                           part_employed == "Self employed"]
 num_merge_work <- rbind(num_merge_full, num_merge_part, num_merge_self)
+num_merge_worker_full <- cnts_l[part_employed == "Full time"]
+num_merge_worker_part <- cnts_l[part_employed == "Part time"]
+num_merge_worker_self <- cnts_l[part_employed == "Self employed"]
+num_merge_worker <- rbind(num_merge_worker_full, num_merge_worker_part, 
+                          num_merge_worker_self)
 num_merge_work <- num_merge_work[order(date)]
+num_merge_worker <- num_merge_worker[order(date)]
 attended <- num_merge_work %>%
   group_by(date) %>%
   tally()
-all <- num_merge %>% 
+all <- num_merge_worker %>% 
   group_by(date) %>%
   tally()
 worked <- merge(all, attended, by = "date", all = T)
