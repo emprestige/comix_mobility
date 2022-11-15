@@ -19,6 +19,7 @@ library(data.table)
 dir_data_validate <- "C:\\Users\\emiel\\Filr\\Net Folders\\EPH Shared\\Comix_survey\\data\\validated\\"
 
 pt <- qs::qread(file.path(dir_data_validate, "part.qs"))
+pt_min <- qs::qread(file.path(dir_data_validate, "part_min.qs"))
 ct <- qs::qread(file.path(dir_data_validate, "contacts.qs"))
 
 #filter out bad survey rounds
@@ -85,10 +86,12 @@ by = part_wave_uid]
 tail(cp_n_cnts, 15)
 
 pt_cnt = merge(pt, cp_n_cnts, by = c("part_wave_uid"), all.x = TRUE)
+pt_cnt_min <- merge(pt_min, cp_n_cnts, by = c("part_wave_uid"), all.x = TRUE)
 
 var_list <- names(cp_n_cnts)
 for (j in var_list){
   set(pt_cnt,which(is.na(pt_cnt[[j]])),j,0)
+  set(pt_cnt_min,which(is.na(pt_cnt[[j]])),j,0)
 }
 
 #filter out for participants under 18 and over 65
@@ -107,13 +110,13 @@ ct_p[, d_other  := cnt_other ]
 ct_p[, d_phys  := cnt_phys]
 
 
-ct_p[part_wave_uid == "be_A3_12092"]
-ct_p[part_wave_uid == "uk_F8_64845"]
-ct_p[part_wave_uid == "uk_F8_64845"]
-
-ct_p[, table(d_school, cnt_school)]
-ct_p[, table(d_work, cnt_work)]
-ct_p[, table(d_other, cnt_other)]
+# ct_p[part_wave_uid == "be_A3_12092"]
+# ct_p[part_wave_uid == "uk_F8_64845"]
+# ct_p[part_wave_uid == "uk_F8_64845"]
+# 
+# ct_p[, table(d_school, cnt_school)]
+# ct_p[, table(d_work, cnt_work)]
+# ct_p[, table(d_other, cnt_other)]
 
 ct_p_cnts <- ct_p[, .(
     all = .N,
@@ -149,25 +152,30 @@ ct_p_cnts[, all := NULL]
 ct_p_cnts[, n_cnt_unq_workschool := n_cnt_unq_work + n_cnt_unq_school]
 
 pt_cnt <- merge(pt_cnt, ct_p_cnts, by = "part_wave_uid", all = TRUE)
+pt_cnt_min <- merge(pt_cnt_min, ct_p_cnts, by = "part_wave_uid", all = TRUE)
 
 var_list_unq <- names(ct_p_cnts)
 for (j in var_list_unq){
   set(pt_cnt,which(is.na(pt_cnt[[j]])),j,0)
+  set(pt_cnt_min,which(is.na(pt_cnt[[j]])),j,0)
 }
 
-pt_cnt[, table(is.na(n_cnt))]
-pt_cnt[, table(is.na(n_cnt_unq))]
+#pt_cnt[, table(is.na(n_cnt))]
+#pt_cnt[, table(is.na(n_cnt_unq))]
 
 
 ## check how the two counts match up.
-pt_cnt[, table(n_cnt == n_cnt_unq)]
-pt_cnt
+#pt_cnt[, table(n_cnt == n_cnt_unq)]
+#pt_cnt
 
-dta = pt_cnt[country == "uk", .(mean(n_cnt), mean(n_cnt_unq), mean(n_cnt_unq_home), mean(n_cnt_unq_workschool), mean(n_cnt_unq_other),.N), by = .(survey_round, sample_type)][order(sample_type, survey_round)]
+#dta = pt_cnt[country == "uk", .(mean(n_cnt), mean(n_cnt_unq), mean(n_cnt_unq_home), mean(n_cnt_unq_workschool), mean(n_cnt_unq_other),.N), by = .(survey_round, sample_type)][order(sample_type, survey_round)]
 
-cnt_names <- grep("n_cnt", names(pt_cnt), value = TRUE)
-cnt_names <- c("part_wave_uid", "survey_round", "date", "weekday",
-               "part_att_expect_work_yn", cnt_names)
+cnt_names <- grep("n_cnt", names(pt_cnt_min), value = TRUE)
+cnt_names <- c("part_wave_uid", "part_id", "part_age", "survey_round", "date", 
+               "weekday", "part_att_expect_work_yn", cnt_names)
+
+#subset 
+pt_cnt <- pt_cnt[, ..cnt_names]
 
 #create weighting based on weekday/weekend
 pt_cnt[, day_weight := ifelse(weekday == "Saturday", 2/7, ifelse(weekday == "Sunday", 2/7, 5/7))]
