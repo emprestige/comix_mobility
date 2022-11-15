@@ -18,7 +18,7 @@ library(data.table)
 ## Save participant data
 dir_data_validate <- "C:\\Users\\emiel\\Filr\\Net Folders\\EPH Shared\\Comix_survey\\data\\validated\\"
 
-pt <- qs::qread(file.path(dir_data_validate, "part_min.qs"))
+pt <- qs::qread(file.path(dir_data_validate, "part.qs"))
 ct <- qs::qread(file.path(dir_data_validate, "contacts.qs"))
 
 #filter out bad survey rounds
@@ -166,8 +166,8 @@ pt_cnt
 dta = pt_cnt[country == "uk", .(mean(n_cnt), mean(n_cnt_unq), mean(n_cnt_unq_home), mean(n_cnt_unq_workschool), mean(n_cnt_unq_other),.N), by = .(survey_round, sample_type)][order(sample_type, survey_round)]
 
 cnt_names <- grep("n_cnt", names(pt_cnt), value = TRUE)
-cnt_names <- c("part_wave_uid", "survey_round", "date", "weekday", cnt_names)
-#pt_cnt <- pt_cnt[, ..cnt_names]
+cnt_names <- c("part_wave_uid", "survey_round", "date", "weekday",
+               "part_att_expect_work_yn", cnt_names)
 
 #create weighting based on weekday/weekend
 pt_cnt[, day_weight := ifelse(weekday == "Saturday", 2/7, ifelse(weekday == "Sunday", 2/7, 5/7))]
