@@ -130,16 +130,18 @@ gm <- gm2[, .(workplaces = mean(workplaces)),
           by = .(week = paste(year(date), "/", week(date)))]
 
 #get means for proportions
-cnt <- worked[, .(status, proportion = mean(proportion)),
+cnt <- worked[, .(status, all = mean(all), attended = mean(attended), 
+                  proportion = mean(proportion)),
               by = .(week = paste(year(date), "/", week(date)))]
 
 #merge
 mob_cnt <- merge(cnt, gm, by = c("week"))
 mob_cnt <- unique(mob_cnt)
+mob_cnt <- mob_cnt[proportion != 0]
 
 #plot 
 plw <- ggplot(mob_cnt) + 
-  geom_point(aes(x = workplaces, y = proportion, colour = status)) + 
+  geom_point(aes(x = workplaces, y = proportion, colour = status, size = all)) + 
   labs(x = "Google Mobility\n'workplaces' visits",
        y = "Proportion of people who went to work", colour = "Status") 
 plw
