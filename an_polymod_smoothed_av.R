@@ -1,4 +1,4 @@
-## Using POLYMOD to scale CoMix data
+## Smoothed average using weighted mean
 
 #load libraries
 library(data.table)
