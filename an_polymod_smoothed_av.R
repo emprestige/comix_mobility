@@ -15,49 +15,6 @@ theme_set(cowplot::theme_cowplot(font_size = 10) + theme(strip.background = elem
 #set data path
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
 
-#import mobility data
-mob <- qs::qread(file.path(data_path, "google_mob.qs"))
-
-#subset for same date range
-mob_sub <- mob[date >= "2020-03-23" & date <= "2022-03-02"]
-
-#create sequence of dates
-date <- seq(as.Date("2020-03-02"), as.Date("2022-03-02"), by = "days")
-lockdowns <- as.data.table(as.Date(date))
-lockdowns$lockdown_status <- 0
-colnames(lockdowns) <- c("date", "status")
-
-#create time intervals for different types of restrictions
-T1 <- interval(ymd("2020-03-02"), ymd("2020-03-22"))
-L1 <- interval(ymd("2020-03-23"), ymd("2020-05-31"))
-T2 <- interval(ymd("2020-06-01"), ymd("2020-07-04"))
-F1 <- interval(ymd("2020-07-05"), ymd("2020-09-13"))
-T3 <- interval(ymd("2020-09-14"), ymd("2020-11-04"))
-L2 <- interval(ymd("2020-11-05"), ymd("2020-12-01"))
-T4 <- interval(ymd("2020-12-02"), ymd("2021-01-05"))
-L3 <- interval(ymd("2021-01-06"), ymd("2021-03-07"))
-T5 <- interval(ymd("2021-03-08"), ymd("2021-07-18"))
-F2 <- interval(ymd("2021-07-19"), ymd("2022-03-02"))
-
-#assign value to each type of restriction
-lockdowns$status <- ifelse(ymd(lockdowns$date) %within% T1, 1, 
-                    ifelse(ymd(lockdowns$date) %within% L1, 2, 
-                    ifelse(ymd(lockdowns$date) %within% T2, 1, 
-                    ifelse(ymd(lockdowns$date) %within% T3, 1, 
-                    ifelse(ymd(lockdowns$date) %within% L2, 2, 
-                    ifelse(ymd(lockdowns$date) %within% T4, 1, 
-                    ifelse(ymd(lockdowns$date) %within% L3, 2, 
-                    ifelse(ymd(lockdowns$date) %within% T5, 1, 0))))))))
-
-#create factor
-lockdown_fac <- factor(lockdowns$status, levels = c(0, 1, 2, 3),
-                       labels = c("No restrictions", "Some restrictions",
-                                  "Lockdown", "Pre-Pandemic"))
-lockdowns$status <- lockdown_fac
-
-#merge mobility subset and lockdown information
-#mob_sub_l <- merge(mob_sub, lockdowns, by = "date", all.y = F)
-
 #import contact data
 cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 
@@ -135,6 +92,46 @@ weighted_date <- rbind(weighted_date, poly)
 #                                                  survey_round,
 #                                                  paste(year(date), "/",
 #                                                        week(date))))]  
+
+#import mobility data
+mob <- qs::qread(file.path(data_path, "google_mob.qs"))
+
+#subset for same date range
+mob_sub <- mob[date >= "2020-03-23" & date <= "2022-03-02"]
+
+#create sequence of dates
+date <- seq(as.Date("2020-03-02"), as.Date("2022-03-02"), by = "days")
+lockdowns <- as.data.table(as.Date(date))
+lockdowns$lockdown_status <- 0
+colnames(lockdowns) <- c("date", "status")
+
+#create time intervals for different types of restrictions
+T1 <- interval(ymd("2020-03-02"), ymd("2020-03-22"))
+L1 <- interval(ymd("2020-03-23"), ymd("2020-05-31"))
+T2 <- interval(ymd("2020-06-01"), ymd("2020-07-04"))
+F1 <- interval(ymd("2020-07-05"), ymd("2020-09-13"))
+T3 <- interval(ymd("2020-09-14"), ymd("2020-11-04"))
+L2 <- interval(ymd("2020-11-05"), ymd("2020-12-01"))
+T4 <- interval(ymd("2020-12-02"), ymd("2021-01-05"))
+L3 <- interval(ymd("2021-01-06"), ymd("2021-03-07"))
+T5 <- interval(ymd("2021-03-08"), ymd("2021-07-18"))
+F2 <- interval(ymd("2021-07-19"), ymd("2022-03-02"))
+
+#assign value to each type of restriction
+lockdowns$status <- ifelse(ymd(lockdowns$date) %within% T1, 1, 
+                           ifelse(ymd(lockdowns$date) %within% L1, 2, 
+                           ifelse(ymd(lockdowns$date) %within% T2, 1, 
+                           ifelse(ymd(lockdowns$date) %within% T3, 1, 
+                           ifelse(ymd(lockdowns$date) %within% L2, 2, 
+                           ifelse(ymd(lockdowns$date) %within% T4, 1, 
+                           ifelse(ymd(lockdowns$date) %within% L3, 2, 
+                           ifelse(ymd(lockdowns$date) %within% T5, 1, 0))))))))
+
+#create factor
+lockdown_fac <- factor(lockdowns$status, levels = c(0, 1, 2, 3),
+                       labels = c("No restrictions", "Some restrictions",
+                                  "Lockdown", "Pre-Pandemic"))
+lockdowns$status <- lockdown_fac
 
 #duplicate google mobility data and rename columns
 gm2 <- rlang::duplicate(mob_sub)
