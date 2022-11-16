@@ -102,7 +102,8 @@ cnt <- cnts_l[, .(status, shop = mean(n_cnt_shop),
                   healthcare = mean(n_cnt_health_facility),
                   public_transport = mean(n_cnt_public_transport),
                   supermarket = mean(n_cnt_supermarket), 
-                  bar_rest = mean(n_cnt_bar_rest)),
+                  bar_rest = mean(n_cnt_bar_rest),
+                  outside = mean(n_cnt_outside)),
               by = .(week = paste(year(date), "/", week(date)))]
 
 #merge
@@ -129,13 +130,20 @@ plr
 plg <- ggplot(mob_cnt) +
   geom_point(aes(x = grocery, y = supermarket, colour = status)) +
   labs(x = "Google Mobility\n'grocery and pharmarcy' visits",
-       y = "Number of 'supermarket' and 'healthcare facility contacts", 
+       y = "Number of 'supermarket' contacts", 
        colour = "Status")
 plg
 mob_cnt[, supermarket_healthcare := supermarket + healthcare]
 plg <- ggplot(mob_cnt) +
   geom_point(aes(x = grocery, y = supermarket_healthcare, colour = status)) +
   labs(x = "Google Mobility\n'grocery and pharmarcy' visits",
-       y = "Number of 'supermarket' and 'healthcare facility contacts", 
+       y = "Number of 'supermarket' and 'healthcare facility' contacts", 
        colour = "Status")
 plg
+
+##parks
+plo <- ggplot(mob_cnt) +
+  geom_point(aes(x = parks, y = outside, colour = status)) +
+  labs(x = "Google Mobility\n'parks' visits", colour = "Status",
+       y = "Number of 'outside' contacts")
+plo
