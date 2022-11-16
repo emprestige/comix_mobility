@@ -21,6 +21,9 @@ cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 #order by date
 cnts_date <- cnts[order(date)]
 
+#filter out participants of a certain age
+cnts[part_age >= 18 & part_age <= 65]
+
 #create data table with subset of variables
 num <- cnts_date[, .(date, study, part_id, part_age, part_employstatus,
                      part_attend_work_yesterday, survey_round, weekday, 
@@ -88,12 +91,18 @@ num_merge_part <- cnts_l[part_attend_work_yesterday == "yes" &
                            part_employed == "Part time"]
 num_merge_self <- cnts_l[part_attend_work_yesterday == "yes" &
                            part_employed == "Self employed"]
+
+#employed people who attended work
 num_merge_work <- rbind(num_merge_full, num_merge_part, num_merge_self)
+
 num_merge_worker_full <- cnts_l[part_employed == "Full time"]
 num_merge_worker_part <- cnts_l[part_employed == "Part time"]
 num_merge_worker_self <- cnts_l[part_employed == "Self employed"]
+
+#employed people
 num_merge_worker <- rbind(num_merge_worker_full, num_merge_worker_part, 
                           num_merge_worker_self)
+
 num_merge_work <- num_merge_work[order(date)]
 num_merge_worker <- num_merge_worker[order(date)]
 attended <- num_merge_work %>%
@@ -128,6 +137,8 @@ gm2[, transit_stations  := (100 + transit_stations ) * 0.01]
 gm2[, workplaces        := (100 + workplaces       ) * 0.01]
 gm2[, residential       := (100 + residential      ) * 0.01]
 gm2[, study := "CoMix"]
+
+#subset to relevant variables
 gm2 <- gm2[, .(date, study, retail_recreation, grocery_pharmacy, parks, 
                transit_stations, workplaces, residential)]
 
