@@ -136,6 +136,7 @@ plg <- ggplot(mob_cnt) +
        y = "Number of 'supermarket' contacts", 
        colour = "Status")
 plg
+
 mob_cnt[, supermarket_healthcare := supermarket + healthcare]
 plg <- ggplot(mob_cnt) +
   geom_point(aes(x = grocery, y = supermarket_healthcare, colour = status)) +
@@ -150,5 +151,3 @@ plo <- ggplot(mob_cnt) +
   labs(x = "Google Mobility\n'parks' visits", colour = "Status",
        y = "Number of 'outside' contacts")
 plo
-
-##investigating outliers 
