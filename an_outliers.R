@@ -114,8 +114,8 @@ cnt <- cnts_l[, .(status, shop = weighted.mean(n_cnt_shop, day_weight),
 mob_cnt <- merge(cnt, gm, by = c("week"))
 mob_cnt <- unique(mob_cnt)
 
-#get week and n
 weeks <- as.data.table(cbind(mob_cnt$week, mob_cnt$n, mob_cnt$date_length))
+names(weeks) <- c("week", "n_part", "n_dates")
 #write.csv(weeks, "number_used.csv")
 
 #look at first lockdown - most outliers are from here
