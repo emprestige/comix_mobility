@@ -107,12 +107,13 @@ weighted_date <- num_merge[, .(study, status,
                            by = .(week = paste(year(date), "/", week(date)))]  
 weighted_date <- unique(weighted_date)
 
+#get mean of polymod data so there is one baseline point
 poly <- weighted_date[study == "POLYMOD"]
 poly <- poly[, .(week = 0, study, status, 
-                 work = weighted.mean(work, day_weight, na.rm = T),
-                 home = weighted.mean(work, day_weight, na.rm = T),
-                 school = weighted.mean(school, day_weight, na.rm = T),
-                 other = weighted.mean(other, day_weight, na.rm = T))]
+                 work = mean(work, na.rm = T),
+                 home = mean(work, na.rm = T),
+                 school = mean(school, na.rm = T),
+                 other = mean(other, na.rm = T))]
 poly <- unique(poly)
 weighted_date <- weighted_date[study == "CoMix"]
 weighted_date <- rbind(weighted_date, poly)
