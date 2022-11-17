@@ -109,10 +109,10 @@ weighted_date <- unique(weighted_date)
 
 poly <- weighted_date[study == "POLYMOD"]
 poly <- poly[, .(week = 0, study, status, 
-                 work = mean(work, na.rm = T),
-                 home = mean(work, na.rm = T),
-                 school = mean(school, na.rm = T),
-                 other = mean(other, na.rm = T))]
+                 work = weighted.mean(work, day_weight, na.rm = T),
+                 home = weighted.mean(work, day_weight, na.rm = T),
+                 school = weighted.mean(school, day_weight, na.rm = T),
+                 other = weighted.mean(other, day_weight, na.rm = T))]
 poly <- unique(poly)
 weighted_date <- weighted_date[study == "CoMix"]
 weighted_date <- rbind(weighted_date, poly)
