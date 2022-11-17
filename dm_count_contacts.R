@@ -172,7 +172,8 @@ for (j in var_list_unq){
 
 cnt_names <- grep("n_cnt", names(pt_cnt_min), value = TRUE)
 cnt_names <- c("part_wave_uid", "part_id", "part_age", "survey_round", "date", 
-               "weekday", "part_employstatus", "part_attend_work_yesterday", cnt_names)
+               "weekday", "part_employstatus", "part_attend_work_yesterday",
+               "part_occupation", cnt_names)
 
 #subset 
 pt_cnt <- pt_cnt[, ..cnt_names]
