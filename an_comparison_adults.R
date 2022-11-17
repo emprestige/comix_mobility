@@ -101,12 +101,12 @@ gm <- gm2[, .(workplaces = mean(workplaces),
           by = .(week = paste(year(date), "/", week(date)))]
 
 #get means for different types of contacts
-cnt <- cnts_l[, .(status, shop = mean(n_cnt_shop), 
-                  healthcare = mean(n_cnt_health_facility),
-                  public_transport = mean(n_cnt_public_transport),
-                  supermarket = mean(n_cnt_supermarket), 
-                  bar_rest = mean(n_cnt_bar_rest),
-                  outside = mean(n_cnt_outside)),
+cnt <- cnts_l[, .(status, shop = weighted.mean(n_cnt_shop, day_weight), 
+                  healthcare = weighted.mean(n_cnt_health_facility, day_weight),
+                  public_transport = weighted.mean(n_cnt_public_transport, day_weight),
+                  supermarket = weighted.mean(n_cnt_supermarket, day_weight), 
+                  bar_rest = weighted.mean(n_cnt_bar_rest, day_weight),
+                  outside = weighted.mean(n_cnt_outside, day_weight)),
               by = .(week = paste(year(date), "/", week(date)))]
 
 #merge
