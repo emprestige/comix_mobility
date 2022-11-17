@@ -160,5 +160,12 @@ mob_cnt <- mob_cnt[proportion != 0]
 plw <- ggplot(mob_cnt) + 
   geom_point(aes(x = workplaces, y = proportion, colour = status, size = all)) + 
   labs(x = "Google Mobility\n'workplaces' visits", size = "Total Employed",
-       y = "Proportion of people who went to work", colour = "Status") 
-plw
+       y = "Proportion of people who went to work", colour = "Status")  
+
+plw + annotate("text", label = "Xmas", 
+               x = c(0.3233333, 0.36, 0.3857143, 0.41),
+               y = c(0.1963592, 0.2646351, 0.2045587, 0.1822893)) +
+  annotate("text", x = 0.6257143, y = 0.0373221, label = "Summer Hol") +
+  annotate("text", label = "NYE",
+           x = c(0.5016667, 0.5816667), y = c(0.1513413, 0.1548910)) +
+  annotate("text", x = 0.5242857, y = 0.2149076, label = "Easter")
