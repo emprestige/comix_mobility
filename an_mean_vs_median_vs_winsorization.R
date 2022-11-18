@@ -4,7 +4,6 @@
 library(data.table)
 library(ggplot2)
 library(tidyverse)
-library(mgcv)
 library(lubridate)
 library(cowplot)
 library(zoo)
