@@ -184,11 +184,14 @@ pt_cnt[, day_weight := ifelse(weekday == "Saturday", 2/7, ifelse(weekday == "Sun
 #filter for just UK surveys
 pt_cnt <- pt_cnt[substr(part_wave_uid, 1, 2) == "uk"]
 
-#filter out contacts more than 50
-pt_cnt <- pt_cnt[n_cnt_work <= 50 & n_cnt_school <= 50 & n_cnt_other <= 50]
-
 #add study name
 pt_cnt <- pt_cnt[, study := "CoMix"]
+
+#save unfiltered contacts
+qs::qsave(pt_cnt, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\part_cnts_unfilt.qs")
+
+#filter out contacts more than 50
+pt_cnt <- pt_cnt[n_cnt_work <= 50 & n_cnt_school <= 50 & n_cnt_other <= 50]
 
 #save as qs file
 qs::qsave(pt_cnt, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\part_cnts.qs")
