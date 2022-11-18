@@ -103,16 +103,15 @@ pnum[, day_weight := ifelse(weekday == "Saturday", 2/7,
 num <- rbind(cnts_l, pnum, fill = TRUE)
 num_unfilt <- rbind(cnts_unfilt_l, pnum, fill = TRUE)
 
-#un-oversample young people from POLYMOD
+#remove participants of certain age from POLYMOD
 num <- rbind(
   num[study == "CoMix"],
-  num[study == "POLYMOD" & part_age <= 20][seq(0, .N, by = 2)],
-  num[study == "POLYMOD" & part_age > 20]
+  num[study == "POLYMOD" & part_age >= 18 & part_age <= 65]
 )
+#remove participants of certain age from POLYMOD
 num_unfilt <- rbind(
   num_unfilt[study == "CoMix"],
-  num_unfilt[study == "POLYMOD" & part_age <= 20][seq(0, .N, by = 2)],
-  num_unfilt[study == "POLYMOD" & part_age > 20]
+  num_unfilt[study == "POLYMOD" & part_age >= 18 & part_age <= 65]
 )
 
 #create second database which shifts the survey rounds and dates
