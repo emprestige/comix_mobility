@@ -18,6 +18,9 @@ data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobi
 #import contact data
 cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 
+#filter out participants of a certain age
+cnts[part_age >= 18 & part_age <= 65]
+
 #order by date
 cnts_date <- cnts[order(date)]
 
@@ -102,7 +105,6 @@ num_merge <- rbind(num, num2)
 weighted_date <- num_merge[, .(study, status, 
                                work = weighted.mean(work, day_weight),
                                home = weighted.mean(home, day_weight),
-                               school = weighted.mean(school, day_weight),
                                other = weighted.mean(other, day_weight)),
                            by = .(week = paste(year(date), "/", week(date)))]  
 weighted_date <- unique(weighted_date)
@@ -112,7 +114,6 @@ poly <- weighted_date[study == "POLYMOD"]
 poly <- poly[, .(week = 0, study, status, 
                  work = mean(work, na.rm = T),
                  home = mean(work, na.rm = T),
-                 school = mean(school, na.rm = T),
                  other = mean(other, na.rm = T))]
 poly <- unique(poly)
 weighted_date <- weighted_date[study == "CoMix"]
@@ -172,11 +173,10 @@ mob_cnt <- merge(weighted_date, gm, by = c("week", "study"))
 
 #scale data by POLYMOD data point 
 mob_cnt <- mob_cnt[order(week)]
-mob_cnt <- mob_cnt[, .(week, study, status, work, home, school, other,
+mob_cnt <- mob_cnt[, .(week, study, status, work, home, other,
                        workplaces, residential, retail, grocery, transit, parks,
                        work_frac = work/head(work, 1),
                        home_frac = home/head(home, 1), 
-                       school_frac = school/head(school, 1),
                        other_frac = other/head(other, 1))]
 
 ##work data
