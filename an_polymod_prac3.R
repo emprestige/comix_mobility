@@ -60,6 +60,9 @@ mob_sub_l <- merge(mob_sub, lockdowns, by = "date", all.y = F)
 #import contact data
 cnts <- qs::qread(file.path(data_path,"part_cnts.qs"))
 
+#filter out participants of a certain age
+cnts <- cnts[part_age >= 18 & part_age <= 65]
+
 #order by date
 cnts_date <- cnts[order(date)]
 
@@ -141,8 +144,10 @@ plw <- ggplot(another) +
 plw
 
 #get fortnightly 'other' data
-another <- num[, .(status = status, other = mean(other), retail = mean(retail_recreation), 
-                   grocery = mean(grocery_pharmacy), transit = mean(transit_stations)), 
+another <- num[, .(status = status, other = mean(other), 
+                   retail = mean(retail_recreation), 
+                   grocery = mean(grocery_pharmacy), 
+                   transit = mean(transit_stations)), 
                by = .(week = ifelse(study == "CoMix", paste(year(date), "/", 
                                                       ceiling(week(date)/2)), 
                                     rep(0, length(date))), study)]
@@ -152,7 +157,7 @@ another <- unique(another)
 another <- another[, other_frac := other/tail(other, 1)]
 
 #create predictor from weighting of variables
-another[, predictor := retail * 0.345 + transit * 0.445 + grocery * 0.210] # See "optimisation" below for how this was arrived at
+another[, predictor := retail * 0.345 + transit * 0.445 + grocery * 0.210]
 
 #model using GAM
 model <- gam(other_frac ~ s(predictor), family = gaussian, data = another)

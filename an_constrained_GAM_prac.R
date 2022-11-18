@@ -57,7 +57,7 @@ mob_sub_l <- merge(mob_sub, lockdowns, by = "date", all.y = F)
 cnts <- qs::qread(file.path(data_path,"part_cnts.qs"))
 
 #filter out participants of a certain age
-cnts[part_age >= 18 & part_age <= 65]
+cnts <- cnts[part_age >= 18 & part_age <= 65]
 
 #order by date
 cnts_date <- cnts[order(date)]

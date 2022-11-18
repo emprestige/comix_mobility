@@ -11,7 +11,6 @@ library(cowplot)
 #set cowplot theme
 theme_set(cowplot::theme_cowplot(font_size = 10) + theme(strip.background = element_blank()))
 
-
 #set data path
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
 
@@ -25,7 +24,7 @@ mob_sub <- mob[date >= "2020-03-23" & date <= "2022-03-02"]
 cnts <- qs::qread(file.path(data_path,"part_cnts.qs"))
 
 #filter out participants of a certain age
-cnts[part_age >= 18 & part_age <= 65]
+cnts <- cnts[part_age >= 18 & part_age <= 65]
 
 #order by date
 cnts_date <- cnts[order(date)]
@@ -88,8 +87,7 @@ work_f[, work := pmax(0.0, predict(model, work_f, type = "response"))]
 #plot
 plw <- ggplot(another) + 
   geom_point(aes(x = workplaces, y = work, colour = study)) + 
-  geom_line(data = work_f, aes(x = workplaces, y = work)) +
-  ylim(0, 3.5) +
+  geom_line(data = work_f, aes(x = workplaces, y = work)) + ylim(0, 3.5) +
   labs(x = "Google Mobility\n'workplaces' visits", y = "Work contacts", 
        colour = "Study") +
   theme(legend.position = "none")

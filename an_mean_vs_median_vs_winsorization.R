@@ -21,13 +21,13 @@ data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobi
 cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 
 #filter out participants of a certain age
-cnts[part_age >= 18 & part_age <= 65]
+cnts <- cnts[part_age >= 18 & part_age <= 65]
 
 #import unfiltered contact data
 cnts_unfilt <- qs::qread(file.path(data_path, "part_cnts_unfilt.qs"))
 
 #filter out participants of a certain age
-cnts_unfilt[part_age >= 18 & part_age <= 65]
+cnts_unfilt <- cnts_unfilt[part_age >= 18 & part_age <= 65]
 
 #order by date
 cnts_date <- cnts[order(date)]
@@ -128,34 +128,31 @@ num_merge <- rbind(num, num2)
 num_merge_unfilt <- rbind(num_unfilt, num2_unfilt)
 
 #investigate work data
-table(cnts_date$n_cnt_work) #>90% of participants have 0 work contacts
-sum(table(cnts_unfilt_date[n_cnt_work > 50]$n_cnt_work)) #1348 participants
-0.005*nrow(cnts_unfilt_date) #1350.895 participants
+table(cnts_date$n_cnt_work) #>85% of participants have 0 work contacts
+sum(table(cnts_unfilt_date[n_cnt_work > 50]$n_cnt_work)) #1297 participants
+0.0075*nrow(cnts_unfilt_date) #1326.105 participants
 
 #investigate home data
 table(cnts_date$n_cnt_home) #~30% of participants have 0 home contacts
 
 #investigate other data
 table(cnts_date$n_cnt_other) #>70% of participants have 0 other contacts
-sum(table(cnts_unfilt_date[n_cnt_home > 50]$n_cnt_other)) #454 participants
-0.002*nrow(cnts_unfilt_date) #540.358 participants
+sum(table(cnts_unfilt_date[n_cnt_other > 50]$n_cnt_other)) #322 participants
+0.002*nrow(cnts_unfilt_date) #353.628 participants
 
 #get weighted means and medians by week
 weighted_date <- num_merge[, .(study, status, 
                                work = weighted.mean(work, day_weight),
                                home = weighted.mean(home, day_weight),
-                               other = weighted.mean(other, day_weight)),#,
-                               # work2 = weightedMedian(work, day_weight, interpolate = T),
-                               # home2 = weightedMedian(home, day_weight, interpolate = T),
-                               #other2 = weightedMedian(other, day_weight, interpolate = T)),
+                               other = weighted.mean(other, day_weight)),
                            by = .(week = paste(year(date), "/", week(date)))]  
 weighted_date <- unique(weighted_date)
 
 #get winsorized weighted means by week
 weighted_date_unfilt <- num_merge_unfilt[, .(study, status,
-                                             work = weighted_mean_winsorized(work, day_weight, LB = 0, UB = 0.98, na.rm = T),
+                                             work = weighted_mean_winsorized(work, day_weight, LB = 0, UB = 1 - 0.0075, na.rm = T),
                                              home = weighted_mean_winsorized(home, day_weight, LB = 0, UB = 1, na.rm = T),
-                                             other = weighted_mean_winsorized(other, day_weight, LB = 0, UB = 0.98, na.rm = T)),
+                                             other = weighted_mean_winsorized(other, day_weight, LB = 0, UB = 1 - 0.002, na.rm = T)),
                                          by = .(week = paste(year(date), "/", week(date)))]
 weighted_date_unfilt <- unique(weighted_date_unfilt)
 
@@ -164,10 +161,7 @@ poly <- weighted_date[study == "POLYMOD"]
 poly <- poly[, .(week = 0, study, status, 
                  work = mean(work, na.rm = T),
                  home = mean(work, na.rm = T),
-                 other = mean(other, na.rm = T))]#,
-                 # work2 = mean(work2, na.rm = T),
-                 # home2 = mean(home2, na.rm = T), 
-                 # other2 = mean(other2, na.rm = T))]
+                 other = mean(other, na.rm = T))]
 poly <- unique(poly)
 weighted_date <- weighted_date[study == "CoMix"]
 weighted_date <- rbind(weighted_date, poly)
@@ -215,12 +209,6 @@ gm <- gm2[, .(workplaces = mean(workplaces),
               grocery = mean(grocery_pharmacy), 
               transit = mean(transit_stations),
               parks = mean(parks)),
-              # workplaces2 = median(workplaces),
-              # residential2 = median(residential),
-              # retail2 = median(retail_recreation),
-              # grocery2 = median(grocery_pharmacy),
-              # transit2 = median(transit_stations),
-              # parks2 = median(parks)),
           by = .(week = ifelse(study == "CoMix",
                                paste(year(date), "/", week(date)),
                                rep(0, length(date))), study)]
@@ -231,17 +219,11 @@ mob_cnt_unfilt <- merge(weighted_date_unfilt, gm, by = c("week", "study"))
 
 #scale data by POLYMOD data point 
 mob_cnt <- mob_cnt[order(week)]
-mob_cnt <- mob_cnt[, .(week, study, status, work, home, other,
-                       #work2, home2, other2, 
-                       workplaces, residential, 
-                       retail, grocery, transit, parks, #workplaces2, 
-                       # residential2, retail2, grocery2, transit2, parks2,
+mob_cnt <- mob_cnt[, .(week, study, status, work, home, other, workplaces, 
+                       residential, retail, grocery, transit, parks, 
                        work_frac = work/head(work, 1),
                        home_frac = home/head(home, 1), 
-                       other_frac = other/head(other, 1))]#,
-                       # work_frac2 = work2/head(work2, 1),
-                       # home_frac2 = home2/head(home2, 1),
-                       # other_frac2 = other2/head(other2, 1))]
+                       other_frac = other/head(other, 1))]
 mob_cnt_unfilt <- mob_cnt_unfilt[order(week)]
 mob_cnt_unfilt <- mob_cnt_unfilt[, .(week, study, status, work, home,
                                      other, workplaces, residential, retail, 
@@ -252,22 +234,6 @@ mob_cnt_unfilt <- mob_cnt_unfilt[, .(week, study, status, work, home,
 
 ##work data
 
-# #model using GAM
-# model <- gam(work_frac ~ s(workplaces), family = gaussian, data = mob_cnt)
-
-# #predict using 'new' data
-# work_f <- data.table(workplaces = seq(0, 1.25, by = 0.01));
-# work_f[, work := pmax(0.0, predict(model, work_f, type = "response"))]
-
-# #plot
-# plw <- ggplot(mob_cnt) + 
-#   geom_point(aes(x = workplaces, y = work_frac, colour = status)) + 
-#   geom_line(data = work_f, aes(x = workplaces, y = work)) +
-#   ylim(0, 1) + xlim(0, 1) +
-#   labs(x = "Google Mobility\n'workplaces' visits",
-#        y = "Number of Work Contacts", colour = "Status") 
-# plw
-
 #plot mean
 plw <- ggplot(mob_cnt) + 
   geom_point(aes(x = workplaces, y = work_frac, colour = status)) + 
@@ -275,14 +241,6 @@ plw <- ggplot(mob_cnt) +
   labs(x = "Google Mobility\n'workplaces' visits",
        y = "Proportion of pre-pandemic\ncontacts", colour = "Status") 
 plw
-
-# #plot median
-# plw <- ggplot(mob_cnt) + 
-#   geom_point(aes(x = workplaces2, y = work_frac2, colour = status)) + 
-#   #ylim(0, 1) + xlim(0, 1) +
-#   labs(x = "Google Mobility\n'workplaces' visits",
-#        y = "Proportion of pre-pandemic\ncontacts", colour = "Status") 
-# plw
 
 #plot winsorized weighted mean
 plw <- ggplot(mob_cnt_unfilt) + 
@@ -296,24 +254,7 @@ plw
 
 #create predictor from weighting of variables
 mob_cnt[, predictor := retail * 0.345 + transit * 0.445 + grocery * 0.210] 
-#mob_cnt[, predictor2 := retail2 * 0.345 + transit2 * 0.445 + grocery2 * 0.210]
 mob_cnt_unfilt[, predictor := retail * 0.345 + transit * 0.445 + grocery * 0.210] 
-
-# #model using GAM
-# model <- gam(other_frac ~ s(predictor), family = gaussian, data = mob_cnt)
-
-# #predict using 'new' data
-# other_f <- data.table(predictor = seq(0, 1.25, by = 0.01));
-# other_f[, other := pmax(0.0, predict(model, other_f, type = "response"))]
-
-# #plot
-# plo <- ggplot(mob_cnt) + 
-#   geom_point(aes(x = predictor, y = other_frac, colour = status)) + 
-#   geom_line(data = other_f, aes(x = predictor, y = other)) +
-#   xlim(0, 1) + ylim(0, 1) + 
-#   labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits", 
-#        y = "Proportion of pre-pandemic\ncontacts", colour = "Status")
-# plo
 
 #plot mean
 plo <- ggplot(mob_cnt) + 
@@ -322,14 +263,6 @@ plo <- ggplot(mob_cnt) +
   labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits", 
        y = "Proportion of pre-pandemic\ncontacts", colour = "Status")
 plo
-
-# #plot median
-# plo <- ggplot(mob_cnt) + 
-#   geom_point(aes(x = predictor2, y = other_frac2, colour = status)) +
-#   xlim(0, 1) + ylim(0, 1) + 
-#   labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits", 
-#        y = "Proportion of pre-pandemic\ncontacts", colour = "Status")
-# plo
 
 #plot winsorized weighted mean
 plo <- ggplot(mob_cnt_unfilt) + 

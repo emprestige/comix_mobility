@@ -19,7 +19,7 @@ data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobi
 cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 
 #filter out participants of a certain age
-cnts[part_age >= 18 & part_age <= 65]
+cnts <- cnts[part_age >= 18 & part_age <= 65]
 
 #order by date
 cnts_date <- cnts[order(date)]
@@ -116,7 +116,7 @@ mob_cnt <- unique(mob_cnt)
 
 weeks <- as.data.table(cbind(mob_cnt$week, mob_cnt$n, mob_cnt$date_length))
 names(weeks) <- c("week", "n_part", "n_dates")
-#write.csv(weeks, "number_used.csv")
+write.csv(weeks, "number_used.csv")
 
 #look at first lockdown - most outliers are from here
 first_lock <- cnts_date[date >= "2020-03-23" & date <= "2020-05-05"]
@@ -186,4 +186,4 @@ characteristics <- rbind(employment, occupation, age, use.names = F)
 names(characteristics) <- c("characteristic", "n_lock1", "percent_lock1", 
                             "n_all", "percent_all")
 
-#write.csv(characteristics, "part_characteristics.csv")
+write.csv(characteristics, "part_characteristics.csv")
