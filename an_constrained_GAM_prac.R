@@ -95,11 +95,10 @@ num[, transit_stations  := (100 + transit_stations ) * 0.01]
 num[, workplaces        := (100 + workplaces       ) * 0.01]
 num[, residential       := (100 + residential      ) * 0.01]
 
-#un-oversample young people from POLYMOD
+#remove participants of certain age from POLYMOD
 num <- rbind(
   num[study == "CoMix"],
-  num[study == "POLYMOD" & part_age <= 20][seq(0, .N, by = 2)],
-  num[study == "POLYMOD" & part_age > 20]
+  num[study == "POLYMOD" & part_age >= 18 & part_age <= 65]
 )
 
 #get fortnightly work data
