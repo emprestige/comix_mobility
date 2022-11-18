@@ -116,7 +116,9 @@ mob_cnt <- unique(mob_cnt)
 
 weeks <- as.data.table(cbind(mob_cnt$week, mob_cnt$n, mob_cnt$date_length))
 names(weeks) <- c("week", "n_part", "n_dates")
-write.csv(weeks, "number_used.csv")
+
+#save
+#write.csv(weeks, "number_used.csv")
 
 #look at first lockdown - most outliers are from here
 first_lock <- cnts_date[date >= "2020-03-23" & date <= "2020-05-05"]
@@ -160,6 +162,7 @@ occupation_all[, percentage := (n/sum(n))*100]
 occupation <- merge(occupation_first, occupation_all, by = "part_occupation", all = T)
 names(occupation) <- c("part_occupation", "n_lock1", "percent_lock1", 
                        "n_all", "percent_all")
+occupation[is.na(occupation)] <- 0
 
 #ages during first lockdown
 age_first <- first_lock %>%
@@ -186,4 +189,5 @@ characteristics <- rbind(employment, occupation, age, use.names = F)
 names(characteristics) <- c("characteristic", "n_lock1", "percent_lock1", 
                             "n_all", "percent_all")
 
-write.csv(characteristics, "part_characteristics.csv")
+#save
+#write.csv(characteristics, "part_characteristics.csv")
