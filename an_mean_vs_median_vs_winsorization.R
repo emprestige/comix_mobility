@@ -148,9 +148,9 @@ weighted_date <- unique(weighted_date)
 
 #get winsorized weighted means by week
 weighted_date_unfilt <- num_merge_unfilt[, .(study, status,
-                                             work = weighted_mean_winsorized(work, day_weight, LB = 0, UB = 1 - 0.0075, na.rm = T),
+                                             work = weighted_mean_winsorized(work, day_weight, LB = 0, UB = 0.9925, na.rm = T),
                                              home = weighted_mean_winsorized(home, day_weight, LB = 0, UB = 1, na.rm = T),
-                                             other = weighted_mean_winsorized(other, day_weight, LB = 0, UB = 1 - 0.002, na.rm = T)),
+                                             other = weighted_mean_winsorized(other, day_weight, LB = 0, UB = 0.998, na.rm = T)),
                                          by = .(week = paste(year(date), "/", week(date)))]
 weighted_date_unfilt <- unique(weighted_date_unfilt)
 
