@@ -1,4 +1,6 @@
 ## data management of polymod data
+
+#import libraries
 library(socialmixr)
 library(lubridate)
 
@@ -29,6 +31,7 @@ pnum = pnum[, lapply(.SD, function(x) pmin(50, x)), by = .(part_id, part_age, da
 
 #insert extra variables 
 pnum[, t := as.numeric(date - ymd("2006-01-01"))]
+pnum[, all := home + work + school + other]
 # pnum[, retail_recreation := 0]
 # pnum[, grocery_pharmacy := 0]
 # pnum[, parks := 0]
