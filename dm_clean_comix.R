@@ -25,13 +25,19 @@ ages <- ct_uk %>% group_by(cnt_age_group) %>% tally()
 #filter out unnecessary variables 
 ct_nmes <- c("part_id", "cnt_age_est_min", "cnt_age_est_max", 
              "cnt_gender", "cnt_home", "cnt_work", "cnt_school",
-             "cnt_public_transport", "cnt_other", "survey_round")
+             "cnt_public_transport", "cnt_other", "cnt_phys", "survey_round")
 ct_uk <- ct_uk[, ..ct_nmes]
+
+#save data
+qs::qsave(pt_uk, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\participants.qs")
+qs::qsave(ct_uk, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\contact.qs")
+
+#filter out bad rounds
 ct_uk <- ct_uk[survey_round != "6"]
 pt_uk <- pt_uk[survey_round != "6"]
 ct_uk <- ct_uk[survey_round != "7"]
 pt_uk <- pt_uk[survey_round != "7"]
 
 #save data
-qs::qsave(pt_uk, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\participants.qs")
-qs::qsave(ct_uk, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\contact.qs")
+qs::qsave(pt_uk, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\participants_filt.qs")
+qs::qsave(ct_uk, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\contact_filt.qs")
