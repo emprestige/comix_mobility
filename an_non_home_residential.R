@@ -173,3 +173,11 @@ plh <- ggplot(mob_cnt) +
   labs(x = "Google Mobility\n'residential' visits",
        y = "Proportion of non-home \npre-pandemic contacts", colour = "Status") 
 plh
+
+mob_cnt_comix <- mob_cnt[study == "CoMix"]
+plh <- ggplot(mob_cnt_comix) + 
+  geom_point(aes(x = residential, y = nonhome, colour = status)) + 
+  #ylim(0, 1) + xlim(0, 1) +
+  labs(x = "Google Mobility\n'residential' visits",
+       y = "Proportion of non-home \npre-pandemic contacts", colour = "Status") 
+plh
