@@ -41,3 +41,11 @@ pt_uk <- pt_uk[survey_round != "7"]
 #save data
 qs::qsave(pt_uk, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\participants_filt.qs")
 qs::qsave(ct_uk, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\contact_filt.qs")
+
+##
+
+pt <- qs::qread(file.path(dir_data_validate, "part.qs"))
+pt_uk <- pt[country == "uk"]
+pt_uk <- pt_uk[survey_round != "6"]
+pt_uk <- pt_uk[survey_round != "7"]
+qs::qsave(pt_uk, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\participants_filt_full.qs")
