@@ -171,9 +171,9 @@ for (j in var_list_unq){
 #dta = pt_cnt[country == "uk", .(mean(n_cnt), mean(n_cnt_unq), mean(n_cnt_unq_home), mean(n_cnt_unq_workschool), mean(n_cnt_unq_other),.N), by = .(survey_round, sample_type)][order(sample_type, survey_round)]
 
 cnt_names <- grep("n_cnt", names(pt_cnt_min), value = TRUE)
-cnt_names <- c("part_wave_uid", "part_id", "part_age", "survey_round", "date", 
-               "weekday", "part_employstatus", "part_attend_work_yesterday",
-               "part_occupation", cnt_names)
+cnt_names <- c("part_wave_uid", "part_id", "part_age", "part_age_group", 
+               "survey_round", "date", "weekday", "part_employstatus", 
+               "part_attend_work_yesterday", "part_occupation", cnt_names)
 
 #subset 
 pt_cnt <- pt_cnt[, ..cnt_names]
