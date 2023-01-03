@@ -24,7 +24,6 @@ pt <- pt %>%
                                     part_age >= 60 & part_age <= 69 ~ "60-69",
                                     part_age >= 70 ~ "70+"))
 
-
 #area
 pt %>% group_by(area_2_name) %>%
   tally()
