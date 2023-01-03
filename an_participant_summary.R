@@ -2,15 +2,13 @@
 
 #load libraries
 library(data.table)
-library(ggplot2)
 library(tidyverse)
-library(socialmixr)
 
 #set data path
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
 
 #import participant and contact data
-pt <- qs::qread(file.path(data_path, "participants_filt.qs"))
+pt <- qs::qread(file.path(data_path, "participants_filt_full.qs"))
 
 #filter out participants of a certain age
 pt <- pt[part_age >= 18 & part_age <= 65]
@@ -38,4 +36,40 @@ pt %>% group_by(part_age_group) %>%
 
 #household size group 
 pt %>% group_by(hh_size_group) %>%
+  tally()
+
+##not main variables
+
+#household composition 
+pt %>% group_by(hh_type) %>%
+  tally()
+
+#employment status
+pt %>% group_by(part_employstatus) %>%
+  tally()
+
+#occupation
+pt %>% group_by(part_occupation) %>%
+  tally()
+
+#high risk
+pt %>% group_by(part_high_risk) %>%
+  tally()
+pt %>% group_by(part_high_risk_v2) %>%
+  tally()
+pt %>% group_by(part_med_risk_v2) %>%
+  tally()
+
+#type
+pt %>% group_by(sample_type) %>%
+  tally()
+
+#ethnicity
+pt %>% group_by(part_ethnicity) %>%
+  tally()
+pt %>% group_by(part_ethnicity2) %>%
+  tally()
+
+#vaccinated
+pt %>% group_by(part_vacc) %>%
   tally()
