@@ -189,6 +189,18 @@ pt_cnt <- pt_cnt[substr(part_wave_uid, 1, 2) == "uk"]
 #add study name
 pt_cnt <- pt_cnt[, study := "CoMix"]
 
+#sort out age groups
+pt_cnt <- pt_cnt %>%
+  mutate(part_age_group = case_when(part_age >= 0 & part_age <= 4 ~ "0-4",
+                                    part_age >= 5 & part_age <= 11 ~ "5-11",
+                                    part_age >= 12 & part_age <= 17 ~ "12-17",
+                                    part_age >= 18 & part_age <= 29 ~ "18-29",
+                                    part_age >= 30 & part_age <= 39 ~ "30-39",
+                                    part_age >= 40 & part_age <= 49 ~ "40-49",
+                                    part_age >= 50 & part_age <= 59 ~ "50-59",
+                                    part_age >= 60 & part_age <= 69 ~ "60-69",
+                                    part_age >= 70 ~ "70+"))
+
 #save unfiltered contacts
 qs::qsave(pt_cnt, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\part_cnts_unfilt.qs")
 
