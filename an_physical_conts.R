@@ -103,8 +103,6 @@ plot_grid(plots[[21]], plots_phys[[21]])
 #import contact data
 cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 cnts <- cnts[part_age != is.na(part_age)]
-cnts <- cnts[part_age_group != is.na(part_age)]
-cnts[part_age_group == "70-120"]$part_age_group <- "70+" 
 
 #get average contacts both all and physical specifically
 avg_cnt <- cnts %>%
