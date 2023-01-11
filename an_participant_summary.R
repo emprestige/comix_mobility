@@ -8,13 +8,13 @@ library(tidyverse)
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
 
 #import participant and contact data
-pt <- qs::qread(file.path(data_path, "participants_filt_full.qs"))
+cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 
 #filter out participants of a certain age
-pt <- pt[part_age >= 18 & part_age <= 65]
+cnts <- cnts[part_age >= 18 & part_age <= 65]
 
 #fix age groups
-pt <- pt %>%
+cnts <- cnts %>%
   mutate(part_age_group = case_when(part_age >= 18 & part_age <= 29 ~ "18-29",
                                     part_age >= 30 & part_age <= 39 ~ "30-39",
                                     part_age >= 40 & part_age <= 49 ~ "40-49",
@@ -22,54 +22,49 @@ pt <- pt %>%
                                     part_age >= 60 & part_age <= 69 ~ "60-69",
                                     part_age >= 70 ~ "70+"))
 
-#area
-pt %>% group_by(area_2_name) %>%
-  tally()
 
-#social class
-pt %>% group_by(part_social_group) %>%
+#gender
+cnts %>% group_by(part_gender_nb) %>%
   tally()
 
 #age group
-pt %>% group_by(part_age_group) %>%
+cnts %>% group_by(part_age_group) %>%
+  tally()
+
+#employment status
+cnts %>% group_by(part_employstatus) %>%
+  tally()
+
+#social class
+cnts %>% group_by(part_social_group) %>%
+  tally()
+
+#area
+cnts %>% group_by(area_2_name) %>%
   tally()
 
 #household size group 
-pt %>% group_by(hh_size_group) %>%
+cnts %>% group_by(hh_size_group) %>%
   tally()
 
 ##not main variables
 
 #household composition 
-pt %>% group_by(hh_type) %>%
-  tally()
-
-#employment status
-pt %>% group_by(part_employstatus) %>%
+cnts %>% group_by(hh_type) %>%
   tally()
 
 #occupation
-pt %>% group_by(part_occupation) %>%
+cnts %>% group_by(part_occupation) %>%
   tally()
 
 #high risk
-pt %>% group_by(part_high_risk) %>%
-  tally()
-pt %>% group_by(part_high_risk_v2) %>%
-  tally()
-pt %>% group_by(part_med_risk_v2) %>%
-  tally()
-
-#type
-pt %>% group_by(sample_type) %>%
+cnts %>% group_by(part_high_risk) %>%
   tally()
 
 #ethnicity
-pt %>% group_by(part_ethnicity) %>%
-  tally()
-pt %>% group_by(part_ethnicity2) %>%
+cnts %>% group_by(part_ethnicity) %>%
   tally()
 
 #vaccinated
-pt %>% group_by(part_vacc) %>%
+cnts %>% group_by(part_vacc) %>%
   tally()
