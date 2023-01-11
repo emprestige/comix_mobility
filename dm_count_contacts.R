@@ -8,6 +8,7 @@
 
 # Packages ----------------------------------------------------------------
 library(data.table)
+library(dplyr)
 
 # Source user written scripts ---------------------------------------------
 #source('r/00_setup_filepaths.r')
@@ -173,9 +174,10 @@ for (j in var_list_unq){
 cnt_names <- grep("n_cnt", names(pt_cnt_min), value = TRUE)
 cnt_names <- c("part_wave_uid", "part_id", "part_age", "part_age_group", 
                "survey_round", "date", "weekday", "part_employstatus", 
-               "part_attend_work_yesterday", "part_occupation", 
-               "area_rural_urban_code", "area_rural_urban_label", 
-               cnt_names)
+               "part_attend_work_yesterday", "part_occupation", "part_vacc",
+               "part_gender_nb", "area_rural_urban_code", "part_ethnicity",
+               "area_rural_urban_label", "area_2_name", "hh_size_group", 
+               "hh_type", "part_high_risk", "part_social_group", cnt_names)
 
 #subset 
 pt_cnt <- pt_cnt[, ..cnt_names]
@@ -188,18 +190,6 @@ pt_cnt <- pt_cnt[substr(part_wave_uid, 1, 2) == "uk"]
 
 #add study name
 pt_cnt <- pt_cnt[, study := "CoMix"]
-
-#sort out age groups
-pt_cnt <- pt_cnt %>%
-  mutate(part_age_group = case_when(part_age >= 0 & part_age <= 4 ~ "0-4",
-                                    part_age >= 5 & part_age <= 11 ~ "5-11",
-                                    part_age >= 12 & part_age <= 17 ~ "12-17",
-                                    part_age >= 18 & part_age <= 29 ~ "18-29",
-                                    part_age >= 30 & part_age <= 39 ~ "30-39",
-                                    part_age >= 40 & part_age <= 49 ~ "40-49",
-                                    part_age >= 50 & part_age <= 59 ~ "50-59",
-                                    part_age >= 60 & part_age <= 69 ~ "60-69",
-                                    part_age >= 70 ~ "70+"))
 
 #save unfiltered contacts
 qs::qsave(pt_cnt, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\part_cnts_unfilt.qs")
