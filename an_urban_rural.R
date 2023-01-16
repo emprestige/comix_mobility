@@ -64,6 +64,9 @@ num2[, survey_round := survey_round + 1]
 #merge the two 
 num_merge <- rbind(cnts_date, num2) 
 
+#calculate non home contacts
+num_merge[, nonhome := n_cnt - n_cnt_home]
+
 #merge contact data and lockdown information
 cnts_l <- merge(num_merge, lockdowns, by = "date", all.y = F)
 
@@ -107,7 +110,8 @@ cnt <- num_filt[, .(status, work = weighted.mean(n_cnt_work, day_weight),
                   public_transport = weighted.mean(n_cnt_public_transport, day_weight),
                   supermarket = weighted.mean(n_cnt_supermarket, day_weight), 
                   bar_rest = weighted.mean(n_cnt_bar_rest, day_weight),
-                  outside = weighted.mean(n_cnt_outside, day_weight)),
+                  outside = weighted.mean(n_cnt_outside, day_weight),
+                  nonhome = weighted.mean(nonhome, day_weight)),
                 by = .(area = area_rural_urban_code, 
                        week = paste(year(date), "/", week(date)))]
 
@@ -219,3 +223,11 @@ plp2 <- ggplot(mob_cnt, aes(parks, outside, colour = status)) + geom_point() +
        y = "Number of 'outside' contacts", shape = "Area Type") +
   facet_wrap(~ area)
 plp2
+
+##nonhome
+
+plh <- ggplot(mob_cnt, aes(residential, nonhome, colour = status)) + 
+  geom_point() + labs(x = "Google Mobility\n'residential' visits", colour = "Status",
+                      y = "Number of non-home contacts", shape = "Area Type") +
+  facet_wrap(~ area)
+plh
