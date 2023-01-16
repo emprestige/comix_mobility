@@ -99,25 +99,36 @@ plot_grid(plots[[99]], plots_phys[[99]])
 plot_grid(plots[[21]], plots_phys[[21]])
 
 ##
-
 #import contact data
 cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
+
+#sort ages
 cnts <- cnts[part_age != is.na(part_age)]
+cnts <- cnts[part_age >= 18 & part_age <= 65]
+cnts <- cnts %>%
+  mutate(part_age_group = case_when(part_age >= 18 & part_age <= 29 ~ "18-29",
+                                    part_age >= 30 & part_age <= 39 ~ "30-39",
+                                    part_age >= 40 & part_age <= 49 ~ "40-49",
+                                    part_age >= 50 & part_age <= 59 ~ "50-59",
+                                    part_age >= 60 & part_age <= 69 ~ "60-69",
+                                    part_age >= 70 ~ "70+"))
 
 #get average contacts both all and physical specifically
 avg_cnt <- cnts %>%
   group_by(part_age_group) %>%
-  summarise(all = mean(n_cnt), phys = mean(n_cnt_phys))
+  summarise(all = mean(n_cnt), physical = mean(n_cnt_phys)) %>%
+  gather("contact_type", "contacts", -part_age_group)
 avg_cnt$part_age_group <- factor(avg_cnt$part_age_group, 
                                  levels = c("0-4", "5-11", "12-17", "18-29",
                                             "30-39", "40-49", "50-59", "60-69",
                                             "70+"))
 
 #plot
-ggplot(avg_cnt) + geom_line(aes(part_age_group, all, group = 1)) +
-  geom_point(aes(part_age_group, all)) + geom_point(aes(part_age_group, phys)) +
-  geom_line(aes(part_age_group, phys, group = 1), linetype = "longdash") +
-  labs(x = "age group", y = "average contact")
+ggplot(avg_cnt) + geom_line(aes(part_age_group, contacts, group = contact_type, 
+                                linetype = contact_type)) +
+  geom_point(aes(part_age_group, contacts)) + 
+  labs(x = "Age Group", y = "Average Number of Contacts", 
+       linetype = "Type of Contact")
 
 #import edited polymod data
 pnum <- qs::qread(file.path(data_path, "polymod.qs"))
@@ -129,11 +140,9 @@ pnum[, day_weight := ifelse(weekday == "Saturday", 2/7,
 
 #create age groups
 pnum <- pnum[part_age != is.na(part_age)]
+pnum <- pnum[part_age >= 18 & part_age <= 65]
 pnum <- pnum %>%
-  mutate(part_age_group = case_when(part_age >= 0 & part_age <= 4 ~ "0-4",
-                                    part_age >= 5 & part_age <= 11 ~ "5-11",
-                                    part_age >= 12 & part_age <= 17 ~ "12-17",
-                                    part_age >= 18 & part_age <= 29 ~ "18-29",
+  mutate(part_age_group = case_when(part_age >= 18 & part_age <= 29 ~ "18-29",
                                     part_age >= 30 & part_age <= 39 ~ "30-39",
                                     part_age >= 40 & part_age <= 49 ~ "40-49",
                                     part_age >= 50 & part_age <= 59 ~ "50-59",
@@ -146,7 +155,8 @@ pnum$phys[is.na(pnum$phys)] <- 0
 #get average contacts both all and physical specifically
 avg_cnt_poly <- pnum %>%
   group_by(part_age_group) %>%
-  summarise(all = mean(all), phys = mean(phys))
+  summarise(all = mean(all), physical = mean(phys)) %>%
+  gather("contact_type", "contacts", -part_age_group)
 
 #set both average data frames to data tables and define study name
 avg_cnt <- as.data.table(avg_cnt)
@@ -156,10 +166,12 @@ avg_cnt_poly[, study := "POLYMOD"]
 
 #merge
 avgs <- rbind(avg_cnt, avg_cnt_poly)
+groups <- c("contact_type", "study")
 
 #plot
-ggplot(avgs) + geom_line(aes(part_age_group, all, group = study, col = study)) +
-  geom_point(aes(part_age_group, all, col = study)) + 
-  geom_point(aes(part_age_group, phys, col = study)) +
-  geom_line(aes(part_age_group, phys, group = study, col = study), linetype = "longdash") +
-  labs(x = "age group", y = "average contact")
+ggplot(avgs) + geom_line(aes(part_age_group, contacts, col = study,
+                             group = interaction(study, contact_type), 
+                             linetype = contact_type)) +
+  geom_point(aes(part_age_group, contacts, col = study)) + 
+  labs(x = "Age Group", y = "Average Number of Contacts",
+       col = "Study", linetype = "Type of Contact")
