@@ -19,7 +19,7 @@ data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobi
 cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 
 #filter out participants of a certain age
-cnts <- cnts[part_age >= 18 & part_age <= 65]
+cnts <- cnts[part_age >= 18]# & part_age <= 65]
 
 #order by date
 cnts_date <- cnts[order(date)]
@@ -118,6 +118,18 @@ worked <- as.data.table(worked)
 worked[, proportion := attended/all]
 worked <- merge(worked, lockdowns, by = "date", all.y = F)
 
+#add column for special dates 
+summer <- interval(ymd("2020-08-03"), ymd("2020-08-09"))
+worked[, special := ifelse(date == ymd("2020-12-25"), "Xmas",
+                    ifelse(date == ymd("2021-12-25"), "Xmas",
+                    ifelse(date == ymd("2020-12-31"), "NYE",
+                    ifelse(date == ymd("2021-12-31"), "NYE",
+                    ifelse(date == ymd("2021-01-01"), "NYD",
+                    ifelse(date == ymd("2022-01-01"), "NYD",
+                    ifelse(date == ymd("2020-04-13"), "Easter",
+                    ifelse(date == ymd("2021-04-05"), "Easter", 
+                    ifelse(date %within% summer, "Summer Hol", NA)))))))))]
+
 #import mobility data
 mob <- qs::qread(file.path(data_path, "google_mob.qs"))
 
@@ -147,25 +159,25 @@ gm <- gm2[, .(workplaces = mean(workplaces)),
           by = .(week = paste(year(date), "/", week(date)))]
 
 #get means for proportions
-cnt <- worked[, .(status, all = mean(all), attended = mean(attended), 
-                  proportion = mean(proportion)),
+cnt <- worked[, .(status, special, all = sum(all), attended = sum(attended), 
+                  proportion = sum(attended)/sum(all)),
               by = .(week = paste(year(date), "/", week(date)))]
 
 #merge
 mob_cnt <- merge(cnt, gm, by = c("week"))
-mob_cnt <- unique(mob_cnt)
+mob_cnt1 <- unique(mob_cnt)
+mob_cnt1 <- mob_cnt1[special != is.na(special)]
+mob_cnt2 <- mob_cnt %>% distinct(across(-special))
+mob_cnt <- merge(mob_cnt1, mob_cnt2, all.y = T, by = c("week", "all", "attended",
+                                            "proportion", "workplaces", "status"))
+
+#remove values before attended work was recorded
 mob_cnt <- mob_cnt[proportion != 0]
 
 #plot 
-plw <- ggplot(mob_cnt) + 
-  geom_point(aes(x = workplaces, y = proportion, colour = status, size = all)) + 
+plw <- ggplot(mob_cnt, aes(x = workplaces, y = proportion, label = special)) + 
+  geom_point(aes(colour = status, size = all)) + 
   labs(x = "Google Mobility\n'workplaces' visits", size = "Total Employed",
-       y = "Proportion of people who went to work", colour = "Status") 
+       y = "Proportion of people who went to work", colour = "Status") +
+  geom_text()
 plw
-plw + annotate("text", label = "Xmas",
-               x = c(0.325, 0.36, 0.3657143, 0.3842857),
-               y = c(0.1534504, 0.315, 0.2039149, 0.1785845)) +
-   annotate("text", x = 0.6271429, y = 0.0685086, label = "Summer Hol") +
-   annotate("text", label = "NYE",
-            x = c(0.5014286, 0.5957143), y = c(0.1527343, 0.1893173)) +
-   annotate("text", x = 0.5171429, y =0.2204314, label = "Easter")
