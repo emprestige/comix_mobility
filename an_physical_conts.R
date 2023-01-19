@@ -104,7 +104,7 @@ cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 
 #sort ages
 cnts <- cnts[part_age != is.na(part_age)]
-cnts <- cnts[part_age >= 18 & part_age <= 65]
+cnts <- cnts[part_age >= 18 ]
 cnts <- cnts %>%
   mutate(part_age_group = case_when(part_age >= 18 & part_age <= 29 ~ "18-29",
                                     part_age >= 30 & part_age <= 39 ~ "30-39",
@@ -140,7 +140,7 @@ pnum[, day_weight := ifelse(weekday == "Saturday", 2/7,
 
 #create age groups
 pnum <- pnum[part_age != is.na(part_age)]
-pnum <- pnum[part_age >= 18 & part_age <= 65]
+pnum <- pnum[part_age >= 18]
 pnum <- pnum %>%
   mutate(part_age_group = case_when(part_age >= 18 & part_age <= 29 ~ "18-29",
                                     part_age >= 30 & part_age <= 39 ~ "30-39",
