@@ -195,7 +195,9 @@ pt_cnt <- pt_cnt[, study := "CoMix"]
 qs::qsave(pt_cnt, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\part_cnts_unfilt.qs")
 
 #filter out contacts more than 50
-pt_cnt <- pt_cnt[n_cnt_work <= 50 & n_cnt_school <= 50 & n_cnt_other <= 50]
+pt_cnt <- pt_cnt[, n_cnt_work := ifelse(n_cnt_work > 50, 50, n_cnt_work)]
+pt_cnt <- pt_cnt[, n_cnt_school := ifelse(n_cnt_school > 50, 50, n_cnt_school)]
+pt_cnt <- pt_cnt[, n_cnt_other := ifelse(n_cnt_other > 50, 50, n_cnt_other)]
 
 #save as qs file
 qs::qsave(pt_cnt, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\part_cnts.qs")
