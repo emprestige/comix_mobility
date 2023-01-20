@@ -17,7 +17,7 @@ data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobi
 cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 
 #filter out participants of a certain age
-cnts <- cnts[part_age >= 18 & part_age <= 65]
+cnts <- cnts[part_age >= 18]
 
 #order by date
 cnts_date <- cnts[order(date)]
@@ -121,12 +121,12 @@ mob_cnt <- unique(mob_cnt)
 mob_cnt$area <- factor(mob_cnt$area, labels = c("Urban", "Rural"), levels = c(1, 2))
 
 #plot work
-plw <- ggplot(mob_cnt) + 
-  geom_point(aes(x = workplaces, y = work, colour = status, shape = area)) + 
-  labs(x = "Google Mobility\n'workplaces' visits",
-       y = "Number of work contacts", colour = "Status",
-       shape = "Area Type") 
-plw
+# plw <- ggplot(mob_cnt) + 
+#   geom_point(aes(x = workplaces, y = work, colour = status, shape = area)) + 
+#   labs(x = "Google Mobility\n'workplaces' visits",
+#        y = "Number of work contacts", colour = "Status",
+#        shape = "Area Type") 
+# plw
 
 plw2 <- ggplot(mob_cnt, aes(workplaces, work, col = status)) + geom_point() +
   labs(x = "Google Mobility\n'workplaces' visits",
@@ -136,12 +136,12 @@ plw2
 
 ##other
 mob_cnt[, predictor := retail * 0.345 + transit * 0.445 + grocery * 0.210]
-plo <- ggplot(mob_cnt) + 
-  geom_point(aes(x = predictor, y = other, colour = status, shape = area)) + 
-  labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits", 
-       y = "Number of 'other' contacts", 
-       colour = "Status", shape = "Area Type")
-plo
+# plo <- ggplot(mob_cnt) + 
+#   geom_point(aes(x = predictor, y = other, colour = status, shape = area)) + 
+#   labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits", 
+#        y = "Number of 'other' contacts", 
+#        colour = "Status", shape = "Area Type")
+# plo
 
 plo2 <- ggplot(mob_cnt, aes(predictor, other, col = status)) + geom_point() + 
   labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits", 
@@ -152,12 +152,12 @@ plo2
 ##other comparisons
 
 ##public transit
-plt <- ggplot(mob_cnt) + 
-  geom_point(aes(x = transit, y = public_transport, colour = status, shape = area)) + 
-  labs(x = "Google Mobility\n'public transit' visits",
-       y = "Number of 'public transport' contacts", 
-       colour = "Status", shape = "Area Type") 
-plt
+# plt <- ggplot(mob_cnt) + 
+#   geom_point(aes(x = transit, y = public_transport, colour = status, shape = area)) + 
+#   labs(x = "Google Mobility\n'public transit' visits",
+#        y = "Number of 'public transport' contacts", 
+#        colour = "Status", shape = "Area Type") 
+# plt
 
 plt2 <- ggplot(mob_cnt, aes(transit, public_transport, col = status)) + 
   geom_point() + facet_wrap(~ area) +
@@ -168,12 +168,12 @@ plt2
 
 ##retail and recreation
 mob_cnt[, shop_bar_rest := shop + bar_rest]
-plr <- ggplot(mob_cnt) +
-  geom_point(aes(x = retail, y = shop_bar_rest, colour = status, shape = area)) +
-  labs(x = "Google Mobility\n'retail and recreation' visits",
-       y = "Number of 'bar and restaurant'\nand 'shop' contacts",
-       colour = "Status", shape = "Area Type")
-plr
+# plr <- ggplot(mob_cnt) +
+#   geom_point(aes(x = retail, y = shop_bar_rest, colour = status, shape = area)) +
+#   labs(x = "Google Mobility\n'retail and recreation' visits",
+#        y = "Number of 'bar and restaurant'\nand 'shop' contacts",
+#        colour = "Status", shape = "Area Type")
+# plr
 
 plr2 <- ggplot(mob_cnt, aes(retail, shop_bar_rest, col = status)) + geom_point() +
   labs(x = "Google Mobility\n'retail and recreation' visits",
@@ -182,12 +182,12 @@ plr2 <- ggplot(mob_cnt, aes(retail, shop_bar_rest, col = status)) + geom_point()
 plr2
 
 ##grocery and pharmacy
-plg <- ggplot(mob_cnt) +
-  geom_point(aes(x = grocery, y = supermarket, colour = status, shape = area)) +
-  labs(x = "Google Mobility\n'grocery and pharmarcy' visits",
-       y = "Number of 'supermarket' contacts", 
-       colour = "Status", shape = "Area Type")
-plg
+# plg <- ggplot(mob_cnt) +
+#   geom_point(aes(x = grocery, y = supermarket, colour = status, shape = area)) +
+#   labs(x = "Google Mobility\n'grocery and pharmarcy' visits",
+#        y = "Number of 'supermarket' contacts", 
+#        colour = "Status", shape = "Area Type")
+# plg
 
 plg2 <- ggplot(mob_cnt, aes(grocery, supermarket, col = status)) +
   geom_point() + facet_wrap(~ area) +
@@ -195,14 +195,15 @@ plg2 <- ggplot(mob_cnt, aes(grocery, supermarket, col = status)) +
        y = "Number of 'supermarket' contacts", colour = "Status")
 plg2
 
+#combine supermarket and healthcare
 mob_cnt[, supermarket_healthcare := supermarket + healthcare]
-plgg <- ggplot(mob_cnt) +
-  geom_point(aes(x = grocery, y = supermarket_healthcare, 
-                 colour = status, shape = area)) +
-  labs(x = "Google Mobility\n'grocery and pharmarcy' visits",
-       y = "Number of 'supermarket' and 'healthcare facility' contacts", 
-       colour = "Status", shape = "Area Type")
-plgg
+# plgg <- ggplot(mob_cnt) +
+#   geom_point(aes(x = grocery, y = supermarket_healthcare, 
+#                  colour = status, shape = area)) +
+#   labs(x = "Google Mobility\n'grocery and pharmarcy' visits",
+#        y = "Number of 'supermarket' and 'healthcare facility' contacts", 
+#        colour = "Status", shape = "Area Type")
+# plgg
 
 plgg2 <- ggplot(mob_cnt, aes(grocery, supermarket_healthcare, col = status)) +
   geom_point() + facet_wrap(~ area) +
@@ -212,11 +213,11 @@ plgg2 <- ggplot(mob_cnt, aes(grocery, supermarket_healthcare, col = status)) +
 plgg2
 
 ##parks
-plp <- ggplot(mob_cnt) +
-  geom_point(aes(x = parks, y = outside, colour = status, shape = area)) +
-  labs(x = "Google Mobility\n'parks' visits", colour = "Status",
-       y = "Number of 'outside' contacts", shape = "Area Type")
-plp
+# plp <- ggplot(mob_cnt) +
+#   geom_point(aes(x = parks, y = outside, colour = status, shape = area)) +
+#   labs(x = "Google Mobility\n'parks' visits", colour = "Status",
+#        y = "Number of 'outside' contacts", shape = "Area Type")
+# plp
 
 plp2 <- ggplot(mob_cnt, aes(parks, outside, colour = status)) + geom_point() +
   labs(x = "Google Mobility\n'parks' visits", colour = "Status",
@@ -225,9 +226,14 @@ plp2 <- ggplot(mob_cnt, aes(parks, outside, colour = status)) + geom_point() +
 plp2
 
 ##nonhome
-plh <- ggplot(mob_cnt, aes(residential, nonhome, colour = status)) + 
-  geom_point() + labs(x = "Google Mobility\n time at 'residential' location", 
-                      colour = "Status", shape = "Area Type",
-                      y = "Number of non-home contacts") +
+# plh <- ggplot(mob_cnt, aes(residential, nonhome, colour = status)) +
+#   geom_point() + labs(x = "Google Mobility\n time at 'residential' location",
+#                       colour = "Status", shape = "Area Type",
+#                       y = "Number of non-home contacts")
+# plh
+
+plh2 <- ggplot(mob_cnt, aes(residential, nonhome, colour = status)) +
+  geom_point() + labs(x = "Google Mobility\n time at 'residential' location",
+                      colour = "Status", y = "Number of non-home contacts") +
   facet_wrap(~ area)
-plh
+plh2

@@ -19,7 +19,7 @@ data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobi
 cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 
 #filter out participants of a certain age
-cnts <- cnts[part_age >= 18 & part_age <= 65]
+cnts <- cnts[part_age >= 18]
 
 #order by date
 cnts_date <- cnts[order(date)]
