@@ -28,7 +28,8 @@ cnts_date <- cnts[order(date)]
 
 #create data table with subset of variables
 num <- cnts_date[, .(date, part_id, part_age, survey_round, weekday, day_weight, 
-                     home = n_cnt_home, work = n_cnt_work)]
+                     home = n_cnt_home, work = n_cnt_work, school = n_cnt_school,
+                     other = n_cnt_other, all = n_cnt)]
 num[, t := as.numeric(date - ymd("2020-01-01"))]
 
 #create study column
@@ -207,8 +208,8 @@ other_p[, other_frac := pmax(0.0, predict(gam2, other_p, type = "response"))]
 plo = ggplot(mob_cnt) + 
   geom_point(aes(x = predictor, y = other_frac, col = status)) + 
   geom_line(data = other_p, aes(x = predictor, y = other_frac)) + ylim(0, 1) +
-  labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits", 
-       y = "Proportion of pre-pandemic\n'other' contacts", colour = "Status")
+  ylim(0, 1) + labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits",
+                    y = "Proportion of pre-pandemic\n'other' contacts", colour = "Status")
 plo
 
 #model non-home data using GAM
