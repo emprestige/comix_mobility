@@ -19,7 +19,7 @@ data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobi
 cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 
 #filter out participants of a certain age
-cnts <- cnts[part_age >= 18 & part_age <= 65]
+cnts <- cnts[part_age >= 18]
 
 #order by date
 cnts_date <- cnts[order(date)]
@@ -98,7 +98,7 @@ gm <- gm2[, .(workplaces = mean(workplaces),
               grocery = mean(grocery_pharmacy), 
               transit = mean(transit_stations),
               parks = mean(parks)),
-          by = .(week = paste(year(date), "/", week(date)))]
+          by = .(week = paste(year(date), "/", isoweek(date)))]
 
 #get means for different types of contacts
 cnt <- cnts_l[, .(status, shop = weighted.mean(n_cnt_shop, day_weight), 
@@ -108,7 +108,7 @@ cnt <- cnts_l[, .(status, shop = weighted.mean(n_cnt_shop, day_weight),
                   bar_rest = weighted.mean(n_cnt_bar_rest, day_weight),
                   outside = weighted.mean(n_cnt_outside, day_weight),
                   n = length(n_cnt), date_length = length(unique(date))),
-              by = .(week = paste(year(date), "/", week(date)))]
+              by = .(week = paste(year(date), "/", isoweek(date)))]
 
 #merge
 mob_cnt <- merge(cnt, gm, by = c("week"))
@@ -118,7 +118,7 @@ weeks <- as.data.table(cbind(mob_cnt$week, mob_cnt$n, mob_cnt$date_length))
 names(weeks) <- c("week", "n_part", "n_dates")
 
 #save
-#write.csv(weeks, "number_used.csv")
+write.csv(weeks, "number_used.csv")
 
 #look at first lockdown - most outliers are from here
 first_lock <- cnts_date[date >= "2020-03-23" & date <= "2020-05-05"]
@@ -190,4 +190,4 @@ names(characteristics) <- c("characteristic", "n_lock1", "percent_lock1",
                             "n_all", "percent_all")
 
 #save
-#write.csv(characteristics, "part_characteristics.csv")
+write.csv(characteristics, "part_characteristics.csv")
