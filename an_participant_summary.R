@@ -11,7 +11,7 @@ data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobi
 cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 
 #filter out participants of a certain age
-cnts <- cnts[part_age >= 18 & part_age <= 65]
+cnts <- cnts[part_age >= 18]
 
 #fix age groups
 cnts <- cnts %>%
@@ -22,49 +22,61 @@ cnts <- cnts %>%
                                     part_age >= 60 & part_age <= 69 ~ "60-69",
                                     part_age >= 70 ~ "70+"))
 
+##main variables 
 
 #gender
 cnts %>% group_by(part_gender_nb) %>%
-  tally()
+  summarise(n = n()) %>%
+  mutate(freq = (n/sum(n)*100))
 
 #age group
 cnts %>% group_by(part_age_group) %>%
-  tally()
+  summarise(n = n()) %>%
+  mutate(freq = (n/sum(n)*100))
 
 #employment status
 cnts %>% group_by(part_employstatus) %>%
-  tally()
+  summarise(n = n()) %>%
+  mutate(freq = (n/sum(n)*100))
 
 #social class
 cnts %>% group_by(part_social_group) %>%
-  tally()
+  summarise(n = n()) %>%
+  mutate(freq = (n/sum(n)*100))
 
 #area
 cnts %>% group_by(area_2_name) %>%
-  tally()
+  summarise(n = n()) %>%
+  mutate(freq = (n/sum(n)*100))
 
 #household size group 
 cnts %>% group_by(hh_size_group) %>%
-  tally()
+  summarise(n = n()) %>%
+  mutate(freq = (n/sum(n)*100))
 
 ##not main variables
 
 #household composition 
 cnts %>% group_by(hh_type) %>%
-  tally()
+  summarise(n = n()) %>%
+  mutate(freq = (n/sum(n)*100))
 
 #occupation
 cnts %>% group_by(part_occupation) %>%
-  tally()
+  summarise(n = n()) %>%
+  mutate(freq = (n/sum(n)*100))
 
 #high risk
 cnts %>% group_by(part_high_risk) %>%
-  tally()
+  summarise(n = n()) %>%
+  mutate(freq = (n/sum(n)*100))
 
 #ethnicity
 cnts %>% group_by(part_ethnicity) %>%
-  tally()
+  summarise(n = n()) %>%
+  mutate(freq = (n/sum(n)*100))
 
 #vaccinated
 cnts %>% group_by(part_vacc) %>%
-  tally()
+  summarise(n = n()) %>%
+  mutate(freq = (n/sum(n)*100))
