@@ -178,6 +178,6 @@ mob_cnt_comix <- mob_cnt[study == "CoMix"]
 plh <- ggplot(mob_cnt_comix) + 
   geom_point(aes(x = residential, y = nonhome, colour = status)) + 
   #ylim(0, 1) + xlim(0, 1) +
-  labs(x = "Google Mobility\n'residential' visits",
+  labs(x = "Google Mobility\n time at 'residential' location",
        y = "Number of non-home contacts", colour = "Status") 
 plh

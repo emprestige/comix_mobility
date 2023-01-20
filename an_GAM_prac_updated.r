@@ -223,6 +223,6 @@ nonhome_p[, nonhome_frac := pmax(0.0, predict(gam3, nonhome_p, type = "response"
 plh = ggplot(mob_cnt) + 
   geom_point(aes(x = residential, y = nonhome_frac, col = status)) + 
   geom_line(data = nonhome_p, aes(x = residential, y = nonhome_frac)) +
-  ylim(0, 1) + labs(x = "Google Mobility 'residential' visits",
+  ylim(0, 1) + labs(x = "Google Mobility time at 'residential' location",
        y = "Proportion of pre-pandemic\nnon-home contacts", colour = "Status")
 plh

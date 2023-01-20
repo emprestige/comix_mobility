@@ -225,9 +225,9 @@ plp2 <- ggplot(mob_cnt, aes(parks, outside, colour = status)) + geom_point() +
 plp2
 
 ##nonhome
-
 plh <- ggplot(mob_cnt, aes(residential, nonhome, colour = status)) + 
-  geom_point() + labs(x = "Google Mobility\n'residential' visits", colour = "Status",
-                      y = "Number of non-home contacts", shape = "Area Type") +
+  geom_point() + labs(x = "Google Mobility\n time at 'residential' location", 
+                      colour = "Status", shape = "Area Type",
+                      y = "Number of non-home contacts") +
   facet_wrap(~ area)
 plh
