@@ -21,15 +21,14 @@ data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobi
 cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 
 #filter out participants of a certain age
-cnts <- cnts[part_age >= 18 & part_age <= 65]
+cnts <- cnts[part_age >= 18]
 
 #order by date
 cnts_date <- cnts[order(date)]
 
 #create data table with subset of variables
 num <- cnts_date[, .(date, part_id, part_age, survey_round, weekday, day_weight, 
-                     home = n_cnt_home, work = n_cnt_work, school = n_cnt_school, 
-                     other = n_cnt_other, all = n_cnt)]
+                     home = n_cnt_home, work = n_cnt_work)]
 num[, t := as.numeric(date - ymd("2020-01-01"))]
 
 #create study column
@@ -92,7 +91,7 @@ num <- rbind(cnts_l, pnum, fill = TRUE)
 #remove participants of certain age from POLYMOD
 num <- rbind(
   num[study == "CoMix"],
-  num[study == "POLYMOD" & part_age >= 18 & part_age <= 65]
+  num[study == "POLYMOD" & part_age >= 18]
 )
 
 #create second database which shifts the survey rounds and dates
@@ -103,6 +102,11 @@ num2[, survey_round := survey_round + 1]
 #merge the two 
 num_merge <- rbind(num, num2) 
 
+#get dates in week
+week <- unique(as.data.table(as.Date(num_merge$date)))
+colnames(week) <- "date"
+week <- week[, week := isoweek(date)]
+
 #calculate non home contacts
 num_merge[, nonhome := all - home]
 
@@ -111,7 +115,7 @@ weighted_date <- num_merge[, .(study, status,
                                work = weighted.mean(work, day_weight),
                                other = weighted.mean(other, day_weight),
                                nonhome = weighted.mean(nonhome, day_weight)),
-                           by = .(week = paste(year(date), "/", week(date)))]  
+                           by = .(week = paste(year(date), "/", isoweek(date)))]  
 weighted_date <- unique(weighted_date)
 
 #get mean of polymod data so there is one baseline point
@@ -160,7 +164,7 @@ gm <- gm2[, .(workplaces = mean(workplaces),
               transit = mean(transit_stations),
               parks = mean(parks)),
           by = .(week = ifelse(study == "CoMix",
-                               paste(year(date), "/", week(date)),
+                               paste(year(date), "/", isoweek(date)),
                                rep(0, length(date))), study)]
 
 #merge
@@ -168,7 +172,7 @@ mob_cnt <- merge(weighted_date, gm, by = c("week", "study"))
 
 #scale data by POLYMOD data point 
 mob_cnt <- mob_cnt[order(week)]
-mob_cnt <- mob_cnt[, .(week, study, status, work, other, nonhome, 
+mob_cnt <- mob_cnt[, .(week, study, status, work, other, nonhome,
                        work_frac = work/head(work, 1),
                        other_frac = other/head(other, 1),
                        nonhome_frac = nonhome/head(nonhome, 1),
@@ -185,8 +189,8 @@ work_p[, work_frac := pmax(0.0, predict(gam1, work_p, type = "response"))]
 plw = ggplot(mob_cnt) + 
   geom_point(aes(x = workplaces, y = work_frac, col = status)) + 
   geom_line(data = work_p, aes(x = workplaces, y = work_frac)) +
-  ylim(0, 1) + labs(x = "Google Mobility\n'workplaces' visits", col = "Status",
-                      y = "Proportion of pre-pandemic\nwork contacts")
+  labs(x = "Google Mobility\n'workplaces' visits", col = "Status",
+       y = "Proportion of pre-pandemic\nwork contacts")
 plw
 
 #create predictor for 'other' contacts
