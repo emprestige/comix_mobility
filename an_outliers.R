@@ -69,6 +69,11 @@ num_merge <- rbind(cnts_date, num2)
 #merge contact data and lockdown information
 cnts_l <- merge(num_merge, lockdowns, by = "date", all.y = F)
 
+#get dates in week
+week <- unique(as.data.table(as.Date(cnts_l$date)))
+colnames(week) <- "date"
+week <- week[, week := isoweek(date)]
+
 #import mobility data
 mob <- qs::qread(file.path(data_path, "google_mob.qs"))
 
@@ -119,6 +124,11 @@ names(weeks) <- c("week", "n_part", "n_dates")
 
 #save
 write.csv(weeks, "number_used.csv")
+
+#get dates in week
+week <- unique(as.data.table(as.Date(cnts_l$date)))
+colnames(week) <- "date"
+week <- week[, week := isoweek(date)]
 
 #look at first lockdown - most outliers are from here
 first_lock <- cnts_date[date >= "2020-03-23" & date <= "2020-05-05"]
