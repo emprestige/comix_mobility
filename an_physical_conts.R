@@ -99,12 +99,16 @@ plot_grid(plots[[99]], plots_phys[[99]])
 plot_grid(plots[[21]], plots_phys[[21]])
 
 ##
+
+#set data path
+data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
+
 #import contact data
 cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 
 #sort ages
 cnts <- cnts[part_age != is.na(part_age)]
-cnts <- cnts[part_age >= 18 ]
+cnts <- cnts[part_age >= 18]
 cnts <- cnts %>%
   mutate(part_age_group = case_when(part_age >= 18 & part_age <= 29 ~ "18-29",
                                     part_age >= 30 & part_age <= 39 ~ "30-39",
