@@ -148,11 +148,10 @@ employment_all <- as.data.table(employment_all)
 employment_all[, percentage := (n/sum(n))*100]
 
 #merge
-employment <- merge(employment_first, employment_all, by = "part_employstatus", all = T)
+employment <- merge(employment_first, employment_all, 
+                    by = "part_employstatus", all = T)
 names(employment) <- c("part_employstatus", "n_lock1", "percent_lock1",
                        "n_all", "percent_all")
-employment$n_lock1[1] <- 0
-employment$percent_lock1[1] <- 0
 
 #occupation during first lockdown
 occupation_first <- first_lock %>%
@@ -191,7 +190,6 @@ age_all[, percentage := (n/sum(n))*100]
 #merge
 age <- merge(age_first, age_all, by = "part_age", all = T)
 age[is.na(age)] <- 0
-age$part_age[1] <- NA
 names(age) <- c("part_age", "n_lock1", "percent_lock1", "n_all", "percent_all")
 
 #combine occupation, employment, and age?
