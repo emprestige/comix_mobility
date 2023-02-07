@@ -1,20 +1,6 @@
-## Name: dm_count_contacts.R
-## Description: Clean variables not need for the contacts - less important for R.
-## Input file: combined_8.qs
-## Functions:
-## Output file: combined_9.qs
-
-
-
 # Packages ----------------------------------------------------------------
 library(data.table)
 library(dplyr)
-
-# Source user written scripts ---------------------------------------------
-#source('r/00_setup_filepaths.r')
-
-# I/O Data ----------------------------------------------------------------
-
   
 ## Save participant data
 dir_data_validate <- "C:\\Users\\emiel\\Filr\\Net Folders\\EPH Shared\\Comix_survey\\data\\validated\\"
@@ -172,9 +158,10 @@ for (j in var_list_unq){
 #dta = pt_cnt[country == "uk", .(mean(n_cnt), mean(n_cnt_unq), mean(n_cnt_unq_home), mean(n_cnt_unq_workschool), mean(n_cnt_unq_other),.N), by = .(survey_round, sample_type)][order(sample_type, survey_round)]
 
 cnt_names <- grep("n_cnt", names(pt_cnt_min), value = TRUE)
-cnt_names <- c("part_wave_uid", "part_id", "part_age", "part_age_group", 
+cnt_names <- c("part_wave_uid", "panel", "part_id", "part_age", "part_age_group", 
                "survey_round", "date", "weekday", "part_employstatus", 
-               "part_attend_work_yesterday", "part_occupation", "part_vacc",
+               "part_attend_work_yesterday", "part_limit_work",
+               "part_work_closed", "part_occupation", "part_vacc",
                "part_gender_nb", "area_rural_urban_code", "part_ethnicity",
                "area_rural_urban_label", "area_2_name", "hh_size_group", 
                "hh_type", "part_high_risk", "part_social_group", cnt_names)
