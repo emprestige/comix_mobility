@@ -1,4 +1,4 @@
-##GAM practice part two 
+##linear and polynomial regression 
 
 #load libraries
 library(data.table)
@@ -226,17 +226,11 @@ mob_cnt_test <- merge(weighted_test, gm, by = c("week", "study"))
 mob_cnt_train <- mob_cnt_train[order(week)]
 mob_cnt_train <- mob_cnt_train[, .(week, study, status, special, 
                                    stringency_index, work, other, nonhome,
-                                   work_frac = work/head(work, 1),
-                                   other_frac = other/head(other, 1),
-                                   nonhome_frac = nonhome/head(nonhome, 1),
                                    workplaces, retail, grocery, parks, transit,
                                    residential, predictor)]
 mob_cnt_test <- mob_cnt_test[order(week)]
 mob_cnt_test <- mob_cnt_test[, .(week, study, status, special,
                                  stringency_index, work, other, nonhome,
-                                 work_frac = work/head(work, 1),
-                                 other_frac = other/head(other, 1),
-                                 nonhome_frac = nonhome/head(nonhome, 1),
                                  workplaces, retail, grocery, parks, transit, 
                                  residential, predictor)]
 
