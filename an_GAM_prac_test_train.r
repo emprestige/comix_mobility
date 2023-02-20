@@ -6,10 +6,8 @@ library(ggplot2)
 library(tidyverse)
 library(lubridate)
 library(cowplot)
-library(zoo)
-library(matrixStats)
-library(robsurvey)
 library(mgcv)
+library(visreg)
 
 #set cowplot theme
 theme_set(cowplot::theme_cowplot(font_size = 10) + theme(strip.background = element_blank()))
@@ -25,6 +23,7 @@ cnts <- cnts[part_age >= 18]
 
 #order by date
 cnts_date <- cnts[order(date)]
+cnts_date <- cnts[date <= ymd("2022-03-02")]
 
 #create data table with subset of variables
 num <- cnts_date[, .(date, part_id, panel, part_age, survey_round, weekday, 
@@ -51,7 +50,8 @@ L2 <- interval(ymd("2020-11-05"), ymd("2020-12-01"))
 T4 <- interval(ymd("2020-12-02"), ymd("2021-01-05"))
 L3 <- interval(ymd("2021-01-06"), ymd("2021-03-07"))
 T5 <- interval(ymd("2021-03-08"), ymd("2021-07-18"))
-F2 <- interval(ymd("2021-07-19"), ymd("2022-03-02"))
+F2 <- interval(ymd("2021-07-19"), ymd("2021-12-07"))
+T6 <- interval(ymd("2021-12-08"), ymd("2022-02-21"))
 
 #assign value to each type of restriction
 lockdowns$status <- ifelse(ymd(lockdowns$date) %within% T1, 1, 
@@ -61,7 +61,8 @@ lockdowns$status <- ifelse(ymd(lockdowns$date) %within% T1, 1,
                            ifelse(ymd(lockdowns$date) %within% L2, 2, 
                            ifelse(ymd(lockdowns$date) %within% T4, 1, 
                            ifelse(ymd(lockdowns$date) %within% L3, 2, 
-                           ifelse(ymd(lockdowns$date) %within% T5, 1, 0))))))))
+                           ifelse(ymd(lockdowns$date) %within% T5, 1,
+                           ifelse(ymd(lockdowns$date) %within% T6, 1, 0)))))))))
 
 #create factor
 lockdown_fac <- factor(lockdowns$status, levels = c(0, 1, 2, 3),
@@ -111,6 +112,18 @@ week <- week[, week := isoweek(date)]
 #calculate non home contacts
 num_merge[, nonhome := all - home]
 
+#add column for special dates 
+summer <- interval(ymd("2020-08-03"), ymd("2020-08-09"))
+num_merge[, special := ifelse(date == ymd("2020-12-25"), "Xmas",
+                       ifelse(date == ymd("2021-12-25"), "Xmas",
+                       ifelse(date == ymd("2020-12-31"), "NYE",
+                       ifelse(date == ymd("2021-12-31"), "NYE",
+                       ifelse(date == ymd("2021-01-01"), "NYD",
+                       ifelse(date == ymd("2022-01-01"), "NYD",
+                       ifelse(date == ymd("2020-04-13"), "Easter",
+                       ifelse(date == ymd("2021-04-05"), "Easter", 
+                       ifelse(date %within% summer, "Summer Hol", NA)))))))))]
+
 #import data for stringency index
 ox <- qs::qread(file.path(data_path, "stringency.qs"))
 ox$date <- as.Date(ox$date)
@@ -127,24 +140,24 @@ poly_test <- num_merge[study == "POLYMOD"]
 merge_test <- rbind(merge_test, poly_test)
 
 #get weighted means by week
-weighted_train <- merge_train[, .(study, status, 
+weighted_train <- merge_train[, .(study, status, special,
                                 stringency_index = mean(stringency_index),
                                 work = weighted.mean(work, day_weight),
                                 other = weighted.mean(other, day_weight),
                                 nonhome = weighted.mean(nonhome, day_weight)),
-                            by = .(week = paste(year(date), "/", isoweek(date)))]  
+                            by = .(week = paste(isoyear(date), "/", isoweek(date)))]  
 weighted_train <- unique(weighted_train)
-weighted_test <- merge_test[, .(study, status, 
+weighted_test <- merge_test[, .(study, status, special,
                                 stringency_index = mean(stringency_index),
                                 work = weighted.mean(work, day_weight),
                                 other = weighted.mean(other, day_weight),
                                 nonhome = weighted.mean(nonhome, day_weight)),
-                            by = .(week = paste(year(date), "/", isoweek(date)))]  
+                            by = .(week = paste(isoyear(date), "/", isoweek(date)))]  
 weighted_test <- unique(weighted_test)
 
 #get mean of polymod data so there is one baseline point
 poly <- weighted_train[study == "POLYMOD"]
-poly <- poly[, .(week = 0, study, status, 
+poly <- poly[, .(week = 0, study, status, special,
                  stringency_index = mean(stringency_index),
                  work = mean(work, na.rm = T),
                  other = mean(other, na.rm = T),
@@ -153,7 +166,7 @@ poly <- unique(poly)
 weighted_train <- weighted_train[study == "CoMix"]
 weighted_train <- rbind(weighted_train, poly)
 poly <- weighted_test[study == "POLYMOD"]
-poly <- poly[, .(week = 0, study, status, 
+poly <- poly[, .(week = 0, study, status, special,
                  stringency_index = mean(stringency_index),
                  work = mean(work, na.rm = T),
                  other = mean(other, na.rm = T),
@@ -202,27 +215,30 @@ gm <- gm2[, .(workplaces = mean(workplaces),
                                paste(year(date), "/", isoweek(date)),
                                rep(0, length(date))), study)]
 
+#create predictor for 'other' contacts
+gm[, predictor := retail * 0.333 + transit * 0.334 + grocery * 0.333]
+
 #merge
 mob_cnt_train <- merge(weighted_train, gm, by = c("week", "study"))
 mob_cnt_test <- merge(weighted_test, gm, by = c("week", "study"))
 
 #scale data by POLYMOD data point 
 mob_cnt_train <- mob_cnt_train[order(week)]
-mob_cnt_train <- mob_cnt_train[, .(week, study, status, stringency_index,
-                                   work, other, nonhome,
+mob_cnt_train <- mob_cnt_train[, .(week, study, status, special, 
+                                   stringency_index, work, other, nonhome,
                                    work_frac = work/head(work, 1),
                                    other_frac = other/head(other, 1),
                                    nonhome_frac = nonhome/head(nonhome, 1),
                                    workplaces, retail, grocery, parks, transit,
-                                   residential)]
+                                   residential, predictor)]
 mob_cnt_test <- mob_cnt_test[order(week)]
-mob_cnt_test <- mob_cnt_test[, .(week, study, status, stringency_index,
-                                 work, other, nonhome,
+mob_cnt_test <- mob_cnt_test[, .(week, study, status, special,
+                                 stringency_index, work, other, nonhome,
                                  work_frac = work/head(work, 1),
                                  other_frac = other/head(other, 1),
                                  nonhome_frac = nonhome/head(nonhome, 1),
                                  workplaces, retail, grocery, parks, transit, 
-                                 residential)]
+                                 residential, predictor)]
 
 #model work data using GAM 
 gam_w <- gam(work ~ s(workplaces), data = mob_cnt_train, method = "REML")
@@ -232,28 +248,40 @@ work_p <- mob_cnt_test
 work_p[, work := pmax(0.0, predict(gam_w, work_p, type = "response"))]
 
 #plot
-plw = ggplot(mob_cnt_train) + 
-  geom_point(aes(x = workplaces, y = work, col = status)) + 
-  geom_line(data = work_p, aes(x = workplaces, y = work)) +
+plw = ggplot(mob_cnt_train, aes(x = workplaces, y = work, 
+        label = ifelse(status == "No restrictions", week, special))) + 
+  geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 40) +
   labs(x = "Google Mobility\n'workplaces' visits", col = "Status",
-       y = "Number of work contacts")
+       y = "Number of work contacts") +
+  scale_colour_manual(values = c("No restrictions" = "#00BA38", 
+                                 "Some restrictions" = "#619CFF", 
+                                 "Lockdown" = "#F8766D",
+                                 "Pre-Pandemic" = "purple"), 
+                      labels = c("No restrictions", "Some restrictions", 
+                                 "Lockdown", "Pre-Pandemic"))
 plw
 
-#model work data using GAM 
-gam_w1 <- gam(work ~ s(workplaces, by = status) + status, data = mob_cnt_train, 
-              method = "REML")
-
-#predict using 'new' data
-work_p1 <- mob_cnt_test
-work_p1[, work := pmax(0.0, predict(gam_w1, work_p1, type = "response"))]
-
-#plot
-plw1 = ggplot(mob_cnt_train) + 
-  geom_point(aes(x = workplaces, y = work, col = status)) + 
-  geom_line(data = work_p1, aes(x = workplaces, y = work)) +
+plw1 = ggplot(mob_cnt_train, aes(x = workplaces, y = work, 
+        label = ifelse(status == "No restrictions", week, special))) + 
+  geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 40) +
+  geom_line(data = work_p, aes(x = workplaces, y = work)) +
   labs(x = "Google Mobility\n'workplaces' visits", col = "Status",
-       y = "Number of work contacts")
+       y = "Number of work contacts") +
+  scale_colour_manual(values = c("No restrictions" = "#00BA38", 
+                                 "Some restrictions" = "#619CFF", 
+                                 "Lockdown" = "#F8766D",
+                                 "Pre-Pandemic" = "purple"), 
+                      labels = c("No restrictions", "Some restrictions", 
+                                 "Lockdown", "Pre-Pandemic"))
 plw1
+
+#model work data using GAM 
+nopoly <- mob_cnt_train[study == "CoMix"]
+fit1 <- gam(work ~ s(workplaces, by = status) + status, data = nopoly, 
+              method = "REML")
+visreg(fit1, xvar = "workplaces",
+       by = "status", data = nopoly,
+       method = "REML")
 
 #model work data using GAM 
 gam_w2 <- gam(work ~ s(workplaces) + s(stringency_index), data = mob_cnt_train, 
@@ -261,14 +289,22 @@ gam_w2 <- gam(work ~ s(workplaces) + s(stringency_index), data = mob_cnt_train,
 
 #predict using 'new' data
 work_p2 = mob_cnt_test
+work_p2 <- work_p2[, stringency_index := median(stringency_index)]
 work_p2[, work := pmax(0.0, predict(gam_w2, work_p2, type = "response"))]
 
 #plot
-plw2 = ggplot(mob_cnt_train) + 
-  geom_point(aes(x = workplaces, y = work, col = status)) + 
+plw2 = ggplot(mob_cnt_train, aes(x = workplaces, y = work, 
+        label = ifelse(status == "No restrictions", week, special))) + 
+  geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 40) +
   geom_line(data = work_p2, aes(x = workplaces, y = work)) +
   labs(x = "Google Mobility\n'workplaces' visits", col = "Status",
-       y = "Number of work contacts")
+       y = "Number of work contacts") +
+  scale_colour_manual(values = c("No restrictions" = "#00BA38", 
+                                 "Some restrictions" = "#619CFF", 
+                                 "Lockdown" = "#F8766D",
+                                 "Pre-Pandemic" = "purple"), 
+                      labels = c("No restrictions", "Some restrictions", 
+                                 "Lockdown", "Pre-Pandemic"))
 plw2
 
 #model non-home data using GAM
@@ -279,28 +315,27 @@ nonhome_p = mob_cnt_test
 nonhome_p[, nonhome := pmax(0.0, predict(gam_h, nonhome_p, type = "response"))]
 
 #plot
-plh = ggplot(mob_cnt_train) + 
-  geom_point(aes(x = residential, y = nonhome, col = status)) + 
+plh = ggplot(mob_cnt_train, aes(x = residential, y = nonhome, 
+        label = ifelse(status == "No restrictions", week, special))) + 
+  geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 40) + 
   geom_line(data = nonhome_p, aes(x = residential, y = nonhome)) +
   labs(x = "Google Mobility time at 'residential' location",
-       y = "Number of non-home contacts", colour = "Status")
+       y = "Number of non-home contacts", colour = "Status") +
+  scale_colour_manual(values = c("No restrictions" = "#00BA38", 
+                                 "Some restrictions" = "#619CFF", 
+                                 "Lockdown" = "#F8766D",
+                                 "Pre-Pandemic" = "purple"), 
+                      labels = c("No restrictions", "Some restrictions", 
+                                 "Lockdown", "Pre-Pandemic"))
 plh
 
 #model non-home data using GAM
-gam_h1 <- gam(nonhome ~ s(residential, by = status) + status,
-              data = mob_cnt_train, method = "REML")
-
-#predict using 'new' data
-nonhome_p1 = mob_cnt_test
-nonhome_p1[, nonhome := pmax(0.0, predict(gam_h1, nonhome_p1, type = "response"))]
-
-#plot
-plh1 = ggplot(mob_cnt_train) + 
-  geom_point(aes(x = residential, y = nonhome, col = status)) + 
-  geom_line(data = nonhome_p1, aes(x = residential, y = nonhome)) +
-  labs(x = "Google Mobility time at 'residential' location",
-       y = "Number of non-home contacts", colour = "Status")
-plh1
+nopoly <- mob_cnt_train[study == "CoMix"]
+fit2 <- gam(nonhome ~ s(residential, by = status) + status, data = nopoly, 
+            method = "REML")
+visreg(fit2, xvar = "residential",
+       by = "status", data = nopoly,
+       method = "REML")
 
 #model non-home data using GAM
 gam_h2 <- gam(nonhome ~ s(residential) + s(stringency_index), 
@@ -308,52 +343,73 @@ gam_h2 <- gam(nonhome ~ s(residential) + s(stringency_index),
 
 #predict using 'new' data
 nonhome_p2 = mob_cnt_test
+nonhome_p2 <- nonhome_p2[, stringency_index := median(stringency_index)]
 nonhome_p2[, nonhome := pmax(0.0, predict(gam_h2, nonhome_p2, type = "response"))]
 
 #plot
-plh2 = ggplot(mob_cnt_train) + 
-  geom_point(aes(x = residential, y = nonhome, col = status)) + 
+plh2 = ggplot(mob_cnt_train, aes(x = residential, y = nonhome, 
+        label = ifelse(status == "No restrictions", week, special))) + 
+  geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 40) + 
   geom_line(data = nonhome_p2, aes(x = residential, y = nonhome)) +
   labs(x = "Google Mobility time at 'residential' location",
-       y = "Number of non-home contacts", colour = "Status")
+       y = "Number of non-home contacts", colour = "Status") +
+  scale_colour_manual(values = c("No restrictions" = "#00BA38", 
+                                 "Some restrictions" = "#619CFF", 
+                                 "Lockdown" = "#F8766D",
+                                 "Pre-Pandemic" = "purple"), 
+                      labels = c("No restrictions", "Some restrictions", 
+                                 "Lockdown", "Pre-Pandemic"))
 plh2
 
-###
-
-#create predictor for 'other' contacts
-mob_cnt[, predictor := retail * 0.345 + transit * 0.445 + grocery * 0.210]
-
-#model other data using GAM
-gam_o1 <- gam(other ~ s(predictor) + s(stringency_index), data = mob_cnt)
+#model work data using GAM 
+gam_o <- gam(other ~ s(predictor), data = mob_cnt_train, method = "REML")
 
 #predict using 'new' data
-other_p1 = data.table(predictor = seq(0, 1, by = 0.01),
-                      stringency_index = seq(0, 88, length.out = 101))
-other_p1[, other := pmax(0.0, predict(gam_o1, other_p1, type = "response"))]
+other_p <- mob_cnt_test
+other_p[, other := pmax(0.0, predict(gam_o, other_p, type = "response"))]
 
 #plot
-plo1 = ggplot(mob_cnt) + 
-  geom_point(aes(x = predictor, y = other, col = status)) + 
-  geom_line(data = other_p1, aes(x = predictor, y = other)) + 
+plo = ggplot(mob_cnt_train, aes(x = predictor, y = other, 
+        label = ifelse(status == "No restrictions", week, special))) + 
+  geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 40) + 
+  geom_line(data = other_p, aes(x = predictor, y = other)) +
   labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits", 
-       y = "Number of 'other' contacts", colour = "Status")
-plo1
+       y = "Number of 'other' contacts", col = "Status") +
+  scale_colour_manual(values = c("No restrictions" = "#00BA38", 
+                                 "Some restrictions" = "#619CFF", 
+                                 "Lockdown" = "#F8766D",
+                                 "Pre-Pandemic" = "purple"), 
+                      labels = c("No restrictions", "Some restrictions", 
+                                 "Lockdown", "Pre-Pandemic"))
+plo
 
-#create predictor for 'other' contacts
-mob_cnt[, predictor := retail * 0.333 + transit * 0.333 + grocery * 0.334]
+#model 'other' data using GAM
+nopoly <- mob_cnt_train[study == "CoMix"]
+fit3 <- gam(nonhome ~ s(predictor, by = status) + status, data = nopoly, 
+            method = "REML")
+visreg(fit3, xvar = "predictor",
+       by = "status", data = nopoly,
+       method = "REML")
 
 #model other data using GAM
-gam_o2 <- gam(other ~ s(predictor) + s(stringency_index), data = mob_cnt)
+gam_o2 <- gam(other ~ s(predictor) + s(stringency_index), data = mob_cnt_train)
 
 #predict using 'new' data
-other_p2 = data.table(predictor = seq(0, 1, by = 0.01),
-                     stringency_index = seq(0, 88, length.out = 101))
+other_p2 = mob_cnt_test
+other_p2 <- other_p2[, stringency := median(stringency_index)]
 other_p2[, other := pmax(0.0, predict(gam_o2, other_p2, type = "response"))]
 
 #plot
-plo2 = ggplot(mob_cnt) + 
-  geom_point(aes(x = predictor, y = other, col = status)) + 
+plo2 = ggplot(mob_cnt_train, aes(x = predictor, y = other, 
+        label = ifelse(status == "No restrictions", week, special))) + 
+  geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 40) + 
   geom_line(data = other_p2, aes(x = predictor, y = other)) + 
   labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits", 
-       y = "Proportion of pre-pandemic\n'other' contacts", colour = "Status")
+       y = "Number of 'other' contacts", colour = "Status") +
+  scale_colour_manual(values = c("No restrictions" = "#00BA38", 
+                                 "Some restrictions" = "#619CFF", 
+                                 "Lockdown" = "#F8766D",
+                                 "Pre-Pandemic" = "purple"), 
+                      labels = c("No restrictions", "Some restrictions", 
+                                 "Lockdown", "Pre-Pandemic"))
 plo2

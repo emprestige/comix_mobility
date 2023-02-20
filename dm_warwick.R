@@ -11,7 +11,7 @@ data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobi
 #load participant and contact data for UK
 war_p <- read.csv(file.path(data_path, "Person_data.csv"))
 war_c = read.csv(file.path(data_path, "Contact_data.csv"))
-war <- merge(war_p, war_c, by.x = "P_ID", by.y = "C_CID", all.x = TRUE)
+war <- merge(war_p, war_c, by.x = "P_ID", by.y = "C_PID", all.x = TRUE)
 war <- as.data.table(war)
 
 #format data 
