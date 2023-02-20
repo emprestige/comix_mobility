@@ -177,7 +177,7 @@ mob_cnt <- mob_cnt[proportion != 0]
 #plot 
 plw <- ggplot(mob_cnt, aes(x = parks, y = proportion, label = special)) + 
   geom_point(aes(colour = status, size = all)) + 
-  labs(x = "Google Mobility\n'workplaces' visits", size = "Total Employed",
+  labs(x = "Google Mobility 'parks' visits", size = "Total Employed",
        y = "Proportion of people who went to work", colour = "Status") +
   geom_text()
 plw
