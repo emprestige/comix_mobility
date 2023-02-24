@@ -103,7 +103,7 @@ gm <- gm2[, .(workplaces = mean(workplaces),
               grocery = mean(grocery_pharmacy), 
               transit = mean(transit_stations),
               parks = mean(parks)),
-          by = .(week = paste(isoyear(date), "/", isoweek(date)))]
+          by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))]
 
 #get means for different types of contacts
 cnt <- cnts_l[, .(status, shop = weighted.mean(n_cnt_shop, day_weight), 
@@ -113,7 +113,7 @@ cnt <- cnts_l[, .(status, shop = weighted.mean(n_cnt_shop, day_weight),
                   bar_rest = weighted.mean(n_cnt_bar_rest, day_weight),
                   outside = weighted.mean(n_cnt_outside, day_weight),
                   n = length(n_cnt), date_length = length(unique(date))),
-              by = .(week = paste(isoyear(date), "/", isoweek(date)))]
+              by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))]
 
 #merge
 mob_cnt <- merge(cnt, gm, by = c("week"))
@@ -128,7 +128,7 @@ write.csv(weeks, "number_used.csv")
 #get dates in week
 week <- unique(as.data.table(as.Date(cnts_l$date)))
 colnames(week) <- "date"
-week <- week[, week := paste(isoyear(date), "/", isoweek(date))]
+week <- week[, week := paste(isoyear(date), "/", sprintf("%02d", isoweek(date)))]
 
 #save
 write.csv(week, "dates_per_week.csv")

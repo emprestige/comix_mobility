@@ -8,6 +8,7 @@ library(lubridate)
 library(cowplot)
 library(visreg)
 library(ggrepel)
+library(lmtest)
 
 #set cowplot theme
 theme_set(cowplot::theme_cowplot(font_size = 10) + theme(strip.background = element_blank()))
@@ -145,14 +146,14 @@ weighted_train <- merge_train[, .(study, status, special,
                                 work = weighted.mean(work, day_weight),
                                 other = weighted.mean(other, day_weight),
                                 nonhome = weighted.mean(nonhome, day_weight)),
-                            by = .(week = paste(isoyear(date), "/", isoweek(date)))]  
+                            by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))]  
 weighted_train <- unique(weighted_train)
 weighted_test <- merge_test[, .(study, status, special,
                                 stringency_index = mean(stringency_index),
                                 work = weighted.mean(work, day_weight),
                                 other = weighted.mean(other, day_weight),
                                 nonhome = weighted.mean(nonhome, day_weight)),
-                            by = .(week = paste(isoyear(date), "/", isoweek(date)))]  
+                            by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))]  
 weighted_test <- unique(weighted_test)
 
 #get mean of polymod data so there is one baseline point
@@ -212,7 +213,7 @@ gm <- gm2[, .(workplaces = mean(workplaces),
               transit = mean(transit_stations),
               parks = mean(parks)),
           by = .(week = ifelse(study == "CoMix",
-                               paste(year(date), "/", isoweek(date)),
+                               paste(year(date), "/", sprintf("%02d", isoweek(date))),
                                rep(0, length(date))), study)]
 
 #create predictor for 'other' contacts
@@ -291,8 +292,12 @@ plw2
 #model work data using linear regression with status included as effect modifier
 nopoly_train <- mob_cnt_train[study == "CoMix"]
 nopoly_test <- mob_cnt_test[study == "CoMix"]
+fit <- lm(work ~ workplaces, data = nopoly_train)
+fit_w <- lm(work ~ workplaces + status, data = nopoly_train)
+lrtest(fit_w, fit)
 fit_w1 <- lm(work ~ workplaces * status, data = nopoly_train)
 summary(fit_w1)
+lrtest(fit_w1, fit_w)
 
 #predict using 'new' data
 pred <- predict(fit_w1, newdata = nopoly_test, interval = "confidence")
@@ -321,6 +326,7 @@ nopoly_train <- mob_cnt_train[study == "CoMix"]
 nopoly_test <- mob_cnt_test[study == "CoMix"]
 fit_w2 <- lm(work ~ poly(workplaces, 2) * status, data = nopoly_train)
 summary(fit_w2)
+lrtest(fit_w2, fit_w1)
 
 #predict using 'new' data
 pred <- predict(fit_w2, newdata = nopoly_test, interval = "confidence")
@@ -457,6 +463,10 @@ plh2
 #model nonhome data using linear regression with status included as effect modifier
 nopoly_train <- mob_cnt_train[study == "CoMix"]
 nopoly_test <- mob_cnt_test[study == "CoMix"]
+fit_h <- lm(nonhome ~ predictor, data = nopoly_train)
+fit_h.5 <- lm(nonhome ~ predictor + status, data = nopoly_train)
+summary(fit_h.5)
+lrtest(fit_h.5, fit_h)
 fit_h1 <- lm(nonhome ~ residential * status, data = nopoly_train)
 summary(fit_h1)
 
@@ -487,6 +497,7 @@ nopoly_train <- mob_cnt_train[study == "CoMix"]
 nopoly_test <- mob_cnt_test[study == "CoMix"]
 fit_h2 <- lm(nonhome ~ poly(residential, 2) * status, data = nopoly_train)
 summary(fit_h2)
+lrtest(fit_h2, fit_h1)
 
 #predict using 'new' data
 pred <- predict(fit_h2, newdata = nopoly_test, interval = "confidence")
@@ -541,6 +552,7 @@ plh3
 #model non-home data using polynomial regression including stringency index
 lm_h4 <- lm(nonhome ~ poly(residential, 2) + stringency_index, data = mob_cnt_train)
 summary(lm_h4)
+lrtest(lm_h4, lm_h3)
 
 #predict using 'new' data
 mob_cnt_test[, stringency_index := median(stringency_index)]
@@ -596,6 +608,7 @@ plo1
 #model 'other' data using polynomial regression 
 lm_o2 <- lm(other ~ poly(predictor, 2), data = mob_cnt_train)
 summary(lm_o2)
+lrtest(lm_o2, lm_o1)
 
 #predict using 'new' data
 pred <- predict(lm_o2, newdata = mob_cnt_test, interval = "confidence")
@@ -653,6 +666,7 @@ nopoly_train <- mob_cnt_train[study == "CoMix"]
 nopoly_test <- mob_cnt_test[study == "CoMix"]
 fit_o2 <- lm(other ~ poly(predictor, 2) * status, data = nopoly_train)
 summary(fit_o2)
+lrtest(fit_o2, fit_o1)
 
 #predict using 'new' data
 pred <- predict(fit_o2, newdata = nopoly_test, interval = "confidence")
@@ -707,6 +721,8 @@ plo3
 #model 'other' data using polynomial regression including stringency index
 lm_o4 <- lm(other ~ poly(predictor, 2) + stringency_index, data = mob_cnt_train)
 summary(lm_o4)
+lrtest(lm_o4, lm_o3)
+lrtest(lm_o4, lm_o2)
 
 #predict using 'new' data
 mob_cnt_test[, stringency_index := median(stringency_index)]

@@ -156,12 +156,12 @@ gm2 <- gm2[, .(date, study, retail_recreation, grocery_pharmacy, parks,
 
 #get means for google mobility data
 gm <- gm2[, .(workplaces = mean(workplaces)),
-          by = .(week = paste(year(date), "/", week(date)))]
+          by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))]
 
 #get means for proportions
 cnt <- worked[, .(status, special, all = sum(all), attended = sum(attended), 
                   proportion = sum(attended)/sum(all)),
-              by = .(week = paste(year(date), "/", week(date)))]
+              by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))]
 
 #merge
 mob_cnt <- merge(cnt, gm, by = c("week"))

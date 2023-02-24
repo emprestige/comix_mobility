@@ -109,7 +109,7 @@ weighted_date <- num_merge[, .(study, status, special,
                                work = weighted.mean(work, day_weight),
                                other = weighted.mean(other, day_weight),
                                nonhome = weighted.mean(nonhome, day_weight)),
-                           by = .(week = paste(isoyear(date), "/", isoweek(date)))]  
+                           by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))]  
 weighted_date <- unique(weighted_date)
 
 #import mobility data
@@ -160,22 +160,59 @@ gm_av <- mob_merge[, .(status, special,
                        transit = mean(transit_stations),
                        workplaces = mean(workplaces),
                        residential = mean(residential)),
-                   by = .(week = paste(isoyear(date), "/", isoweek(date)))]
+                   by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))]
 gm_av <- unique(gm_av)
 
-#get labels for all plots
-int <- seq(1, 109, 12)
-my_list <- gm_av$week[int]
+#create predictor for 'other' contacts
+gm_av[, predictor := retail * 0.333 + transit * 0.334 + grocery * 0.333]
 
+#remove dates which are missing from comix data
 gm_av_sub <- gm_av[-c(7,8, 40, 68:88), ]
+
+#get labels for all plots
+int <- seq(1, 92, 12)
+my_list <- gm_av_sub$week[int]
+
+#plot weighted predictor 
+predictor <- ggplot(gm_av_sub, aes(week, predictor,
+                label = ifelse(status == "No restrictions", 
+                        ifelse(is.na(special) == F, special, week), special))) + 
+  geom_line(group = "status") + geom_text_repel(size = 2.5, max.overlaps = 50) +
+  geom_point(aes(x = week, y = ifelse(is.na(special) == F, predictor, NA))) +
+  scale_x_discrete(breaks = my_list) +
+  geom_rect(aes(xmin = week, xmax = lead(week), ymin = min(predictor), 
+                ymax = Inf, fill = status), alpha = 0.5) +
+  scale_fill_manual(values = c("No restrictions" = "#00BA38", 
+                               "Some restrictions" = "#619CFF", 
+                               "Lockdown" = "#F8766D"), 
+                    labels = c("No restrictions", "Some restrictions", 
+                               "Lockdown"))
+
+#plot other
+other <- ggplot(weighted_date, aes(week, other,
+            label = ifelse(status == "No restrictions", 
+                    ifelse(is.na(special) == F, special, week), special))) + 
+  geom_line(group = 1) + geom_text_repel(size = 2.5, max.overlaps = 50) +
+  geom_point(aes(x = week, y = ifelse(is.na(special) == F, other, NA))) + 
+  scale_x_discrete(breaks = my_list) +
+  geom_rect(aes(xmin = week, xmax = lead(week), ymin = min(other), 
+                ymax = Inf, fill = status), alpha = 0.5) +
+  scale_fill_manual(values = c("No restrictions" = "#00BA38", 
+                               "Some restrictions" = "#619CFF", 
+                               "Lockdown" = "#F8766D"), 
+                    labels = c("No restrictions", "Some restrictions", 
+                               "Lockdown"))
+
+#plot predictor and other
+plot_grid(predictor, other, ncol = 1, align = 'v')
 
 #plot retail
 retail <- ggplot(gm_av_sub, aes(week, retail,
-              label = ifelse(status == "No restrictions", 
-                      ifelse(is.na(special) == F, special, week), special))) + 
+            label = ifelse(status == "No restrictions", 
+                    ifelse(is.na(special) == F, special, week), special))) + 
   geom_line(group = "status") + geom_text_repel(size = 2.5, max.overlaps = 50) +
   geom_point(aes(x = week, y = ifelse(is.na(special) == F, retail, NA))) +
-  guides(x = guide_axis(angle = 45)) + scale_x_discrete(breaks = my_list) +
+  scale_x_discrete(breaks = my_list) +
   geom_rect(aes(xmin = week, xmax = lead(week), ymin = min(retail), 
                        ymax = Inf, fill = status), alpha = 0.5) +
   scale_fill_manual(values = c("No restrictions" = "#00BA38", 
@@ -183,24 +220,8 @@ retail <- ggplot(gm_av_sub, aes(week, retail,
                                  "Lockdown" = "#F8766D"), 
                       labels = c("No restrictions", "Some restrictions", 
                                  "Lockdown"))
-#retail
 
-#plot other
-other <- ggplot(weighted_date, aes(week, other,
-            label = ifelse(status == "No restrictions", 
-                    ifelse(is.na(special) == F, special, week), special))) + 
-  geom_line(group = 1) + geom_text_repel(size = 2.5, max.overlaps = 50) +
-  geom_point(aes(x = week, y = ifelse(is.na(special) == F, other, NA))) +
-  guides(x = guide_axis(angle = 45)) + scale_x_discrete(breaks = my_list) +
-  geom_rect(aes(xmin = week, xmax = lead(week), ymin = min(other), 
-                      ymax = Inf, fill = status), alpha = 0.5) +
-  scale_fill_manual(values = c("No restrictions" = "#00BA38", 
-                               "Some restrictions" = "#619CFF", 
-                               "Lockdown" = "#F8766D"), 
-                    labels = c("No restrictions", "Some restrictions", 
-                               "Lockdown"))
-#other
-
+#plot retail and other
 plot_grid(retail, other, ncol = 1, align = 'v')
 
 #plot grocery
@@ -209,7 +230,7 @@ grocery <- ggplot(gm_av_sub, aes(week, grocery,
                       ifelse(is.na(special) == F, special, week), special))) + 
   geom_line(group = "status") + geom_text_repel(size = 2.5, max.overlaps = 50) +
   geom_point(aes(x = week, y = ifelse(is.na(special) == F, grocery, NA))) +
-  guides(x = guide_axis(angle = 45)) + scale_x_discrete(breaks = my_list) +
+  scale_x_discrete(breaks = my_list) +
   geom_rect(aes(xmin = week, xmax = lead(week), ymin = min(grocery), 
                 ymax = Inf, fill = status), alpha = 0.5) +
   scale_fill_manual(values = c("No restrictions" = "#00BA38", 
@@ -217,8 +238,8 @@ grocery <- ggplot(gm_av_sub, aes(week, grocery,
                                "Lockdown" = "#F8766D"), 
                     labels = c("No restrictions", "Some restrictions", 
                                "Lockdown"))
-#grocery
 
+#plot grocery and other
 plot_grid(grocery, other, ncol = 1, align = 'v')
 
 #plot parks
@@ -227,7 +248,7 @@ parks <- ggplot(gm_av_sub, aes(week, parks,
                     ifelse(is.na(special) == F, special, week), special))) + 
   geom_line(group = "status") + geom_text_repel(size = 2.5, max.overlaps = 50) +
   geom_point(aes(x = week, y = ifelse(is.na(special) == F, parks, NA))) +
-  guides(x = guide_axis(angle = 45)) + scale_x_discrete(breaks = my_list) +
+  scale_x_discrete(breaks = my_list) +
   geom_rect(aes(xmin = week, xmax = lead(week), ymin = min(parks), 
                 ymax = Inf, fill = status), alpha = 0.5) +
   scale_fill_manual(values = c("No restrictions" = "#00BA38", 
@@ -235,8 +256,8 @@ parks <- ggplot(gm_av_sub, aes(week, parks,
                                "Lockdown" = "#F8766D"), 
                     labels = c("No restrictions", "Some restrictions", 
                                "Lockdown"))
-#parks
 
+#plot parks and other
 plot_grid(parks, other, ncol = 1, align = 'v')
 
 #plot transit
@@ -245,7 +266,7 @@ transit <- ggplot(gm_av_sub, aes(week, transit,
                       ifelse(is.na(special) == F, special, week), special))) + 
   geom_line(group = "status") + geom_text_repel(size = 2.5, max.overlaps = 50) +
   geom_point(aes(x = week, y = ifelse(is.na(special) == F, transit, NA))) +
-  guides(x = guide_axis(angle = 45)) + scale_x_discrete(breaks = my_list) +
+  scale_x_discrete(breaks = my_list) +
   geom_rect(aes(xmin = week, xmax = lead(week), ymin = min(transit), 
                 ymax = Inf, fill = status), alpha = 0.5) +
   scale_fill_manual(values = c("No restrictions" = "#00BA38", 
@@ -253,8 +274,8 @@ transit <- ggplot(gm_av_sub, aes(week, transit,
                                "Lockdown" = "#F8766D"), 
                     labels = c("No restrictions", "Some restrictions", 
                                "Lockdown"))
-#transit
 
+#plot transit and other
 plot_grid(transit, other, ncol = 1, align = 'v')
 
 #plot workplaces
@@ -263,7 +284,7 @@ workplaces <- ggplot(gm_av_sub, aes(week, workplaces,
                          ifelse(is.na(special) == F, special, week), special))) + 
   geom_line(group = "status") + geom_text_repel(size = 2.5, max.overlaps = 50) +
   geom_point(aes(x = week, y = ifelse(is.na(special) == F, workplaces, NA))) +
-  guides(x = guide_axis(angle = 45)) + scale_x_discrete(breaks = my_list) +
+  scale_x_discrete(breaks = my_list) +
   geom_rect(aes(xmin = week, xmax = lead(week), ymin = min(workplaces), 
                 ymax = Inf, fill = status), alpha = 0.5) +
   scale_fill_manual(values = c("No restrictions" = "#00BA38", 
@@ -271,7 +292,6 @@ workplaces <- ggplot(gm_av_sub, aes(week, workplaces,
                                "Lockdown" = "#F8766D"), 
                     labels = c("No restrictions", "Some restrictions", 
                                "Lockdown"))
-#workplaces
 
 #plot work
 work <- ggplot(weighted_date, aes(week, work,
@@ -279,7 +299,7 @@ work <- ggplot(weighted_date, aes(week, work,
                    ifelse(is.na(special) == F, special, week), special))) + 
   geom_line(group = 1) + geom_text_repel(size = 2.5, max.overlaps = 50) +
   geom_point(aes(x = week, y = ifelse(is.na(special) == F, work, NA))) +
-  guides(x = guide_axis(angle = 45)) + scale_x_discrete(breaks = my_list) +
+  scale_x_discrete(breaks = my_list) +
   geom_rect(aes(xmin = week, xmax = lead(week), ymin = min(work), 
                 ymax = Inf, fill = status), alpha = 0.5) +
   scale_fill_manual(values = c("No restrictions" = "#00BA38", 
@@ -287,17 +307,17 @@ work <- ggplot(weighted_date, aes(week, work,
                                "Lockdown" = "#F8766D"), 
                     labels = c("No restrictions", "Some restrictions", 
                                "Lockdown"))
-#work
-
+#plot workplaces and work
 plot_grid(workplaces, work, ncol = 1, align = 'v')
 
 #plot residential
+gm_av_sub[, residential := 1 - residential]
 residential <- ggplot(gm_av_sub, aes(week, residential,
                   label = ifelse(status == "No restrictions", 
                           ifelse(is.na(special) == F, special, week), special))) + 
   geom_line(group = "status") + geom_text_repel(size = 2.5, max.overlaps = 50) +
   geom_point(aes(x = week, y = ifelse(is.na(special) == F, residential, NA))) +
-  guides(x = guide_axis(angle = 45)) + scale_x_discrete(breaks = my_list) +
+  scale_x_discrete(breaks = my_list) + ylab("1 - residential") + 
   geom_rect(aes(xmin = week, xmax = lead(week), ymin = min(residential), 
                 ymax = Inf, fill = status), alpha = 0.5) +
   scale_fill_manual(values = c("No restrictions" = "#00BA38", 
@@ -305,7 +325,6 @@ residential <- ggplot(gm_av_sub, aes(week, residential,
                                "Lockdown" = "#F8766D"), 
                     labels = c("No restrictions", "Some restrictions", 
                                "Lockdown"))
-#residential
 
 #plot nonhome
 nonhome <- ggplot(weighted_date, aes(week, nonhome,
@@ -313,7 +332,7 @@ nonhome <- ggplot(weighted_date, aes(week, nonhome,
                       ifelse(is.na(special) == F, special, week), special))) + 
   geom_line(group = 1) + geom_text_repel(size = 2.5, max.overlaps = 50) +
   geom_point(aes(x = week, y = ifelse(is.na(special) == F, nonhome, NA))) +
-  guides(x = guide_axis(angle = 45)) + scale_x_discrete(breaks = my_list) +
+  scale_x_discrete(breaks = my_list) + 
   geom_rect(aes(xmin = week, xmax = lead(week), ymin = min(nonhome), 
                 ymax = Inf, fill = status), alpha = 0.5) +
   scale_fill_manual(values = c("No restrictions" = "#00BA38", 
@@ -322,4 +341,5 @@ nonhome <- ggplot(weighted_date, aes(week, nonhome,
                     labels = c("No restrictions", "Some restrictions", 
                                "Lockdown"))
 
+#plot residential and non-home
 plot_grid(residential, nonhome, ncol = 1, align = 'v')

@@ -1,4 +1,4 @@
-##GAM practice part two 
+#linear and polynomial regression
 
 #load libraries
 library(data.table)
@@ -7,10 +7,8 @@ library(tidyverse)
 library(lubridate)
 library(cowplot)
 library(zoo)
-library(matrixStats)
-library(robsurvey)
-library(mgcv)
 library(visreg)
+library(lmtest)
 
 #set cowplot theme
 theme_set(cowplot::theme_cowplot(font_size = 10) + theme(strip.background = element_blank()))
@@ -123,7 +121,7 @@ weighted_train <- merge_train[, .(study, status, special,
                                   other = weighted.mean(other, day_weight),
                                   nonhome = weighted.mean(nonhome, day_weight)),
                               by = .(area,
-                                     week = paste(year(date), "/", isoweek(date)))]  
+                                     week = paste(year(date), "/", sprintf("%02d", isoweek(date))))]  
 weighted_train <- unique(weighted_train)
 weighted_test <- merge_test[, .(study, status, special,
                                 stringency_index = mean(stringency_index),
@@ -131,7 +129,7 @@ weighted_test <- merge_test[, .(study, status, special,
                                 other = weighted.mean(other, day_weight),
                                 nonhome = weighted.mean(nonhome, day_weight)),
                             by = .(area,
-                                   week = paste(year(date), "/", isoweek(date)))]  
+                                   week = paste(year(date), "/", sprintf("%02d", isoweek(date))))]  
 weighted_test <- unique(weighted_test)
 
 #import mobility data
@@ -162,7 +160,7 @@ gm <- gm2[, .(workplaces = mean(workplaces),
               transit = mean(transit_stations),
               parks = mean(parks)),
           by = .(week = ifelse(study == "CoMix",
-                               paste(year(date), "/", isoweek(date)),
+                               paste(year(date), "/", sprintf("%02d", isoweek(date))),
                                rep(0, length(date))), study)]
 
 #create predictor for 'other' contacts
@@ -187,8 +185,41 @@ mob_cnt_test <- mob_cnt_test[, .(week, study, status, special, area,
 #model work data using linear regression with area included as effect modifier
 nopoly_train <- mob_cnt_train[study == "CoMix"]
 nopoly_test <- mob_cnt_test[study == "CoMix"]
+
+fit_w <- lm(work ~ workplaces, data = nopoly_train)
+
+fit_w.5 <- lm(work ~ workplaces + area, data = nopoly_train)
+summary(fit_w.5)
+lrtest(fit_w.5, fit_w)
+
 fit_w1 <- lm(work ~ workplaces * area, data = nopoly_train)
 summary(fit_w1)
+
+#predict using 'new' data
+pred <- predict(fit_w1, newdata = nopoly_test, interval = "confidence")
+pred <- as.data.table(pred)
+nopoly_test[, work := pred$fit]
+nopoly_test[, w_lwr := pred$lwr]
+nopoly_test[, w_uppr := pred$upr]
+
+plwf1 = ggplot(nopoly_train, aes(x = workplaces, y = work, 
+                                 label = ifelse(status == "No restrictions", week, special))) + 
+  geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 40) +
+  geom_line(data = nopoly_test, aes(x = workplaces, y = work)) +
+  geom_ribbon(data = nopoly_test, aes(ymin = w_lwr, ymax = w_uppr), alpha = 0.1) +
+  labs(x = "Google Mobility\n'workplaces' visits", col = "Status",
+       y = "Number of work contacts") +
+  scale_colour_manual(values = c("No restrictions" = "#00BA38", 
+                                 "Some restrictions" = "#619CFF", 
+                                 "Lockdown" = "#F8766D",
+                                 "Pre-Pandemic" = "purple"), 
+                      labels = c("No restrictions", "Some restrictions", 
+                                 "Lockdown", "Pre-Pandemic"))
+plwf1 + facet_grid(cols = vars(area))
+
+fit_w1 <- lm(work ~ workplaces * area, data = nopoly_train)
+summary(fit_w1)
+lrtest(fit_w1, fit_w)
 
 #predict using 'new' data
 pred <- predict(fit_w1, newdata = nopoly_test, interval = "confidence")
@@ -217,6 +248,7 @@ nopoly_train <- mob_cnt_train[study == "CoMix"]
 nopoly_test <- mob_cnt_test[study == "CoMix"]
 fit_w2 <- lm(work ~ poly(workplaces, 2) * area, data = nopoly_train)
 summary(fit_w2)
+lrtest(fit_w2, fit_w)
 
 #predict using 'new' data
 pred <- predict(fit_w2, newdata = nopoly_test, interval = "confidence")
@@ -245,6 +277,7 @@ nopoly_train <- mob_cnt_train[study == "CoMix"]
 nopoly_test <- mob_cnt_test[study == "CoMix"]
 fit_w3 <- lm(work ~ workplaces * area + stringency_index, data = nopoly_train)
 summary(fit_w3)
+lrtest(fit_w3, fit_w)
 
 #predict using 'new' data
 nopoly_test[, stringency_index := median(stringency_index)]
@@ -415,8 +448,11 @@ plhf4 + facet_grid(cols = vars(area))
 #model 'other' data using linear regression with area included as effect modifier
 nopoly_train <- mob_cnt_train[study == "CoMix"]
 nopoly_test <- mob_cnt_test[study == "CoMix"]
+fit_o.5 <- lm(other ~ predictor + area, data = nopoly_train)
+summary(fit_o.5)
 fit_o1 <- lm(other ~ predictor * area, data = nopoly_train)
 summary(fit_o1)
+lrtest(fit_o1, fit_o.5)
 
 #predict using 'new' data
 pred <- predict(fit_o1, newdata = nopoly_test, interval = "confidence")
@@ -443,6 +479,8 @@ plof1 + facet_grid(cols = vars(area))
 #model 'other' data using polynomial regression with area included as effect modifier
 nopoly_train <- mob_cnt_train[study == "CoMix"]
 nopoly_test <- mob_cnt_test[study == "CoMix"]
+fit_o1.5 <- lm(other ~ poly(predictor, 2) + area, nopoly_train)
+summary(fit_o1.5)
 fit_o2 <- lm(other ~ poly(predictor, 2) * area, data = nopoly_train)
 summary(fit_o2)
 

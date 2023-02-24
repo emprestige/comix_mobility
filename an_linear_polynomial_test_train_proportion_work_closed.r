@@ -7,6 +7,7 @@ library(tidyverse)
 library(lubridate)
 library(cowplot)
 library(ggrepel)
+library(lmtest)
 
 #set cowplot theme
 theme_set(cowplot::theme_cowplot(font_size = 10) + theme(strip.background = element_blank()))
@@ -161,7 +162,7 @@ weighted_train <- merge_train[, .(study, status, special,
                                   work = weighted.mean(work, day_weight),
                                   other = weighted.mean(other, day_weight),
                                   nonhome = weighted.mean(nonhome, day_weight)),
-                              by = .(week = paste(isoyear(date), "/", isoweek(date)))]  
+                              by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))]  
 weighted_train <- unique(weighted_train)
 weighted_test <- merge_test[, .(study, status, special,
                                 all_o = sum(all_o), closed = sum(closed), 
@@ -170,7 +171,7 @@ weighted_test <- merge_test[, .(study, status, special,
                                 work = weighted.mean(work, day_weight),
                                 other = weighted.mean(other, day_weight),
                                 nonhome = weighted.mean(nonhome, day_weight)),
-                            by = .(week = paste(isoyear(date), "/", isoweek(date)))]  
+                            by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))]  
 weighted_test <- unique(weighted_test)
 
 #import mobility data
@@ -201,7 +202,7 @@ gm <- gm2[, .(workplaces = mean(workplaces),
               transit = mean(transit_stations),
               parks = mean(parks)),
           by = .(week = ifelse(study == "CoMix",
-                               paste(year(date), "/", isoweek(date)),
+                               paste(year(date), "/", sprintf("%02d", isoweek(date))),
                                rep(0, length(date))), study)]
 
 #merge
