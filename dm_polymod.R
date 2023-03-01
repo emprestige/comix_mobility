@@ -20,7 +20,7 @@ poly[, d_school    := ifelse(part_age < 18, cnt_school == 1 & cnt_home == 0,
                              cnt_school == 1 & cnt_home == 0 & cnt_work == 0)]
 poly[, d_work      := ifelse(part_age >= 18, cnt_work == 1 & cnt_home == 0,
                              cnt_work == 1 & cnt_home == 0 & cnt_school == 0)]
-poly[, d_other     := (cnt_transport + cnt_leisure + cnt_otherplace) >= 1 & cnt_home == 0 & cnt_school == 0 & cnt_work == 0]
+poly[, d_other     := ifelse(cnt_home == 0 & cnt_work == 0 & cnt_school == 0, 1, 0)]
 poly[, d_phys      := phys_contact == 1]
 #remove NAs
 poly = poly[!is.na(d_home)]

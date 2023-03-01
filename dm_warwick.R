@@ -20,7 +20,7 @@ war[, d_leisure   := C_Wheres_4 == 1]
 war[, d_transport := C_Wheres_3 == 1]
 war[, d_school    := P_age < 18 & C_Wheres_2 == 1]
 war[, d_work      := P_age >= 18 & C_Wheres_2 == 1]
-war[, d_other     := (C_Wheres_3 + C_Wheres_4 + C_Wheres_5 + C_Wheres_6) >= 1 & C_Wheres_1 == 0 & C_Wheres_2 == 0]
+war[, d_other     := ifelse(C_Wheres_1 == 0 & C_Wheres_2 == 0, 1, 0)]
 war[, d_phys      := C_Touch == 1]
 #remove NAs
 war = war[!is.na(d_home)]
