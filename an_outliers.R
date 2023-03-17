@@ -19,7 +19,7 @@ data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobi
 cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 
 #filter out participants of a certain age
-cnts <- cnts[part_age >= 18]
+cnts <- cnts[sample_type == "adult"]
 
 #order by date
 cnts_date <- cnts[order(date)]
@@ -123,7 +123,7 @@ weeks <- as.data.table(cbind(mob_cnt$week, mob_cnt$n, mob_cnt$date_length))
 names(weeks) <- c("week", "n_part", "n_dates")
 
 #save
-write.csv(weeks, "number_used.csv")
+#write.csv(weeks, "number_used.csv")
 
 #get dates in week
 week <- unique(as.data.table(as.Date(cnts_l$date)))
@@ -131,7 +131,7 @@ colnames(week) <- "date"
 week <- week[, week := paste(isoyear(date), "/", sprintf("%02d", isoweek(date)))]
 
 #save
-write.csv(week, "dates_per_week.csv")
+#write.csv(week, "dates_per_week.csv")
 
 #look at first lockdown - most outliers are from here
 first_lock <- cnts_date[date >= "2020-03-23" & date <= "2020-05-05"]
@@ -178,20 +178,20 @@ occupation[is.na(occupation)] <- 0
 
 #ages during first lockdown
 age_first <- first_lock %>%
-  group_by(part_age) %>%
+  group_by(part_age_group) %>%
   tally()
 age_first <- as.data.table(age_first)
 age_first[, percentage := (n/sum(n))*100]
 
 #ages throughout
 age_all <- cnts_date %>%
-  group_by(part_age) %>%
+  group_by(part_age_group) %>%
   tally()
 age_all <- as.data.table(age_all)
 age_all[, percentage := (n/sum(n))*100]
 
 #merge
-age <- merge(age_first, age_all, by = "part_age", all = T)
+age <- merge(age_first, age_all, by = "part_age_group", all = T)
 age[is.na(age)] <- 0
 names(age) <- c("part_age", "n_lock1", "percent_lock1", "n_all", "percent_all")
 

@@ -9,6 +9,7 @@ library(cowplot)
 library(mgcv)
 library(visreg)
 library(ggrepel)
+library(lmtest)
 
 #set cowplot theme
 theme_set(cowplot::theme_cowplot(font_size = 10) + theme(strip.background = element_blank()))
@@ -20,7 +21,7 @@ data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobi
 cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 
 #filter out participants of a certain age
-cnts <- cnts[part_age >= 18]
+cnts <- cnts[sample_type == "adult"]
 
 #order by date
 cnts_date <- cnts[order(date)]

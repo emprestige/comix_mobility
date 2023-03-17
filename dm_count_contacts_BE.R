@@ -7,14 +7,7 @@ dir_data_validate <- "C:\\Users\\emiel\\Filr\\Net Folders\\EPH Shared\\Comix_sur
 
 pt <- qs::qread(file.path(dir_data_validate, "archive/2022-03-04_part.qs"))
 pt_min <- qs::qread(file.path(dir_data_validate, "archive/2022-03-04_part_min.qs"))
-# pt_min[, week := paste(isoyear(date), "/",  sprintf("%02d", isoweek(date)))]
 ct <- qs::qread(file.path(dir_data_validate, "archive/2022-03-04_contacts.qs"))
-
-#filter out bad survey rounds
-pt <- pt[survey_round != "6"]
-ct <- ct[survey_round != "6"]
-pt <- pt[survey_round != "7"]
-ct <- ct[survey_round != "7"]
 
 # Map objects for labels --------------------------------------------------
 cnt_main_vars <- c(
@@ -82,9 +75,6 @@ for (j in var_list){
   set(pt_cnt_min,which(is.na(pt_cnt[[j]])),j,0)
 }
 
-#filter out for participants under 18 and over 65
-#pt_cnt <- pt_cnt[part_age >= 18 & part_age <= 65]
-
 # Count contacts ----------------------------------------------------------
 
 
@@ -97,14 +87,6 @@ ct_p[, d_work := ifelse(sample_type == "adult", cnt_work == 1 & cnt_home == 0, c
 ct_p[, d_other  := cnt_other ]
 ct_p[, d_phys  := cnt_phys]
 
-
-# ct_p[part_wave_uid == "be_A3_12092"]
-# ct_p[part_wave_uid == "uk_F8_64845"]
-# ct_p[part_wave_uid == "uk_F8_64845"]
-# 
-# ct_p[, table(d_school, cnt_school)]
-# ct_p[, table(d_work, cnt_work)]
-# ct_p[, table(d_other, cnt_other)]
 
 ct_p_cnts <- ct_p[, .(
     all = .N,
@@ -148,16 +130,6 @@ for (j in var_list_unq){
   set(pt_cnt_min,which(is.na(pt_cnt[[j]])),j,0)
 }
 
-#pt_cnt[, table(is.na(n_cnt))]
-#pt_cnt[, table(is.na(n_cnt_unq))]
-
-
-## check how the two counts match up.
-#pt_cnt[, table(n_cnt == n_cnt_unq)]
-#pt_cnt
-
-#dta = pt_cnt[country == "uk", .(mean(n_cnt), mean(n_cnt_unq), mean(n_cnt_unq_home), mean(n_cnt_unq_workschool), mean(n_cnt_unq_other),.N), by = .(survey_round, sample_type)][order(sample_type, survey_round)]
-
 cnt_names <- grep("n_cnt", names(pt_cnt_min), value = TRUE)
 cnt_names <- c("part_wave_uid", "panel", "part_id", "sample_type", "part_age", 
                "part_age_group", "survey_round", "date", "weekday", 
@@ -174,7 +146,7 @@ pt_cnt <- pt_cnt[, ..cnt_names]
 pt_cnt[, day_weight := ifelse(weekday == "Saturday", 2/7, ifelse(weekday == "Sunday", 2/7, 5/7))]
 
 #filter for just UK surveys
-pt_cnt <- pt_cnt[substr(part_wave_uid, 1, 2) == "uk"]
+pt_cnt <- pt_cnt[substr(part_wave_uid, 1, 2) == "be"]
 
 #add study name
 pt_cnt <- pt_cnt[, study := "CoMix"]
@@ -188,4 +160,4 @@ pt_cnt <- pt_cnt[, n_cnt_school := ifelse(n_cnt_school > 50, 50, n_cnt_school)]
 pt_cnt <- pt_cnt[, n_cnt_other := ifelse(n_cnt_other > 50, 50, n_cnt_other)]
 
 #save as qs file
-qs::qsave(pt_cnt, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\part_cnts.qs")
+qs::qsave(pt_cnt, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\part_cnts_be.qs")

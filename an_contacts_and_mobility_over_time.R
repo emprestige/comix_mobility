@@ -4,7 +4,6 @@
 library(data.table)
 library(ggplot2)
 library(tidyverse)
-library(mgcv)
 library(lubridate)
 library(cowplot)
 library(zoo)
@@ -21,7 +20,18 @@ data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobi
 cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 
 #filter out participants of a certain age
-cnts <- cnts[part_age >= 18]
+cnts <- cnts[sample_type == "adult"]
+
+#fix age groups
+cnts <- cnts %>%
+  mutate(part_age_group = case_when(part_age >= 18 & part_age <= 29 ~ "18-29",
+                                    part_age >= 30 & part_age <= 39 ~ "30-39",
+                                    part_age >= 40 & part_age <= 49 ~ "40-49",
+                                    part_age >= 50 & part_age <= 59 ~ "50-59",
+                                    part_age >= 60 & part_age <= 69 ~ "60-69",
+                                    part_age >= 70 ~ "70+"))
+cnts <- cnts %>%
+  filter(!is.na(part_age_group))
 
 #order by date
 cnts_date <- cnts[order(date)]
@@ -167,17 +177,17 @@ gm_av <- unique(gm_av)
 gm_av[, predictor := retail * 0.333 + transit * 0.334 + grocery * 0.333]
 
 #remove dates which are missing from comix data
-gm_av_sub <- gm_av[-c(7,8, 40, 68:88), ]
+gm_av_sub <- gm_av[-c(7,8), ]
 
 #get labels for all plots
-int <- seq(1, 92, 12)
+int <- seq(1, 114, 12)
 my_list <- gm_av_sub$week[int]
 
 #plot weighted predictor 
 predictor <- ggplot(gm_av_sub, aes(week, predictor,
                 label = ifelse(status == "No restrictions", 
                         ifelse(is.na(special) == F, special, week), special))) + 
-  geom_line(group = "status") + geom_text_repel(size = 2.5, max.overlaps = 50) +
+  geom_line(group = "status") + geom_text_repel(size = 2.5, max.overlaps = 80) +
   geom_point(aes(x = week, y = ifelse(is.na(special) == F, predictor, NA))) +
   scale_x_discrete(breaks = my_list) +
   geom_rect(aes(xmin = week, xmax = lead(week), ymin = min(predictor), 
@@ -192,7 +202,7 @@ predictor <- ggplot(gm_av_sub, aes(week, predictor,
 other <- ggplot(weighted_date, aes(week, other,
             label = ifelse(status == "No restrictions", 
                     ifelse(is.na(special) == F, special, week), special))) + 
-  geom_line(group = 1) + geom_text_repel(size = 2.5, max.overlaps = 50) +
+  geom_line(group = 1) + geom_text_repel(size = 2.5, max.overlaps = 80) +
   geom_point(aes(x = week, y = ifelse(is.na(special) == F, other, NA))) + 
   scale_x_discrete(breaks = my_list) +
   geom_rect(aes(xmin = week, xmax = lead(week), ymin = min(other), 
@@ -210,7 +220,7 @@ plot_grid(predictor, other, ncol = 1, align = 'v')
 retail <- ggplot(gm_av_sub, aes(week, retail,
             label = ifelse(status == "No restrictions", 
                     ifelse(is.na(special) == F, special, week), special))) + 
-  geom_line(group = "status") + geom_text_repel(size = 2.5, max.overlaps = 50) +
+  geom_line(group = "status") + geom_text_repel(size = 2.5, max.overlaps = 80) +
   geom_point(aes(x = week, y = ifelse(is.na(special) == F, retail, NA))) +
   scale_x_discrete(breaks = my_list) +
   geom_rect(aes(xmin = week, xmax = lead(week), ymin = min(retail), 
@@ -228,7 +238,7 @@ plot_grid(retail, other, ncol = 1, align = 'v')
 grocery <- ggplot(gm_av_sub, aes(week, grocery,
               label = ifelse(status == "No restrictions", 
                       ifelse(is.na(special) == F, special, week), special))) + 
-  geom_line(group = "status") + geom_text_repel(size = 2.5, max.overlaps = 50) +
+  geom_line(group = "status") + geom_text_repel(size = 2.5, max.overlaps = 80) +
   geom_point(aes(x = week, y = ifelse(is.na(special) == F, grocery, NA))) +
   scale_x_discrete(breaks = my_list) +
   geom_rect(aes(xmin = week, xmax = lead(week), ymin = min(grocery), 
@@ -246,7 +256,7 @@ plot_grid(grocery, other, ncol = 1, align = 'v')
 parks <- ggplot(gm_av_sub, aes(week, parks,
             label = ifelse(status == "No restrictions", 
                     ifelse(is.na(special) == F, special, week), special))) + 
-  geom_line(group = "status") + geom_text_repel(size = 2.5, max.overlaps = 50) +
+  geom_line(group = "status") + geom_text_repel(size = 2.5, max.overlaps = 80) +
   geom_point(aes(x = week, y = ifelse(is.na(special) == F, parks, NA))) +
   scale_x_discrete(breaks = my_list) +
   geom_rect(aes(xmin = week, xmax = lead(week), ymin = min(parks), 
@@ -264,7 +274,7 @@ plot_grid(parks, other, ncol = 1, align = 'v')
 transit <- ggplot(gm_av_sub, aes(week, transit,
               label = ifelse(status == "No restrictions", 
                       ifelse(is.na(special) == F, special, week), special))) + 
-  geom_line(group = "status") + geom_text_repel(size = 2.5, max.overlaps = 50) +
+  geom_line(group = "status") + geom_text_repel(size = 2.5, max.overlaps = 80) +
   geom_point(aes(x = week, y = ifelse(is.na(special) == F, transit, NA))) +
   scale_x_discrete(breaks = my_list) +
   geom_rect(aes(xmin = week, xmax = lead(week), ymin = min(transit), 
@@ -282,7 +292,7 @@ plot_grid(transit, other, ncol = 1, align = 'v')
 workplaces <- ggplot(gm_av_sub, aes(week, workplaces,
                  label = ifelse(status == "No restrictions", 
                          ifelse(is.na(special) == F, special, week), special))) + 
-  geom_line(group = "status") + geom_text_repel(size = 2.5, max.overlaps = 50) +
+  geom_line(group = "status") + geom_text_repel(size = 2.5, max.overlaps = 80) +
   geom_point(aes(x = week, y = ifelse(is.na(special) == F, workplaces, NA))) +
   scale_x_discrete(breaks = my_list) +
   geom_rect(aes(xmin = week, xmax = lead(week), ymin = min(workplaces), 
@@ -297,7 +307,7 @@ workplaces <- ggplot(gm_av_sub, aes(week, workplaces,
 work <- ggplot(weighted_date, aes(week, work,
            label = ifelse(status == "No restrictions", 
                    ifelse(is.na(special) == F, special, week), special))) + 
-  geom_line(group = 1) + geom_text_repel(size = 2.5, max.overlaps = 50) +
+  geom_line(group = 1) + geom_text_repel(size = 2.5, max.overlaps = 80) +
   geom_point(aes(x = week, y = ifelse(is.na(special) == F, work, NA))) +
   scale_x_discrete(breaks = my_list) +
   geom_rect(aes(xmin = week, xmax = lead(week), ymin = min(work), 
@@ -310,12 +320,14 @@ work <- ggplot(weighted_date, aes(week, work,
 #plot workplaces and work
 plot_grid(workplaces, work, ncol = 1, align = 'v')
 
-#plot residential
+#calculate inverse of residential
 gm_av_sub[, residential := 1 - residential]
+
+#plot residential
 residential <- ggplot(gm_av_sub, aes(week, residential,
                   label = ifelse(status == "No restrictions", 
                           ifelse(is.na(special) == F, special, week), special))) + 
-  geom_line(group = "status") + geom_text_repel(size = 2.5, max.overlaps = 50) +
+  geom_line(group = "status") + geom_text_repel(size = 2.5, max.overlaps = 80) +
   geom_point(aes(x = week, y = ifelse(is.na(special) == F, residential, NA))) +
   scale_x_discrete(breaks = my_list) + ylab("1 - residential") + 
   geom_rect(aes(xmin = week, xmax = lead(week), ymin = min(residential), 
@@ -330,7 +342,7 @@ residential <- ggplot(gm_av_sub, aes(week, residential,
 nonhome <- ggplot(weighted_date, aes(week, nonhome,
               label = ifelse(status == "No restrictions", 
                       ifelse(is.na(special) == F, special, week), special))) + 
-  geom_line(group = 1) + geom_text_repel(size = 2.5, max.overlaps = 50) +
+  geom_line(group = 1) + geom_text_repel(size = 2.5, max.overlaps = 80) +
   geom_point(aes(x = week, y = ifelse(is.na(special) == F, nonhome, NA))) +
   scale_x_discrete(breaks = my_list) + 
   geom_rect(aes(xmin = week, xmax = lead(week), ymin = min(nonhome), 
