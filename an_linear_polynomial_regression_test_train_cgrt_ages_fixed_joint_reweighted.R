@@ -29,14 +29,40 @@ cnts <- cnts %>%
 cnts <- cnts %>%
   filter(!is.na(part_age_group))
 
+week <- names(table(cnts$week))
+int <- seq(1, 100, 12)
+my_list <- week[int]
+
+cnts2 <- cnts
+cnts2[, pop_proportion := ifelse(part_social_group == "A - Upper middle class",
+        0.04, ifelse(part_social_group == "B - Middle class", 0.23, 
+        ifelse(part_social_group == "C1 - Lower middle class", 0.29,
+        ifelse(part_social_group == "C2 - Skilled working class", 0.21, 
+        ifelse(part_social_group == "D - Working class", 0.15, 0.08)))))]
+cnts2[, pop_estimate := pop_proportion*67330000]
+cnts2[, weekend := ifelse(weekday == "Saturday", T, ifelse(weekday == "Sunday", T, F))]
+
+weightlookup <- cnts2[, .(sample = .N), by = .(part_social_group, weekend, week)]
+weightlookup[, sample_total := sum(sample), by = .(week, weekend)]
+weightlookup[, sample_proportion := sample / sample_total]
+
+pop <- cnts2[, .(week, part_social_group, pop_estimate, pop_proportion, weekend)]
+pop2 <- unique(pop)
+weightlookup2 <- merge(weightlookup, pop2, by = c("part_social_group", "weekend", "week"))
+weightlookup2[, weight_raw := pop_estimate/sample]
+weightlookup2[, weight_proportion := pop_proportion/sample_proportion]
+
+#merge weights to cnts2
+cnts3 <- merge(cnts2, weightlookup2, by = c("part_social_group", "weekend", "week"))
+
 #order by date
-cnts_date <- cnts[order(date)]
+cnts_date <- cnts3[order(date)]
 cnts_date <- cnts_date[date <= ymd("2022-03-02")]
 
 #create data table with subset of variables
-num <- cnts_date[, .(date, part_id, panel, part_age, survey_round, weekday, 
-                     day_weight, home = n_cnt_home, work = n_cnt_work, 
-                     other = n_cnt_other, all = n_cnt)]
+num <- cnts_date[, .(date, part_id, panel, part_age, survey_round, weekday,
+                     home = n_cnt_home, work = n_cnt_work, other = n_cnt_other, 
+                     all = n_cnt, social_weight = weight_raw)]
 
 #create study column
 num[, study := "CoMix"]
@@ -62,14 +88,14 @@ T6 <- interval(ymd("2021-12-08"), ymd("2022-02-21"))
 
 #assign value to each type of restriction
 lockdowns$status <- ifelse(ymd(lockdowns$date) %within% T1, 1, 
-                           ifelse(ymd(lockdowns$date) %within% L1, 2, 
-                           ifelse(ymd(lockdowns$date) %within% T2, 1, 
-                           ifelse(ymd(lockdowns$date) %within% T3, 1, 
-                           ifelse(ymd(lockdowns$date) %within% L2, 2, 
-                           ifelse(ymd(lockdowns$date) %within% T4, 1, 
-                           ifelse(ymd(lockdowns$date) %within% L3, 2, 
-                           ifelse(ymd(lockdowns$date) %within% T5, 1,
-                           ifelse(ymd(lockdowns$date) %within% T6, 1, 0)))))))))
+                    ifelse(ymd(lockdowns$date) %within% L1, 2, 
+                    ifelse(ymd(lockdowns$date) %within% T2, 1, 
+                    ifelse(ymd(lockdowns$date) %within% T3, 1, 
+                    ifelse(ymd(lockdowns$date) %within% L2, 2, 
+                    ifelse(ymd(lockdowns$date) %within% T4, 1, 
+                    ifelse(ymd(lockdowns$date) %within% L3, 2, 
+                    ifelse(ymd(lockdowns$date) %within% T5, 1,
+                    ifelse(ymd(lockdowns$date) %within% T6, 1, 0)))))))))
 
 #create factor
 lockdown_fac <- factor(lockdowns$status, levels = c(0, 1, 2, 3),
@@ -93,7 +119,7 @@ pnum[, status := "Pre-Pandemic"]
 #add weighting to polymod data
 pnum[, weekday := lubridate::wday(date, label = T, abbr = F)]
 pnum[, day_weight := ifelse(weekday == "Saturday", 2/7, 
-                            ifelse(weekday == "Sunday", 2/7, 5/7))]
+                     ifelse(weekday == "Sunday", 2/7, 5/7))]
 
 #bind the rows together
 num <- rbind(cnts_l, pnum, fill = TRUE)
@@ -141,15 +167,15 @@ merge_test <- rbind(merge_test, poly_test)
 
 #get weighted means by week
 weighted_train <- merge_train[, .(study, status, special,
-                                  work = weighted.mean(work, day_weight),
-                                  other = weighted.mean(other, day_weight),
-                                  nonhome = weighted.mean(nonhome, day_weight)),
+                                  work = weighted.mean(work, social_weight),
+                                  other = weighted.mean(other, social_weight),
+                                  nonhome = weighted.mean(nonhome, social_weight)),
                   by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))]  
 weighted_train <- unique(weighted_train)
 weighted_test <- merge_test[, .(study, status, special,
-                                work = weighted.mean(work, day_weight),
-                                other = weighted.mean(other, day_weight),
-                                nonhome = weighted.mean(nonhome, day_weight)),
+                                work = weighted.mean(work, social_weight),
+                                other = weighted.mean(other, social_weight),
+                                nonhome = weighted.mean(nonhome, social_weight)),
                  by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))]  
 weighted_test <- unique(weighted_test)
 
@@ -166,7 +192,7 @@ ox_week <- ox[, .(school_closure = mean(C1M_School.closing),
                   work_closure = mean(C2M_Workplace.closing),
                   internal_movement = mean(C7M_Restrictions.on.internal.movement),
                   public_info = mean(H1_Public.information.campaigns)),
-                  by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))] 
+              by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))] 
 
 #merge with comix 
 weighted_train_merge <- merge(weighted_train, ox_week, all.x = T)
@@ -235,8 +261,8 @@ gm <- gm2[, .(workplaces = mean(workplaces),
               transit = mean(transit_stations),
               parks = mean(parks)),
           by = .(week = ifelse(study == "CoMix",
-                               paste(year(date), "/", sprintf("%02d", isoweek(date))),
-                               rep(0, length(date))), study)]
+                 paste(year(date), "/", sprintf("%02d", isoweek(date))),
+                 rep(0, length(date))), study)]
 
 #create predictor for 'other' contacts
 gm[, predictor := retail * 0.333 + transit * 0.334 + grocery * 0.333]
@@ -318,7 +344,7 @@ summary(lm_w2)
 #                       labels = c("No restrictions", "Some restrictions",
 #                                  "Lockdown", "Pre-Pandemic"))
 # plw2
- 
+
 #model work data using linear regression
 lm_w3 <- lm(work ~ workplaces + school_closure + public_info + internal_movement, 
             data = mob_cnt_train)
@@ -485,7 +511,7 @@ summary(lm_h2)
 #                       labels = c("No restrictions", "Some restrictions", 
 #                                  "Lockdown", "Pre-Pandemic"))
 # plh2
-                   
+
 #model 'other' data using linear regression 
 lm_o1 <- lm(other ~ predictor + work_closure + school_closure + public_info +
               internal_movement, data = mob_cnt_train)
@@ -500,7 +526,7 @@ mob_cnt_test[, o_uppr := pred$upr]
 
 #plot
 plo1 = ggplot(mob_cnt_train, aes(x = predictor, y = other, 
-          label = ifelse(status == "No restrictions", week, special))) + 
+        label = ifelse(status == "No restrictions", week, special))) + 
   geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 100) +
   geom_line(data = mob_cnt_test, aes(x = predictor, y = other)) +
   geom_ribbon(data = mob_cnt_test, aes(ymin = o_lwr, ymax = o_uppr), alpha = 0.1) +
@@ -529,7 +555,7 @@ mob_cnt_test[, o_uppr := pred$upr]
 
 #plot
 plo2 = ggplot(mob_cnt_train, aes(x = predictor, y = other,
-          label = ifelse(status == "No restrictions", week, special))) +
+        label = ifelse(status == "No restrictions", week, special))) +
   geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 100) +
   geom_line(data = mob_cnt_test, aes(x = predictor, y = other)) +
   geom_ribbon(data = mob_cnt_test, aes(ymin = o_lwr, ymax = o_uppr), alpha = 0.1) +

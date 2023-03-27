@@ -1,3 +1,5 @@
+##regression analyses using CGRT variables 
+
 #load libraries
 library(data.table)
 library(ggplot2)
@@ -5,8 +7,8 @@ library(tidyverse)
 library(lubridate)
 library(cowplot)
 library(zoo)
-library(survey)
 library(ggrepel)
+library(lmtest)
 
 #set cowplot theme
 theme_set(cowplot::theme_cowplot(font_size = 10) + theme(strip.background = element_blank()))
@@ -15,28 +17,16 @@ theme_set(cowplot::theme_cowplot(font_size = 10) + theme(strip.background = elem
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
 
 #import contact data
-cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
-cnts[, week := paste(isoyear(date), "/", sprintf("%02d", isoweek(date)))]
-
-#fix age groups
-cnts <- cnts %>%
-  mutate(part_age_group = case_when(part_age >= 18 & part_age <= 29 ~ "18-29",
-                                    part_age >= 30 & part_age <= 39 ~ "30-39",
-                                    part_age >= 40 & part_age <= 49 ~ "40-49",
-                                    part_age >= 50 & part_age <= 59 ~ "50-59",
-                                    part_age >= 60 & part_age <= 69 ~ "60-69",
-                                    part_age >= 70 ~ "70+"))
-cnts <- cnts %>%
-  filter(!is.na(part_age_group))
+cnts <- qs::qread(file.path(data_path, "cnts_weight_test.qs"))
 
 #order by date
 cnts_date <- cnts[order(date)]
 cnts_date <- cnts_date[date <= ymd("2022-03-02")]
 
 #create data table with subset of variables
-num <- cnts_date[, .(date, part_id, panel, part_age, survey_round, weekday, 
-                     day_weight, home = n_cnt_home, work = n_cnt_work, 
-                     other = n_cnt_other, all = n_cnt)]
+num <- cnts_date[, .(date, part_id, panel, part_age, survey_round, weekday,
+                     home = n_cnt_home, work = n_cnt_work, other = n_cnt_other, 
+                     all = n_cnt, weight = weight_raw)]
 
 #create study column
 num[, study := "CoMix"]
@@ -62,14 +52,14 @@ T6 <- interval(ymd("2021-12-08"), ymd("2022-02-21"))
 
 #assign value to each type of restriction
 lockdowns$status <- ifelse(ymd(lockdowns$date) %within% T1, 1, 
-                           ifelse(ymd(lockdowns$date) %within% L1, 2, 
-                           ifelse(ymd(lockdowns$date) %within% T2, 1, 
-                           ifelse(ymd(lockdowns$date) %within% T3, 1, 
-                           ifelse(ymd(lockdowns$date) %within% L2, 2, 
-                           ifelse(ymd(lockdowns$date) %within% T4, 1, 
-                           ifelse(ymd(lockdowns$date) %within% L3, 2, 
-                           ifelse(ymd(lockdowns$date) %within% T5, 1,
-                           ifelse(ymd(lockdowns$date) %within% T6, 1, 0)))))))))
+                    ifelse(ymd(lockdowns$date) %within% L1, 2, 
+                    ifelse(ymd(lockdowns$date) %within% T2, 1, 
+                    ifelse(ymd(lockdowns$date) %within% T3, 1, 
+                    ifelse(ymd(lockdowns$date) %within% L2, 2, 
+                    ifelse(ymd(lockdowns$date) %within% T4, 1, 
+                    ifelse(ymd(lockdowns$date) %within% L3, 2, 
+                    ifelse(ymd(lockdowns$date) %within% T5, 1,
+                    ifelse(ymd(lockdowns$date) %within% T6, 1, 0)))))))))
 
 #create factor
 lockdown_fac <- factor(lockdowns$status, levels = c(0, 1, 2, 3),
@@ -85,15 +75,12 @@ pnum <- qs::qread(file.path(data_path, "polymod.qs"))
 
 #create study column
 pnum[, study := "POLYMOD"]
-pnum[, social_weight := 1]
 
 #add information for lockdown status (i.e. none)
 pnum[, status := "Pre-Pandemic"]
 
 #add weighting to polymod data
-pnum[, weekday := lubridate::wday(date, label = T, abbr = F)]
-pnum[, day_weight := ifelse(weekday == "Saturday", 2/7, 
-                            ifelse(weekday == "Sunday", 2/7, 5/7))]
+pnum[, weight := 1]
 
 #bind the rows together
 num <- rbind(cnts_l, pnum, fill = TRUE)
@@ -141,15 +128,15 @@ merge_test <- rbind(merge_test, poly_test)
 
 #get weighted means by week
 weighted_train <- merge_train[, .(study, status, special,
-                                  work = weighted.mean(work, day_weight),
-                                  other = weighted.mean(other, day_weight),
-                                  nonhome = weighted.mean(nonhome, day_weight)),
+                                  work = weighted.mean(work, weight),
+                                  other = weighted.mean(other, weight),
+                                  nonhome = weighted.mean(nonhome, weight)),
                   by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))]  
 weighted_train <- unique(weighted_train)
 weighted_test <- merge_test[, .(study, status, special,
-                                work = weighted.mean(work, day_weight),
-                                other = weighted.mean(other, day_weight),
-                                nonhome = weighted.mean(nonhome, day_weight)),
+                                work = weighted.mean(work, weight),
+                                other = weighted.mean(other, weight),
+                                nonhome = weighted.mean(nonhome, weight)),
                  by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))]  
 weighted_test <- unique(weighted_test)
 
@@ -166,7 +153,7 @@ ox_week <- ox[, .(school_closure = mean(C1M_School.closing),
                   work_closure = mean(C2M_Workplace.closing),
                   internal_movement = mean(C7M_Restrictions.on.internal.movement),
                   public_info = mean(H1_Public.information.campaigns)),
-                  by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))] 
+              by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))] 
 
 #merge with comix 
 weighted_train_merge <- merge(weighted_train, ox_week, all.x = T)
@@ -235,8 +222,8 @@ gm <- gm2[, .(workplaces = mean(workplaces),
               transit = mean(transit_stations),
               parks = mean(parks)),
           by = .(week = ifelse(study == "CoMix",
-                               paste(year(date), "/", sprintf("%02d", isoweek(date))),
-                               rep(0, length(date))), study)]
+                 paste(year(date), "/", sprintf("%02d", isoweek(date))),
+                 rep(0, length(date))), study)]
 
 #create predictor for 'other' contacts
 gm[, predictor := retail * 0.333 + transit * 0.334 + grocery * 0.333]
@@ -318,117 +305,62 @@ summary(lm_w2)
 #                       labels = c("No restrictions", "Some restrictions",
 #                                  "Lockdown", "Pre-Pandemic"))
 # plw2
- 
+
 #model work data using linear regression
 lm_w3 <- lm(work ~ workplaces + school_closure + public_info + internal_movement, 
             data = mob_cnt_train)
 summary(lm_w3)
 
-# #predict using 'new' data
-# pred <- predict(lm_w3, newdata = mob_cnt_test, interval = "confidence")
-# pred <- as.data.table(pred)
-# mob_cnt_test[, work := pred$fit]
-# mob_cnt_test[, w_lwr := pred$lwr]
-# mob_cnt_test[, w_uppr := pred$upr]
-# 
-# #plot
-# plw3 = ggplot(mob_cnt_train, aes(x = workplaces, y = work,
-#         label = ifelse(status == "No restrictions", week, special))) +
-#   geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 100) +
-#   geom_line(data = mob_cnt_test, aes(x = workplaces, y = work)) +
-#   geom_ribbon(data = mob_cnt_test, aes(ymin = w_lwr, ymax = w_uppr), alpha = 0.1) +
-#   labs(x = "Google Mobility\n'workplaces' visits", col = "Status",
-#        y = "Number of work contacts") +
-#   scale_colour_manual(values = c("No restrictions" = "#00BA38",
-#                                  "Some restrictions" = "#619CFF",
-#                                  "Lockdown" = "#F8766D",
-#                                  "Pre-Pandemic" = "purple"),
-#                       labels = c("No restrictions", "Some restrictions",
-#                                  "Lockdown", "Pre-Pandemic"))
-# plw3
+#predict using 'new' data
+pred <- predict(lm_w3, newdata = mob_cnt_test, interval = "confidence")
+pred <- as.data.table(pred)
+mob_cnt_test[, work := pred$fit]
+mob_cnt_test[, w_lwr := pred$lwr]
+mob_cnt_test[, w_uppr := pred$upr]
+
+#plot
+plw3 = ggplot(mob_cnt_train, aes(x = workplaces, y = work,
+        label = ifelse(status == "No restrictions", week, special))) +
+  geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 100) +
+  geom_line(data = mob_cnt_test, aes(x = workplaces, y = work)) +
+  geom_ribbon(data = mob_cnt_test, aes(ymin = w_lwr, ymax = w_uppr), alpha = 0.1) +
+  labs(x = "Google Mobility\n'workplaces' visits", col = "Status",
+       y = "Number of work contacts") +
+  scale_colour_manual(values = c("No restrictions" = "#00BA38",
+                                 "Some restrictions" = "#619CFF",
+                                 "Lockdown" = "#F8766D",
+                                 "Pre-Pandemic" = "purple"),
+                      labels = c("No restrictions", "Some restrictions",
+                                 "Lockdown", "Pre-Pandemic"))
+plw3
 
 #model work data using polynomial regression
 lm_w4 <- lm(work ~ poly(workplaces, 2) + school_closure + public_info + 
               internal_movement, data = mob_cnt_train)
 summary(lm_w4)
 
-# #predict using 'new' data
-# pred <- predict(lm_w4, newdata = mob_cnt_test, interval = "confidence")
-# pred <- as.data.table(pred)
-# mob_cnt_test[, work := pred$fit]
-# mob_cnt_test[, w_lwr := pred$lwr]
-# mob_cnt_test[, w_uppr := pred$upr]
-# 
-# #plot
-# plw4 = ggplot(mob_cnt_train, aes(x = workplaces, y = work, 
-#         label = ifelse(status == "No restrictions", week, special))) + 
-#   geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 100) +
-#   geom_line(data = mob_cnt_test, aes(x = workplaces, y = work)) +
-#   geom_ribbon(data = mob_cnt_test, aes(ymin = w_lwr, ymax = w_uppr), alpha = 0.1) +
-#   labs(x = "Google Mobility\n'workplaces' visits", col = "Status",
-#        y = "Number of work contacts") +
-#   scale_colour_manual(values = c("No restrictions" = "#00BA38", 
-#                                  "Some restrictions" = "#619CFF", 
-#                                  "Lockdown" = "#F8766D",
-#                                  "Pre-Pandemic" = "purple"), 
-#                       labels = c("No restrictions", "Some restrictions", 
-#                                  "Lockdown", "Pre-Pandemic"))
-# plw4
-
-#model work data using linear regression
-lm_w5 <- lm(work ~ polyworkplaces + school_closure + public_info, data = mob_cnt_train)
-summary(lm_w5)
-
 #predict using 'new' data
-pred <- predict(lm_w5, newdata = mob_cnt_test, interval = "confidence")
+pred <- predict(lm_w4, newdata = mob_cnt_test, interval = "confidence")
 pred <- as.data.table(pred)
 mob_cnt_test[, work := pred$fit]
 mob_cnt_test[, w_lwr := pred$lwr]
 mob_cnt_test[, w_uppr := pred$upr]
 
 #plot
-plw5 = ggplot(mob_cnt_train, aes(x = workplaces, y = work, 
-        label = ifelse(status == "No restrictions", week, special))) + 
+plw4 = ggplot(mob_cnt_train, aes(x = workplaces, y = work,
+        label = ifelse(status == "No restrictions", week, special))) +
   geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 100) +
   geom_line(data = mob_cnt_test, aes(x = workplaces, y = work)) +
   geom_ribbon(data = mob_cnt_test, aes(ymin = w_lwr, ymax = w_uppr), alpha = 0.1) +
   labs(x = "Google Mobility\n'workplaces' visits", col = "Status",
        y = "Number of work contacts") +
-  scale_colour_manual(values = c("No restrictions" = "#00BA38", 
-                                 "Some restrictions" = "#619CFF", 
+  scale_colour_manual(values = c("No restrictions" = "#00BA38",
+                                 "Some restrictions" = "#619CFF",
                                  "Lockdown" = "#F8766D",
-                                 "Pre-Pandemic" = "purple"), 
-                      labels = c("No restrictions", "Some restrictions", 
+                                 "Pre-Pandemic" = "purple"),
+                      labels = c("No restrictions", "Some restrictions",
                                  "Lockdown", "Pre-Pandemic"))
-plw5
-
-#model work data using linear regression
-lm_w6 <- lm(work ~ poly(workplaces, 2) + school_closure + public_info, 
-            data = mob_cnt_train)
-summary(lm_w6)
-
-#predict using 'new' data
-pred <- predict(lm_w6, newdata = mob_cnt_test, interval = "confidence")
-pred <- as.data.table(pred)
-mob_cnt_test[, work := pred$fit]
-mob_cnt_test[, w_lwr := pred$lwr]
-mob_cnt_test[, w_uppr := pred$upr]
-
-#plot
-plw6 = ggplot(mob_cnt_train, aes(x = workplaces, y = work, 
-        label = ifelse(status == "No restrictions", week, special))) + 
-  geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 100) +
-  geom_line(data = mob_cnt_test, aes(x = workplaces, y = work)) +
-  geom_ribbon(data = mob_cnt_test, aes(ymin = w_lwr, ymax = w_uppr), alpha = 0.1) +
-  labs(x = "Google Mobility\n'workplaces' visits", col = "Status",
-       y = "Number of work contacts") +
-  scale_colour_manual(values = c("No restrictions" = "#00BA38", 
-                                 "Some restrictions" = "#619CFF", 
-                                 "Lockdown" = "#F8766D",
-                                 "Pre-Pandemic" = "purple"), 
-                      labels = c("No restrictions", "Some restrictions", 
-                                 "Lockdown", "Pre-Pandemic"))
-plw6
+plw4
 
 #model non-home data using linear regression
 lm_h1 <- lm(nonhome ~ residential + work_closure + school_closure + public_info +
@@ -485,7 +417,63 @@ summary(lm_h2)
 #                       labels = c("No restrictions", "Some restrictions", 
 #                                  "Lockdown", "Pre-Pandemic"))
 # plh2
-                   
+
+#model non-home data using linear regression
+lm_h3 <- lm(nonhome ~ residential + school_closure + public_info +
+              internal_movement, data = mob_cnt_train)
+summary(lm_h3)
+
+# #predict using 'new' data
+# pred <- predict(lm_h3, newdata = mob_cnt_test, interval = "confidence")
+# pred <- as.data.table(pred)
+# mob_cnt_test[, nonhome := pred$fit]
+# mob_cnt_test[, h_lwr := pred$lwr]
+# mob_cnt_test[, h_uppr := pred$upr]
+# 
+# #plot
+# plh3 = ggplot(mob_cnt_train, aes(x = residential, y = nonhome,
+#         label = ifelse(status == "No restrictions", week, special))) +
+#   geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 100) +
+#   geom_line(data = mob_cnt_test, aes(x = residential, y = nonhome)) +
+#   geom_ribbon(data = mob_cnt_test, aes(ymin = h_lwr, ymax = h_uppr), alpha = 0.1) +
+#   labs(x = "Google Mobility time at 'residential' location",
+#        y = "Number of non-home contacts", colour = "Status") +
+#   scale_colour_manual(values = c("No restrictions" = "#00BA38",
+#                                  "Some restrictions" = "#619CFF",
+#                                  "Lockdown" = "#F8766D",
+#                                  "Pre-Pandemic" = "purple"),
+#                       labels = c("No restrictions", "Some restrictions",
+#                                  "Lockdown", "Pre-Pandemic"))
+# plh3
+
+#model non-home data using polynomial regression
+lm_h4 <- lm(nonhome ~ residential + school_closure + public_info, 
+            data = mob_cnt_train)
+summary(lm_h4)
+
+#predict using 'new' data
+pred <- predict(lm_h4, newdata = mob_cnt_test, interval = "confidence")
+pred <- as.data.table(pred)
+mob_cnt_test[, nonhome := pred$fit]
+mob_cnt_test[, h_lwr := pred$lwr]
+mob_cnt_test[, h_uppr := pred$upr]
+
+#plot
+plh4 = ggplot(mob_cnt_train, aes(x = residential, y = nonhome,
+        label = ifelse(status == "No restrictions", week, special))) +
+  geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 100) +
+  geom_line(data = mob_cnt_test, aes(x = residential, y = nonhome)) +
+  geom_ribbon(data = mob_cnt_test, aes(ymin = h_lwr, ymax = h_uppr), alpha = 0.1) +
+  labs(x = "Google Mobility time at 'residential' location",
+       y = "Number of non-home contacts", colour = "Status") +
+  scale_colour_manual(values = c("No restrictions" = "#00BA38",
+                                 "Some restrictions" = "#619CFF",
+                                 "Lockdown" = "#F8766D",
+                                 "Pre-Pandemic" = "purple"),
+                      labels = c("No restrictions", "Some restrictions",
+                                 "Lockdown", "Pre-Pandemic"))
+plh4
+
 #model 'other' data using linear regression 
 lm_o1 <- lm(other ~ predictor + work_closure + school_closure + public_info +
               internal_movement, data = mob_cnt_train)
@@ -500,7 +488,7 @@ mob_cnt_test[, o_uppr := pred$upr]
 
 #plot
 plo1 = ggplot(mob_cnt_train, aes(x = predictor, y = other, 
-          label = ifelse(status == "No restrictions", week, special))) + 
+        label = ifelse(status == "No restrictions", week, special))) + 
   geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 100) +
   geom_line(data = mob_cnt_test, aes(x = predictor, y = other)) +
   geom_ribbon(data = mob_cnt_test, aes(ymin = o_lwr, ymax = o_uppr), alpha = 0.1) +
@@ -529,7 +517,7 @@ mob_cnt_test[, o_uppr := pred$upr]
 
 #plot
 plo2 = ggplot(mob_cnt_train, aes(x = predictor, y = other,
-          label = ifelse(status == "No restrictions", week, special))) +
+        label = ifelse(status == "No restrictions", week, special))) +
   geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 100) +
   geom_line(data = mob_cnt_test, aes(x = predictor, y = other)) +
   geom_ribbon(data = mob_cnt_test, aes(ymin = o_lwr, ymax = o_uppr), alpha = 0.1) +
@@ -542,3 +530,60 @@ plo2 = ggplot(mob_cnt_train, aes(x = predictor, y = other,
                       labels = c("No restrictions", "Some restrictions",
                                  "Lockdown", "Pre-Pandemic"))
 plo2
+
+#model 'other' data using linear regression 
+lm_o3 <- lm(other ~ predictor + school_closure + public_info + internal_movement, 
+            data = mob_cnt_train)
+summary(lm_o3)
+
+#predict using 'new' data
+pred <- predict(lm_o3, newdata = mob_cnt_test, interval = "confidence")
+pred <- as.data.table(pred)
+mob_cnt_test[, other := pred$fit]
+mob_cnt_test[, o_lwr := pred$lwr]
+mob_cnt_test[, o_uppr := pred$upr]
+
+#plot
+plo3 = ggplot(mob_cnt_train, aes(x = predictor, y = other, 
+        label = ifelse(status == "No restrictions", week, special))) + 
+  geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 100) +
+  geom_line(data = mob_cnt_test, aes(x = predictor, y = other)) +
+  geom_ribbon(data = mob_cnt_test, aes(ymin = o_lwr, ymax = o_uppr), alpha = 0.1) +
+  labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits",
+       y = "Number of 'other' contacts",  col = "Status") +
+  scale_colour_manual(values = c("No restrictions" = "#00BA38", 
+                                 "Some restrictions" = "#619CFF", 
+                                 "Lockdown" = "#F8766D",
+                                 "Pre-Pandemic" = "purple"), 
+                      labels = c("No restrictions", "Some restrictions", 
+                                 "Lockdown", "Pre-Pandemic"))
+plo3
+
+#model 'other' data using polynomial regression 
+lm_o4 <- lm(other ~ poly(predictor, 2) + school_closure + public_info +
+              internal_movement, data = mob_cnt_train)
+summary(lm_o4)
+lrtest(lm_o4, lm_o3)
+
+#predict using 'new' data
+pred <- predict(lm_o4, newdata = mob_cnt_test, interval = "confidence")
+pred <- as.data.table(pred)
+mob_cnt_test[, other := pred$fit]
+mob_cnt_test[, o_lwr := pred$lwr]
+mob_cnt_test[, o_uppr := pred$upr]
+
+#plot
+plo4 = ggplot(mob_cnt_train, aes(x = predictor, y = other,
+        label = ifelse(status == "No restrictions", week, special))) +
+  geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 100) +
+  geom_line(data = mob_cnt_test, aes(x = predictor, y = other)) +
+  geom_ribbon(data = mob_cnt_test, aes(ymin = o_lwr, ymax = o_uppr), alpha = 0.1) +
+  labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits",
+       y = "Number of 'other' contacts",  col = "Status") +
+  scale_colour_manual(values = c("No restrictions" = "#00BA38",
+                                 "Some restrictions" = "#619CFF",
+                                 "Lockdown" = "#F8766D",
+                                 "Pre-Pandemic" = "purple"),
+                      labels = c("No restrictions", "Some restrictions",
+                                 "Lockdown", "Pre-Pandemic"))
+plo4
