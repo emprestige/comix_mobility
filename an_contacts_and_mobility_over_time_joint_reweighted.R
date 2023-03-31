@@ -1,5 +1,3 @@
-##mobility over time 
-
 #load libraries
 library(data.table)
 library(ggplot2)
@@ -7,7 +5,7 @@ library(tidyverse)
 library(lubridate)
 library(cowplot)
 library(zoo)
-library(gghighlight)
+library(survey)
 library(ggrepel)
 
 #set cowplot theme
@@ -17,10 +15,8 @@ theme_set(cowplot::theme_cowplot(font_size = 10) + theme(strip.background = elem
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
 
 #import contact data
-cnts <- qs::qread(file.path(data_path, "cnts_weight_test.qs"))
-
-#filter out participants of a certain age
-cnts <- cnts[sample_type == "adult"]
+cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
+cnts[, week := paste(isoyear(date), "/", sprintf("%02d", isoweek(date)))]
 
 #fix age groups
 cnts <- cnts %>%
@@ -33,9 +29,35 @@ cnts <- cnts %>%
 cnts <- cnts %>%
   filter(!is.na(part_age_group))
 
+week <- names(table(cnts$week))
+int <- seq(1, 100, 12)
+my_list <- week[int]
+
+cnts2 <- cnts
+cnts2[, pop_proportion := ifelse(part_social_group == "A - Upper middle class",
+                          0.04, ifelse(part_social_group == "B - Middle class", 0.23, 
+                          ifelse(part_social_group == "C1 - Lower middle class", 0.29,
+                          ifelse(part_social_group == "C2 - Skilled working class", 0.21, 
+                          ifelse(part_social_group == "D - Working class", 0.15, 0.08)))))]
+cnts2[, pop_estimate := pop_proportion*67330000]
+cnts2[, weekend := ifelse(weekday == "Saturday", T, ifelse(weekday == "Sunday", T, F))]
+
+weightlookup <- cnts2[, .(sample = .N), by = .(part_social_group, weekend, week)]
+weightlookup[, sample_total := sum(sample), by = .(week, weekend)]
+weightlookup[, sample_proportion := sample / sample_total]
+
+pop <- cnts2[, .(week, part_social_group, pop_estimate, pop_proportion, weekend)]
+pop2 <- unique(pop)
+weightlookup2 <- merge(weightlookup, pop2, by = c("part_social_group", "weekend", "week"))
+weightlookup2[, weight_raw := pop_estimate/sample]
+weightlookup2[, weight_proportion := pop_proportion/sample_proportion]
+
+#merge weights to cnts2
+cnts3 <- merge(cnts2, weightlookup2, by = c("part_social_group", "weekend", "week"))
+
 #order by date
-cnts_date <- cnts[order(date)]
-cnts_date <- cnts[date <= ymd("2022-03-02")]
+cnts_date <- cnts3[order(date)]
+cnts_date <- cnts_date[date <= ymd("2022-03-02")]
 
 #create data table with subset of variables
 num <- cnts_date[, .(date, part_id, panel, part_age, survey_round, weekday, 

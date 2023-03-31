@@ -22,11 +22,73 @@ cnts <- cnts %>%
                                     part_age >= 60 & part_age <= 69 ~ "60-69",
                                     part_age >= 70 ~ "70+"))
 
-cnts <- cnts %>% 
-  filter(!is.na(part_age_group))
+cnts[area_2_name == "Greater", area_2_name := "Greater London"]
 
+#filter data for NA age group, order it by date 
+cnts <- cnts %>%
+  filter(!is.na(part_age_group))
 cnts <- cnts[order(date)]
 
+##main variables 
+
+#gender
+cnts %>% group_by(part_gender_nb) %>%
+  summarise(n = n()) %>%
+  mutate(freq = round(n/sum(n)*100, 1))
+
+#age group
+cnts %>% group_by(part_age_group) %>%
+  summarise(n = n()) %>%
+  mutate(freq = round(n/sum(n)*100, 1))
+
+#employment status
+cnts %>% group_by(part_employstatus) %>%
+  summarise(n = n()) %>%
+  mutate(freq = round(n/sum(n)*100, 1))
+
+#social class
+cnts %>% group_by(part_social_group) %>%
+  summarise(n = n()) %>%
+  mutate(freq = round(n/sum(n)*100, 1))
+
+#area
+cnts %>% group_by(area_2_name) %>%
+  summarise(n = n()) %>%
+  mutate(freq = round(n/sum(n)*100, 1))
+
+#household size group 
+cnts %>% group_by(hh_size_group) %>%
+  summarise(n = n()) %>%
+  mutate(freq = round(n/sum(n)*100, 1))
+
+##not main variables
+
+#household composition 
+cnts %>% group_by(hh_type) %>%
+  summarise(n = n()) %>%
+  mutate(freq = round(n/sum(n)*100, 1))
+
+#occupation
+cnts %>% group_by(part_occupation) %>%
+  summarise(n = n()) %>%
+  mutate(freq = round(n/sum(n)*100, 1))
+
+#high risk
+cnts %>% group_by(part_high_risk) %>%
+  summarise(n = n()) %>%
+  mutate(freq = round(n/sum(n)*100, 1))
+
+#ethnicity
+cnts %>% group_by(part_ethnicity) %>%
+  summarise(n = n()) %>%
+  mutate(freq = round(n/sum(n)*100, 1))
+
+#vaccinated
+cnts %>% group_by(part_vacc) %>%
+  summarise(n = n()) %>%
+  mutate(freq = round(n/sum(n)*100, 1))
+
+#select one observation per participant
 cnts <- cnts %>%
   group_by(part_id) %>%
   filter(row_number(part_id) == 1)
@@ -36,63 +98,56 @@ cnts <- cnts %>%
 #gender
 cnts %>% group_by(part_gender_nb) %>%
   summarise(n = n()) %>%
-  mutate(freq = (n/sum(n)*100))
+  mutate(freq = round(n/sum(n)*100, 1))
 
 #age group
 cnts %>% group_by(part_age_group) %>%
   summarise(n = n()) %>%
-  mutate(freq = (n/sum(n)*100))
-
-cnts %>% group_by(part_age_group_new) %>%
-  summarise(n = n()) %>%
-  mutate(freq = (n/sum(n)*100))
-
-cnts %>% group_by(part_age_group) %>%
-  summarise(min = min(part_age), max = max(part_age))
+  mutate(freq = round(n/sum(n)*100, 1))
 
 #employment status
 cnts %>% group_by(part_employstatus) %>%
   summarise(n = n()) %>%
-  mutate(freq = (n/sum(n)*100))
+  mutate(freq = round(n/sum(n)*100, 1))
 
 #social class
 cnts %>% group_by(part_social_group) %>%
   summarise(n = n()) %>%
-  mutate(freq = (n/sum(n)*100))
+  mutate(freq = round(n/sum(n)*100, 1))
 
 #area
 cnts %>% group_by(area_2_name) %>%
   summarise(n = n()) %>%
-  mutate(freq = (n/sum(n)*100))
+  mutate(freq = round(n/sum(n)*100, 1))
 
 #household size group 
 cnts %>% group_by(hh_size_group) %>%
   summarise(n = n()) %>%
-  mutate(freq = (n/sum(n)*100))
+  mutate(freq = round(n/sum(n)*100, 1))
 
 ##not main variables
 
 #household composition 
 cnts %>% group_by(hh_type) %>%
   summarise(n = n()) %>%
-  mutate(freq = (n/sum(n)*100))
+  mutate(freq = round(n/sum(n)*100, 1))
 
 #occupation
 cnts %>% group_by(part_occupation) %>%
   summarise(n = n()) %>%
-  mutate(freq = (n/sum(n)*100))
+  mutate(freq = round(n/sum(n)*100, 1))
 
 #high risk
 cnts %>% group_by(part_high_risk) %>%
   summarise(n = n()) %>%
-  mutate(freq = (n/sum(n)*100))
+  mutate(freq = round(n/sum(n)*100, 1))
 
 #ethnicity
 cnts %>% group_by(part_ethnicity) %>%
   summarise(n = n()) %>%
-  mutate(freq = (n/sum(n)*100))
+  mutate(freq = round(n/sum(n)*100, 1))
 
 #vaccinated
 cnts %>% group_by(part_vacc) %>%
   summarise(n = n()) %>%
-  mutate(freq = (n/sum(n)*100))
+  mutate(freq = round(n/sum(n)*100, 1))

@@ -17,7 +17,7 @@ theme_set(cowplot::theme_cowplot(font_size = 10) + theme(strip.background = elem
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
 
 #import contact data
-cnts <- qs::qread(file.path(data_path, "cnts_weight_test.qs"))
+cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 
 #filter out participants of a certain age
 cnts <- cnts[sample_type == "adult"]
@@ -39,8 +39,8 @@ cnts_date <- cnts[date <= ymd("2022-03-02")]
 
 #create data table with subset of variables
 num <- cnts_date[, .(date, part_id, panel, part_age, survey_round, weekday, 
-                     home = n_cnt_home, work = n_cnt_work, other = n_cnt_other, 
-                     all = n_cnt, social_weight = weight_raw)]
+                     day_weight, home = n_cnt_home, work = n_cnt_work, 
+                     other = n_cnt_other, all = n_cnt)]
 num[, t := as.numeric(date - ymd("2020-01-01"))]
 
 #create study column
@@ -116,10 +116,10 @@ num_merge <- num_merge[order(date)]
 
 #get weighted means by week
 weighted_date <- num_merge[, .(study, status, special,
-                               work = weighted.mean(work, social_weight),
-                               other = weighted.mean(other, social_weight),
-                               nonhome = weighted.mean(nonhome, social_weight)),
-                by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))]  
+                               work = weighted.mean(work, day_weight),
+                               other = weighted.mean(other, day_weight),
+                               nonhome = weighted.mean(nonhome, day_weight)),
+                           by = survey_round]#.(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))]  
 weighted_date <- unique(weighted_date)
 
 #import mobility data
@@ -170,7 +170,7 @@ gm_av <- mob_merge[, .(status, special,
                        transit = mean(transit_stations),
                        workplaces = mean(workplaces),
                        residential = mean(residential)),
-         by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))]
+                   by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))]
 gm_av <- unique(gm_av)
 
 #create predictor for 'other' contacts
@@ -199,13 +199,12 @@ predictor <- ggplot(gm_av_sub, aes(week, predictor,
                                "Lockdown"))
 
 #plot other
-other <- ggplot(weighted_date, aes(week, other,
-            label = ifelse(status == "No restrictions", 
-                    ifelse(is.na(special) == F, special, week), special))) + 
+other <- ggplot(weighted_date, aes(survey_round, other,
+            label = ifelse(is.na(special) == F, special, NA))) + 
   geom_line(group = 1) + geom_text_repel(size = 2.5, max.overlaps = 80) +
-  geom_point(aes(x = week, y = ifelse(is.na(special) == F, other, NA))) + 
+  geom_point(aes(x = survey_round, y = ifelse(is.na(special) == F, other, NA))) + 
   scale_x_discrete(breaks = my_list) +
-  geom_rect(aes(xmin = week, xmax = lead(week), ymin = 0, 
+  geom_rect(aes(xmin = survey_round, xmax = lead(survey_round), ymin = 0, 
                 ymax = Inf, fill = status), alpha = 0.5) +
   scale_fill_manual(values = c("No restrictions" = "#00BA38", 
                                "Some restrictions" = "#619CFF", 
@@ -304,13 +303,12 @@ workplaces <- ggplot(gm_av_sub, aes(week, workplaces,
                                "Lockdown"))
 
 #plot work
-work <- ggplot(weighted_date, aes(week, work,
-           label = ifelse(status == "No restrictions", 
-                   ifelse(is.na(special) == F, special, week), special))) + 
+work <- ggplot(weighted_date, aes(survey_round, work, 
+           label = ifelse(is.na(special) == F, special, NA))) + 
   geom_line(group = 1) + geom_text_repel(size = 2.5, max.overlaps = 80) +
-  geom_point(aes(x = week, y = ifelse(is.na(special) == F, work, NA))) +
+  geom_point(aes(x = survey_round, y = ifelse(is.na(special) == F, work, NA))) +
   scale_x_discrete(breaks = my_list) +
-  geom_rect(aes(xmin = week, xmax = lead(week), ymin = 0, 
+  geom_rect(aes(xmin = survey_round, xmax = lead(survey_round), ymin = 0,
                 ymax = Inf, fill = status), alpha = 0.5) +
   scale_fill_manual(values = c("No restrictions" = "#00BA38", 
                                "Some restrictions" = "#619CFF", 
@@ -331,7 +329,7 @@ residential <- ggplot(gm_av_sub, aes(week, residential,
   geom_point(aes(x = week, y = ifelse(is.na(special) == F, residential, NA))) +
   scale_x_discrete(breaks = my_list) + ylab("1 - residential") + 
   geom_rect(aes(xmin = week, xmax = lead(week), ymin = -0.3, 
-                ymax = Inf, fill = status), alpha = 0.5) +
+                ymax = 0, fill = status), alpha = 0.5) +
   scale_fill_manual(values = c("No restrictions" = "#00BA38", 
                                "Some restrictions" = "#619CFF", 
                                "Lockdown" = "#F8766D"), 
@@ -339,13 +337,12 @@ residential <- ggplot(gm_av_sub, aes(week, residential,
                                "Lockdown"))
 
 #plot nonhome
-nonhome <- ggplot(weighted_date, aes(week, nonhome,
-              label = ifelse(status == "No restrictions", 
-                      ifelse(is.na(special) == F, special, week), special))) + 
+nonhome <- ggplot(weighted_date, aes(survey_round, nonhome,
+              label = ifelse(is.na(special) == F, special, NA))) + 
   geom_line(group = 1) + geom_text_repel(size = 2.5, max.overlaps = 80) +
-  geom_point(aes(x = week, y = ifelse(is.na(special) == F, nonhome, NA))) +
+  geom_point(aes(x = survey_round, y = ifelse(is.na(special) == F, nonhome, NA))) +
   scale_x_discrete(breaks = my_list) + 
-  geom_rect(aes(xmin = week, xmax = lead(week), ymin = 0, 
+  geom_rect(aes(xmin = survey_round, xmax = lead(survey_round), ymin = 0, 
                 ymax = Inf, fill = status), alpha = 0.5) +
   scale_fill_manual(values = c("No restrictions" = "#00BA38", 
                                "Some restrictions" = "#619CFF", 
