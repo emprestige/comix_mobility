@@ -146,7 +146,7 @@ pt_cnt <- pt_cnt[, ..cnt_names]
 pt_cnt[, day_weight := ifelse(weekday == "Saturday", 2/7, ifelse(weekday == "Sunday", 2/7, 5/7))]
 
 #filter for just UK surveys
-pt_cnt <- pt_cnt[substr(part_wave_uid, 1, 2) == "nl"]
+pt_cnt <- pt_cnt[substr(part_wave_uid, 1, 2) == "ch"]
 
 #add study name
 pt_cnt <- pt_cnt[, study := "CoMix"]
@@ -157,4 +157,4 @@ pt_cnt <- pt_cnt[, n_cnt_school := ifelse(n_cnt_school > 50, 50, n_cnt_school)]
 pt_cnt <- pt_cnt[, n_cnt_other := ifelse(n_cnt_other > 50, 50, n_cnt_other)]
 
 #save as qs file
-qs::qsave(pt_cnt, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\part_cnts_nl.qs")
+qs::qsave(pt_cnt, "C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\part_cnts_ch.qs")
