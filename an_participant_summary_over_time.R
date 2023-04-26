@@ -23,14 +23,14 @@ cnts <- cnts %>%
 #filter out participants of a certain age
 cnts <- cnts[sample_type == "adult"]
 
-#fix age groups
-cnts <- cnts %>%
-  mutate(part_age_group = case_when(part_age >= 18 & part_age <= 29 ~ "18-29",
-                                    part_age >= 30 & part_age <= 39 ~ "30-39",
-                                    part_age >= 40 & part_age <= 49 ~ "40-49",
-                                    part_age >= 50 & part_age <= 59 ~ "50-59",
-                                    part_age >= 60 & part_age <= 69 ~ "60-69",
-                                    part_age >= 70 ~ "70+"))
+# #fix age groups
+# cnts <- cnts %>%
+#   mutate(part_age_group = case_when(part_age >= 18 & part_age <= 29 ~ "18-29",
+#                                     part_age >= 30 & part_age <= 39 ~ "30-39",
+#                                     part_age >= 40 & part_age <= 49 ~ "40-49",
+#                                     part_age >= 50 & part_age <= 59 ~ "50-59",
+#                                     part_age >= 60 & part_age <= 69 ~ "60-69",
+#                                      part_age >= 70 ~ "70+"))
 
 cnts[area_2_name == "Greater", area_2_name := "Greater London"]
 cnts[, week := paste(isoyear(date), "/", sprintf("%02d", isoweek(date)))]

@@ -125,7 +125,8 @@ weighted_mid_date <- num_merge[, .(study, special, survey_round, status,
                                    work = weighted.mean(work, day_weight),
                                    other = weighted.mean(other, day_weight),
                                    nonhome = weighted.mean(nonhome, day_weight)),
-                     by = .(week = paste(isoyear(mid_date), "/", sprintf("%02d", isoweek(mid_date))))]  
+                     by = .(week = paste(isoyear(mid_date), "/",
+                                         sprintf("%02d", isoweek(mid_date))))]  
 weighted_mid_date <- unique(weighted_mid_date)
 
 #import mobility data

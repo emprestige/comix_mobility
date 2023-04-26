@@ -56,31 +56,32 @@ cnts %>% group_by(weekday) %>%
 
 days <- cnts[, .(n = .N), by = .(weekday, week)][, freq := prop.table(n), by = week]
 days$weekday <- factor(days$weekday, weekdays(min(cnts$date) + 0:6))
-ggplot(data = days, aes(x = week, y = freq, fill = weekday)) + geom_col() + 
-  scale_x_discrete(breaks = my_list)
-ggplot(data = days, aes(x = weekday, y = week, fill = freq)) + geom_tile()
+# ggplot(data = days, aes(x = week, y = freq, fill = weekday)) + geom_col() + 
+#   scale_x_discrete(breaks = my_list)
+# ggplot(data = days, aes(x = weekday, y = week, fill = freq)) + geom_tile()
 
-days2 <- cnts[, .(n = .N), by = .(weekday, survey_round)][, freq := prop.table(n), by = survey_round]
+days2 <- cnts[, .(n = .N), by = .(weekday, survey_round)][, freq := prop.table(n), 
+                                                          by = survey_round]
 days2$weekday <- factor(days2$weekday, weekdays(min(cnts$date) + 0:6))
-ggplot(data = days2, aes(x = survey_round, y = freq, fill = weekday)) + geom_col() + 
-  scale_x_discrete(breaks = my_list)
-ggplot(data = days2, aes(x = weekday, y = survey_round, fill = n)) + geom_tile()
+# ggplot(data = days2, aes(x = survey_round, y = freq, fill = weekday)) + geom_col() + 
+#   scale_x_discrete(breaks = my_list)
+# ggplot(data = days2, aes(x = weekday, y = survey_round, fill = n)) + geom_tile()
 
 cnts2 <- rlang::duplicate(cnts)
 days3 <- cnts2[, .(n = .N, work = mean(n_cnt_work), other = mean(n_cnt_other),
                    home = mean(n_cnt_other)), by = .(weekday, 
-                                                     month = paste(isoyear(date), "/", month(date)))][, 
-                                                                                                      freq := prop.table(n), by = month]
+                   month = paste(isoyear(date), "/", month(date)))][, 
+                   freq := prop.table(n), by = month]
 days3$weekday <- factor(days3$weekday, weekdays(min(cnts$date) + 0:6))
 month <- names(table(days3$month))
 int2 <- seq(1, 26, 6)
 my_list2 <- month[int2]
-ggplot(data = days3, aes(x = month, y = work, fill = weekday)) + geom_col() + 
-  scale_x_discrete(breaks = my_list2)
-ggplot(data = days3, aes(x = weekday, y = month, fill = work)) + geom_tile() + 
-  scale_y_discrete(breaks = my_list2)
-ggplot(data = days3, aes(x = weekday, y = work, fill = weekday)) + geom_col() + 
-  facet_grid(cols = vars(month))
+# ggplot(data = days3, aes(x = month, y = work, fill = weekday)) + geom_col() + 
+#   scale_x_discrete(breaks = my_list2)
+# ggplot(data = days3, aes(x = weekday, y = month, fill = work)) + geom_tile() + 
+#   scale_y_discrete(breaks = my_list2)
+# ggplot(data = days3, aes(x = weekday, y = work, fill = weekday)) + geom_col() + 
+#   facet_grid(cols = vars(month))
 
 cnts3 <- rlang::duplicate(cnts)
 cnts3 <- cnts3 %>%
@@ -89,24 +90,24 @@ cnts3 <- cnts3 %>%
   filter(!is.na(part_gender_nb)) 
 days4 <- cnts3[, .(n = .N, work = mean(n_cnt_work), other = mean(n_cnt_other),
                    home = mean(n_cnt_other)), by = .(weekday, part_gender_nb,
-                                                     month = paste(isoyear(date), "/", month(date)))][, 
-                                                                                                      freq := prop.table(n), by = month]
+                   month = paste(isoyear(date), "/", month(date)))][, 
+                   freq := prop.table(n), by = month]
 days4$weekday <- factor(days4$weekday, weekdays(min(cnts$date) + 0:6))
-ggplot(data = days4, aes(x = month, y = work, fill = weekday)) + geom_col() + 
-  scale_x_discrete(breaks = my_list2) + facet_grid(rows = vars(part_gender_nb))
+# ggplot(data = days4, aes(x = month, y = work, fill = weekday)) + geom_col() + 
+#   scale_x_discrete(breaks = my_list2) + facet_grid(rows = vars(part_gender_nb))
 
 cnts4 <- rlang::duplicate(cnts) 
 cnts4 <- cnts4 %>%
   filter(!is.na(part_age_group))
 days5 <- cnts4[, .(n = .N, work = mean(n_cnt_work), other = mean(n_cnt_other),
                    home = mean(n_cnt_other)), by = .(weekday, part_age_group,
-                                                     quarter = paste(isoyear(date), "/", quarter(date)))][, 
-                                                                                                          freq := prop.table(n), by = quarter]
+                   quarter = paste(isoyear(date), "/", quarter(date)))][, 
+                   freq := prop.table(n), by = quarter]
 days5$weekday <- factor(days5$weekday, weekdays(min(cnts$date) + 0:6))
-ggplot(data = days5, aes(x = quarter, y = work, fill = weekday)) + geom_col() + 
-  facet_grid(cols = vars(part_age_group)) 
-ggplot(data = days5, aes(x = quarter, y = weekday, fill = work)) + geom_tile() + 
-  facet_grid(cols = vars(part_age_group)) 
+# ggplot(data = days5, aes(x = quarter, y = work, fill = weekday)) + geom_col() + 
+#   facet_grid(cols = vars(part_age_group)) 
+# ggplot(data = days5, aes(x = quarter, y = weekday, fill = work)) + geom_tile() + 
+#   facet_grid(cols = vars(part_age_group)) 
 
 #create sequence of dates
 date <- seq(as.Date("2020-03-02"), as.Date("2022-03-02"), by = "days")
@@ -154,29 +155,60 @@ cnts5 <- cnts5 %>%
 cnts5 <- merge(cnts5, lockdowns)
 days6 <- cnts5[, .(n = .N, work = mean(n_cnt_work), other = mean(n_cnt_other),
                    home = mean(n_cnt_other)), by = .(weekday, status)][, 
-                                                                       freq := prop.table(n), by = status]
+                   freq := prop.table(n), by = status]
+days6[, nonhome := (work + other) - home]
 days6$weekday <- factor(days6$weekday, weekdays(min(cnts$date) + 0:6))
 ggplot(data = days6, aes(x = weekday, y = work)) + geom_col(fill = "pink") + 
+  facet_grid(rows = vars(status))
+ggplot(data = days6, aes(x = weekday, y = other)) + geom_col(fill = "pink") + 
+  facet_grid(rows = vars(status))
+ggplot(data = days6, aes(x = weekday, y = nonhome)) + geom_col(fill = "pink") + 
   facet_grid(rows = vars(status))
 
 days7 <- cnts5[, .(n = .N, work = mean(n_cnt_work), other = mean(n_cnt_other),
                    home = mean(n_cnt_other)), by = .(weekday, part_age_group, status)][, 
                    freq := prop.table(n), by = status]
+days7[, nonhome := (work + other) - home]
 days7$weekday <- factor(days7$weekday, weekdays(min(cnts$date) + 0:6))
-ggplot(data = days7, aes(x = status, y = work, fill = weekday)) + geom_col() + 
-  facet_grid(cols = vars(part_age_group)) 
-ggplot(data = days7, aes(x = status, y = weekday, fill = work)) + geom_tile() + 
-  facet_grid(cols = vars(part_age_group))
+# ggplot(data = days7, aes(x = status, y = work, fill = weekday)) + geom_col() + 
+#   facet_grid(cols = vars(part_age_group)) 
+# ggplot(data = days7, aes(x = status, y = weekday, fill = work)) + geom_tile() + 
+#   facet_grid(cols = vars(part_age_group))
 
 labs <- c("Mon", "Tue", "Wed", "Thur", "Fri", "Sat", "Sun")
 ggplot(data = days7, aes(x = weekday, y = work)) + geom_col(fill = "pink") + 
-  scale_x_discrete(labels = labs) + facet_grid(rows = vars(status), cols = vars(part_age_group))  
+  scale_x_discrete(labels = labs) + 
+  facet_grid(rows = vars(status), cols = vars(part_age_group))  
+ggplot(data = days7, aes(x = weekday, y = other)) + geom_col(fill = "pink") + 
+  scale_x_discrete(labels = labs) + 
+  facet_grid(rows = vars(status), cols = vars(part_age_group))  
+ggplot(data = days7, aes(x = weekday, y = nonhome)) + geom_col(fill = "pink") + 
+  scale_x_discrete(labels = labs) +
+  facet_grid(rows = vars(status), cols = vars(part_age_group))  
 
-#import data with weighting
+#import data with full weighting
 cnts6 <- qs::qread(file.path(data_path, "cnts_weight_test.qs"))
 cnts6 <- cnts6 %>%
   filter(!is.na(part_age_group))
 cnts6 <- merge(cnts6, lockdowns, by = "date")
 weight_mean_weekly <- cnts6 %>% group_by(week) %>% summarise(mean = mean(weight_raw))
 ggplot(data = weight_mean_weekly, aes(x = week, y = mean)) + geom_line(group = 1) +
-  scale_x_discrete(breaks = my_list) + ylab("Mean Weight") + xlab("Week")
+  scale_x_discrete(breaks = my_list) + ylab("Mean Weigh (full weighting)") + xlab("Week")
+
+#import data with triple weighting 
+cnts7 <- qs::qread(file.path(data_path, "cnts_weight_test2.qs"))
+cnts7 <- cnts7 %>%
+  filter(!is.na(part_age_group))
+cnts7 <- merge(cnts7, lockdowns, by = "date")
+weight_mean_weekly2 <- cnts7 %>% group_by(week) %>% summarise(mean = mean(weight_raw))
+ggplot(data = weight_mean_weekly2, aes(x = week, y = mean)) + geom_line(group = 1) +
+  scale_x_discrete(breaks = my_list) + ylab("Mean Weight (triple weighting)") + xlab("Week")
+
+#import data with joint weighting 
+cnts8 <- qs::qread(file.path(data_path, "cnts_weight_test3.qs"))
+cnts8 <- cnts8 %>%
+  filter(!is.na(part_age_group))
+cnts8 <- merge(cnts8, lockdowns, by = "date")
+weight_mean_weekly <- cnts8 %>% group_by(week) %>% summarise(mean = mean(weight_raw))
+ggplot(data = weight_mean_weekly, aes(x = week, y = mean)) + geom_line(group = 1) +
+  scale_x_discrete(breaks = my_list) + ylab("Mean Weight (joint weighting_") + xlab("Week")

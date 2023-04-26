@@ -5,10 +5,10 @@ library(dplyr)
 ## Save participant data
 dir_data_validate <- "C:\\Users\\emiel\\Filr\\Net Folders\\EPH Shared\\Comix_survey\\data\\validated\\"
 
-pt <- qs::qread(file.path(dir_data_validate, "archive/2022-03-04_part.qs"))
-pt_min <- qs::qread(file.path(dir_data_validate, "archive/2022-03-04_part_min.qs"))
+pt <- qs::qread(file.path(dir_data_validate, "/part.qs"))#"archive/2022-03-04_part.qs"))
+pt_min <- qs::qread(file.path(dir_data_validate, "/part_min.qs"))#"archive/2022-03-04_part_min.qs"))
 # pt_min[, week := paste(isoyear(date), "/",  sprintf("%02d", isoweek(date)))]
-ct <- qs::qread(file.path(dir_data_validate, "archive/2022-03-04_contacts.qs"))
+ct <- qs::qread(file.path(dir_data_validate, "/contacts.qs"))#, "archive/2022-03-04_contacts.qs"))
 
 #filter out bad survey rounds
 pt <- pt[survey_round != "6"]

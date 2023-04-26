@@ -26,6 +26,7 @@ cnts <- cnts %>%
                                     part_age >= 50 & part_age <= 59 ~ "50-59",
                                     part_age >= 60 & part_age <= 69 ~ "60-69",
                                     part_age >= 70 ~ "70+"))
+
 cnts <- cnts %>%
   filter(!is.na(part_age_group))
 
@@ -54,6 +55,9 @@ weightlookup2[, weight_proportion := pop_proportion/sample_proportion]
 
 #merge weights to cnts2
 cnts3 <- merge(cnts2, weightlookup2, by = c("part_social_group", "weekend", "week"))
+
+#save 
+qs::qsave(cnts3, file.path(data_path, "cnts_weight_test3.qs"))
 
 #order by date
 cnts_date <- cnts3[order(date)]
