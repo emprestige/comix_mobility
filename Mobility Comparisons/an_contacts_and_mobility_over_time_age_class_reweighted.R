@@ -17,7 +17,7 @@ theme_set(cowplot::theme_cowplot(font_size = 10) + theme(strip.background = elem
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
 
 #import contact data
-cnts <- qs::qread(file.path(data_path, "cnts_weight_age_class.qs"))
+cnts <- qs::qread(file.path(data_path, "cnts_weight_class_age.qs"))
 
 #filter out participants of a certain age
 cnts <- cnts[sample_type == "adult"]
