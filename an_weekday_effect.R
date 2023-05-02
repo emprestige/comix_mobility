@@ -185,30 +185,3 @@ ggplot(data = days7, aes(x = weekday, y = other)) + geom_col(fill = "pink") +
 ggplot(data = days7, aes(x = weekday, y = nonhome)) + geom_col(fill = "pink") + 
   scale_x_discrete(labels = labs) +
   facet_grid(rows = vars(status), cols = vars(part_age_group))  
-
-#import data with full weighting
-cnts6 <- qs::qread(file.path(data_path, "cnts_weight_test.qs"))
-cnts6 <- cnts6 %>%
-  filter(!is.na(part_age_group))
-cnts6 <- merge(cnts6, lockdowns, by = "date")
-weight_mean_weekly <- cnts6 %>% group_by(week) %>% summarise(mean = mean(weight_raw))
-ggplot(data = weight_mean_weekly, aes(x = week, y = mean)) + geom_line(group = 1) +
-  scale_x_discrete(breaks = my_list) + ylab("Mean Weigh (full weighting)") + xlab("Week")
-
-#import data with triple weighting 
-cnts7 <- qs::qread(file.path(data_path, "cnts_weight_test2.qs"))
-cnts7 <- cnts7 %>%
-  filter(!is.na(part_age_group))
-cnts7 <- merge(cnts7, lockdowns, by = "date")
-weight_mean_weekly2 <- cnts7 %>% group_by(week) %>% summarise(mean = mean(weight_raw))
-ggplot(data = weight_mean_weekly2, aes(x = week, y = mean)) + geom_line(group = 1) +
-  scale_x_discrete(breaks = my_list) + ylab("Mean Weight (triple weighting)") + xlab("Week")
-
-#import data with joint weighting 
-cnts8 <- qs::qread(file.path(data_path, "cnts_weight_test3.qs"))
-cnts8 <- cnts8 %>%
-  filter(!is.na(part_age_group))
-cnts8 <- merge(cnts8, lockdowns, by = "date")
-weight_mean_weekly <- cnts8 %>% group_by(week) %>% summarise(mean = mean(weight_raw))
-ggplot(data = weight_mean_weekly, aes(x = week, y = mean)) + geom_line(group = 1) +
-  scale_x_discrete(breaks = my_list) + ylab("Mean Weight (joint weighting_") + xlab("Week")

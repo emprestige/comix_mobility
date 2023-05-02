@@ -36,27 +36,15 @@ cnts2[, pop_proportion1 := ifelse(part_social_group == "A - Upper middle class",
         ifelse(part_social_group == "C2 - Skilled working class", 0.21, 
         ifelse(part_social_group == "D - Working class", 0.15, 0.08)))))]
 cnts2[, pop_estimate1 := pop_proportion1*67866]
-cnts2[, weekend := ifelse(weekday == "Saturday", T, ifelse(weekday == "Sunday", T, F))]
-cnts2[, pop_estimate1 := ifelse(weekend == T, pop_estimate1*(2/7), pop_estimate1*(5/7))]
+#cnts2[, weekend := ifelse(weekday == "Saturday", T, ifelse(weekday == "Sunday", T, F))]
+#cnts2[, pop_estimate1 := ifelse(weekend == T, pop_estimate1*(2/7), pop_estimate1*(5/7))]
 
 cnts2[, part_gender := part_gender_nb]
 cnts2[is.na(part_gender), part_gender := "other"]
 
-popall <- as.data.table(readxl::read_xlsx(
+pop <- as.data.table(readxl::read_xlsx(
   file.path(data_path, "WPP2019_INT_F03_1_POPULATION_BY_AGE_ANNUAL_BOTH_SEXES.xlsx"),
   skip = 16))
-popall[, part_gender := "other"]
-
-popf <- as.data.table(readxl::read_xlsx(
-  file.path(data_path, "WPP2019_INT_F03_3_POPULATION_BY_AGE_ANNUAL_FEMALE.xlsx"),
-  skip = 16))
-popf[, part_gender := "female"]
-popm <- as.data.table(readxl::read_xlsx(
-  file.path(data_path, "WPP2019_INT_F03_2_POPULATION_BY_AGE_ANNUAL_MALE.xlsx"),
-  skip = 16))
-popm[, part_gender := "male"]
-
-pop <- rbindlist(list(popall, popf, popm))
 
 setnames(pop, 
          old = c("Region, subregion, country or area *", 
@@ -65,7 +53,7 @@ setnames(pop,
 
 pop <- pop[location == "United Kingdom" & year == 2020]
 
-pop2 <- melt(pop, id.vars = c("location", "year", "part_gender"), 
+pop2 <- melt(pop, id.vars = c("location", "year"), 
              measure.vars = as.character(0:100), 
              variable.name = "age",
              value.name = "estimate")
@@ -90,32 +78,30 @@ pop2[part_age_group %in% c("18-29", "30-39", "40-49", "50-59", "60-69", "70+"),
 pop2 <- pop2 %>% 
   filter(sample_type == "adult")
 
-pop3 <- pop2[, .(pop_estimate2 = sum(estimate)), by = c("part_age_group", "part_gender")]
-pop3 <- pop3[, pop_total2 := sum(pop_estimate2), by = c("part_gender")]
+pop3 <- pop2[, .(pop_estimate2 = sum(estimate)), by = c("part_age_group")]
+pop3 <- pop3[, pop_total2 := sum(pop_estimate2)]
 pop3[, pop_proportion2 := pop_estimate2/pop_total2]
 
-popcnts <- merge(cnts2, pop3, by = c("part_age_group", "part_gender"))
+popcnts <- merge(cnts2, pop3, by = c("part_age_group"))
 popcnts[, pop_estimate3 := pop_estimate2*pop_proportion1]
 popcnts[, pop_total3 := sum(pop_estimate3), by = c("part_social_group")]
 popcnts[, pop_proportion3 := pop_estimate3/pop_total3]
 
-weightlookup <- popcnts[, .(sample = .N), by = .(part_social_group, weekend, week, 
-                                                 part_age_group, part_gender)]
-weightlookup[, sample_total := sum(sample), by = .(week, weekend, part_gender,
-                                                   part_age_group)]
+weightlookup <- popcnts[, .(sample = .N), by = .(part_social_group, week, 
+                                                 part_age_group)]
+weightlookup[, sample_total := sum(sample), by = .(week, part_age_group)]
 weightlookup[, sample_proportion := sample/sample_total]
 
-pop5 <- popcnts[, .(week, part_social_group, part_age_group, part_gender,
-                    weekend, pop_estimate = pop_estimate3, 
-                    pop_proportion = pop_proportion3)]
+pop5 <- popcnts[, .(week, part_social_group, part_age_group, 
+                    pop_estimate = pop_estimate3, pop_proportion = pop_proportion3)]
 pop6 <- unique(pop5)
 weightlookup2 <- merge(weightlookup, pop6)
 weightlookup2[, weight_raw := pop_estimate/sample]
 weightlookup2[, weight_proportion := pop_proportion/sample_proportion]
 
 #merge weights to cnts2
-cnts3 <- merge(cnts2, weightlookup2, by = c("part_social_group", "weekend", "week",
-                                            "part_age_group", "part_gender"))
+cnts3 <- merge(cnts2, weightlookup2, by = c("part_social_group", "week",
+                                            "part_age_group"))
 
 #save
-qs::qsave(cnts3, file.path(data_path, "cnts_weight_test.qs"))
+qs::qsave(cnts3, file.path(data_path, "cnts_weight_class_age.qs"))

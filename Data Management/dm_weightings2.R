@@ -35,7 +35,7 @@ cnts2[, pop_proportion1 := ifelse(part_social_group == "A - Upper middle class",
         ifelse(part_social_group == "C1 - Lower middle class", 0.29,
         ifelse(part_social_group == "C2 - Skilled working class", 0.21, 
         ifelse(part_social_group == "D - Working class", 0.15, 0.08)))))]
-cnts2[, pop_estimate1 := pop_proportion1*67330000]
+cnts2[, pop_estimate1 := pop_proportion1*67866]
 cnts2[, weekend := ifelse(weekday == "Saturday", T, ifelse(weekday == "Sunday", T, F))]
 cnts2[, pop_estimate1 := ifelse(weekend == T, pop_estimate1*(2/7), pop_estimate1*(5/7))]
 

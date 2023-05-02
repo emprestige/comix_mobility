@@ -41,23 +41,23 @@ cnts2[, pop_proportion := ifelse(part_social_group == "A - Upper middle class",
                           ifelse(part_social_group == "C2 - Skilled working class", 0.21, 
                           ifelse(part_social_group == "D - Working class", 0.15, 0.08)))))]
 cnts2[, pop_estimate := pop_proportion*67866]
-cnts2[, weekend := ifelse(weekday == "Saturday", T, ifelse(weekday == "Sunday", T, F))]
+#cnts2[, weekend := ifelse(weekday == "Saturday", T, ifelse(weekday == "Sunday", T, F))]
 
-weightlookup <- cnts2[, .(sample = .N), by = .(part_social_group, weekend, week)]
-weightlookup[, sample_total := sum(sample), by = .(week, weekend)]
+weightlookup <- cnts2[, .(sample = .N), by = .(part_social_group, week)] #weekend, week)]
+weightlookup[, sample_total := sum(sample), by = .(week)]#, weekend)]
 weightlookup[, sample_proportion := sample / sample_total]
 
-pop <- cnts2[, .(week, part_social_group, pop_estimate, pop_proportion, weekend)]
+pop <- cnts2[, .(week, part_social_group, pop_estimate, pop_proportion)]#, weekend)]
 pop2 <- unique(pop)
-weightlookup2 <- merge(weightlookup, pop2, by = c("part_social_group", "weekend", "week"))
+weightlookup2 <- merge(weightlookup, pop2, by = c("part_social_group", "week"))#, "weekend"))
 weightlookup2[, weight_raw := pop_estimate/sample]
 weightlookup2[, weight_proportion := pop_proportion/sample_proportion]
 
 #merge weights to cnts2
-cnts3 <- merge(cnts2, weightlookup2, by = c("part_social_group", "weekend", "week"))
+cnts3 <- merge(cnts2, weightlookup2, by = c("part_social_group", "week"))#, "weekend"))
 
 #save 
-qs::qsave(cnts3, file.path(data_path, "cnts_weight_test3.qs"))
+qs::qsave(cnts3, file.path(data_path, "cnts_weight_class.qs"))
 
 #order by date
 cnts_date <- cnts3[order(date)]
