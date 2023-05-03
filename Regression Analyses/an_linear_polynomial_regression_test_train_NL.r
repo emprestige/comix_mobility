@@ -17,7 +17,7 @@ theme_set(cowplot::theme_cowplot(font_size = 10) + theme(strip.background = elem
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
 
 #import contact data
-cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
+cnts <- qs::qread(file.path(data_path, "part_cnts_NL.qs"))
 
 #filter out participants of a certain age
 cnts <- cnts[sample_type == "adult"]
@@ -44,28 +44,25 @@ lockdowns$lockdown_status <- 0
 colnames(lockdowns) <- c("date", "status")
 
 #create time intervals for different types of restrictions
-T1 <- interval(ymd("2020-03-02"), ymd("2020-03-22"))
-L1 <- interval(ymd("2020-03-23"), ymd("2020-05-31"))
-T2 <- interval(ymd("2020-06-01"), ymd("2020-07-04"))
-F1 <- interval(ymd("2020-07-05"), ymd("2020-09-13"))
-T3 <- interval(ymd("2020-09-14"), ymd("2020-11-04"))
-L2 <- interval(ymd("2020-11-05"), ymd("2020-12-01"))
-T4 <- interval(ymd("2020-12-02"), ymd("2021-01-05"))
-L3 <- interval(ymd("2021-01-06"), ymd("2021-03-07"))
-T5 <- interval(ymd("2021-03-08"), ymd("2021-07-18"))
-F2 <- interval(ymd("2021-07-19"), ymd("2021-12-07"))
-T6 <- interval(ymd("2021-12-08"), ymd("2022-02-21"))
+T1 <- interval(ymd("2020-03-02"), ymd("2020-03-14")) #prior to first lockdown
+L1 <- interval(ymd("2020-03-15"), ymd("2020-05-10")) #first lockdown
+T2 <- interval(ymd("2020-05-11"), ymd("2020-12-14")) #post first lockdown
+L2 <- interval(ymd("2020-12-15"), ymd("2021-03-15")) #second lockdown
+T3 <- interval(ymd("2021-03-16"), ymd("2021-06-04")) #post second lockdown
+F2 <- interval(ymd("2021-06-05"), ymd("2021-07-10")) #lifted restrictions
+T4 <- interval(ymd("2021-07-11"), ymd("2021-12-18")) #pre third lockdown
+L3 <- interval(ymd("2021-12-19"), ymd("2022-01-14")) #third lockdown 
+T5 <- interval(ymd("2022-01-15"), ymd("2022-02-24")) #post third lockdown
 
 #assign value to each type of restriction
-lockdowns$status <- ifelse(ymd(lockdowns$date) %within% T1, 1, 
-                    ifelse(ymd(lockdowns$date) %within% L1, 2, 
-                    ifelse(ymd(lockdowns$date) %within% T2, 1, 
-                    ifelse(ymd(lockdowns$date) %within% T3, 1, 
-                    ifelse(ymd(lockdowns$date) %within% L2, 2, 
-                    ifelse(ymd(lockdowns$date) %within% T4, 1, 
-                    ifelse(ymd(lockdowns$date) %within% L3, 2, 
-                    ifelse(ymd(lockdowns$date) %within% T5, 1,
-                    ifelse(ymd(lockdowns$date) %within% T6, 1, 0)))))))))
+lockdowns$status <- ifelse(ymd(lockdowns$date) %within% T1, 1,
+                    ifelse(ymd(lockdowns$date) %within% L1, 2,
+                    ifelse(ymd(lockdowns$date) %within% T2, 1,
+                    ifelse(ymd(lockdowns$date) %within% L2, 2,
+                    ifelse(ymd(lockdowns$date) %within% T3, 1,
+                    ifelse(ymd(lockdowns$date) %within% T4, 1,
+                    ifelse(ymd(lockdowns$date) %within% L3, 2,
+                    ifelse(ymd(lockdowns$date) %within% T5, 1, 0))))))))
 
 #create factor
 lockdown_fac <- factor(lockdowns$status, levels = c(0, 1, 2, 3),
@@ -77,7 +74,7 @@ lockdowns$status <- lockdown_fac
 cnts_l <- merge(num, lockdowns, by = "date", all.y = F)
 
 #import edited polymod data
-pnum <- qs::qread(file.path(data_path, "polymod.qs"))
+pnum <- qs::qread(file.path(data_path, "polymod_NL.qs"))
 
 #create study column
 pnum[, study := "POLYMOD"]
@@ -128,17 +125,17 @@ num_merge[, special := ifelse(date == ymd("2020-12-25"), "Xmas",
                        ifelse(date %within% summer, "Summer Hol", NA)))))))))]
 
 #import data for stringency index
-ox <- qs::qread(file.path(data_path, "stringency.qs"))
+ox <- qs::qread(file.path(data_path, "stringency_NL.qs"))
 ox$date <- as.Date(ox$date)
 pdate <- pnum[, .(date, stringency_index = 0)]
 ox <- rbind(ox, pdate)
 ox <- unique(ox)
 num_merge <- merge(num_merge, ox)
 
-merge_train <- num_merge[study == "CoMix" & panel == "A" | panel == "C" | panel == "E"]
+merge_train <- num_merge[study == "CoMix" & panel == "A"]
 poly_train <- num_merge[study == "POLYMOD"]
 merge_train <- rbind(merge_train, poly_train)
-merge_test <- num_merge[study == "CoMix" & panel == "B" | panel == "D" | panel == "F"]
+merge_test <- num_merge[study == "CoMix" & panel == "B"]
 poly_test <- num_merge[study == "POLYMOD"]
 merge_test <- rbind(merge_test, poly_test)
 
@@ -179,10 +176,10 @@ weighted_test <- weighted_test[study == "CoMix"]
 weighted_test <- rbind(weighted_test, poly)
 
 #import mobility data
-mob <- qs::qread(file.path(data_path, "google_mob.qs"))
+mob <- qs::qread(file.path(data_path, "google_mob_NL.qs"))
 
 #subset for same date range
-mob_sub <- mob[date >= "2020-03-23" & date <= "2022-03-02"]
+mob_sub <- mob[date >= "2020-04-16" & date <= "2021-03-24"]
 
 #duplicate google mobility data and rename columns
 gm2 <- rlang::duplicate(mob_sub)
@@ -260,7 +257,7 @@ plw1 = ggplot(mob_cnt_train, aes(x = workplaces, y = work,
                                  "Some restrictions" = "#619CFF", 
                                  "Lockdown" = "#F8766D",
                                  "Pre-Pandemic" = "purple"), 
-                      labels = c("No restrictions", "Some restrictions", 
+                      labels = c("Some restrictions", 
                                  "Lockdown", "Pre-Pandemic"))
 plw1
 
@@ -287,7 +284,7 @@ plw2 = ggplot(mob_cnt_train, aes(x = workplaces, y = work,
                                  "Some restrictions" = "#619CFF",
                                  "Lockdown" = "#F8766D",
                                  "Pre-Pandemic" = "purple"),
-                      labels = c("No restrictions", "Some restrictions",
+                      labels = c("Some restrictions",
                                  "Lockdown", "Pre-Pandemic"))
 plw2
 
@@ -315,7 +312,7 @@ plw3 = ggplot(mob_cnt_train, aes(x = workplaces, y = work,
                                  "Some restrictions" = "#619CFF", 
                                  "Lockdown" = "#F8766D",
                                  "Pre-Pandemic" = "purple"), 
-                      labels = c("No restrictions", "Some restrictions", 
+                      labels = c("Some restrictions", 
                                  "Lockdown", "Pre-Pandemic"))
 plw3
 
@@ -343,7 +340,7 @@ plw4 = ggplot(mob_cnt_train, aes(x = workplaces, y = work,
                                  "Some restrictions" = "#619CFF",
                                  "Lockdown" = "#F8766D",
                                  "Pre-Pandemic" = "purple"),
-                      labels = c("No restrictions", "Some restrictions",
+                      labels = c("Some restrictions",
                                  "Lockdown", "Pre-Pandemic"))
 plw4
 
@@ -370,7 +367,7 @@ plh1 = ggplot(mob_cnt_train, aes(x = residential, y = nonhome,
                                  "Some restrictions" = "#619CFF", 
                                  "Lockdown" = "#F8766D",
                                  "Pre-Pandemic" = "purple"), 
-                      labels = c("No restrictions", "Some restrictions", 
+                      labels = c("Some restrictions", 
                                  "Lockdown", "Pre-Pandemic"))
 plh1
 
@@ -480,7 +477,7 @@ plo1 = ggplot(mob_cnt_train, aes(x = predictor, y = other,
                                  "Some restrictions" = "#619CFF", 
                                  "Lockdown" = "#F8766D",
                                  "Pre-Pandemic" = "purple"), 
-                      labels = c("No restrictions", "Some restrictions", 
+                      labels = c("Some restrictions", 
                                  "Lockdown", "Pre-Pandemic"))
 plo1
 
@@ -507,7 +504,7 @@ plo2 = ggplot(mob_cnt_train, aes(x = predictor, y = other,
                                  "Some restrictions" = "#619CFF", 
                                  "Lockdown" = "#F8766D",
                                  "Pre-Pandemic" = "purple"), 
-                      labels = c("No restrictions", "Some restrictions", 
+                      labels = c("Some restrictions", 
                                  "Lockdown", "Pre-Pandemic"))
 plo2
 
