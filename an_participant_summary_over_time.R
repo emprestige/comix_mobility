@@ -22,23 +22,13 @@ cnts <- cnts %>%
 
 #filter out participants of a certain age
 cnts <- cnts[sample_type == "adult"]
-
-# #fix age groups
-# cnts <- cnts %>%
-#   mutate(part_age_group = case_when(part_age >= 18 & part_age <= 29 ~ "18-29",
-#                                     part_age >= 30 & part_age <= 39 ~ "30-39",
-#                                     part_age >= 40 & part_age <= 49 ~ "40-49",
-#                                     part_age >= 50 & part_age <= 59 ~ "50-59",
-#                                     part_age >= 60 & part_age <= 69 ~ "60-69",
-#                                      part_age >= 70 ~ "70+"))
-
-cnts[area_2_name == "Greater", area_2_name := "Greater London"]
 cnts[, week := paste(isoyear(date), "/", sprintf("%02d", isoweek(date)))]
 
 ##main variables 
 week <- names(table(cnts$week))
 int <- seq(1, 100, 12)
 my_list <- week[int]
+my_list[104] <- "REF"
 
 #gender
 cnts %>% group_by(part_gender_nb) %>%
@@ -46,8 +36,14 @@ cnts %>% group_by(part_gender_nb) %>%
   mutate(freq = (n/sum(n)*100))
 
 sexes <- cnts[, .(n = .N), by = .(part_gender_nb, week)][, freq := prop.table(n), by = week]
+sexes <- sexes[, var := "grp1"]
+sexes_dummy <- rlang::duplicate(sexes)
+sexes_dummy <- sexes_dummy[, .(week = "REF", part_gender_nb = c("male", "female", "other"),
+                               freq = c(0.4875, 0.5075, 0.005), var = "grp2")]
+sexes <- full_join(sexes, sexes_dummy)
 ggplot(data = sexes, aes(x = week, y = freq, fill = part_gender_nb)) + geom_col() + 
-  scale_x_discrete(breaks = my_list)
+  scale_x_discrete(breaks = my_list) + facet_grid(~var, scales = "free_x", space = "free_x") +
+  theme(strip.background = element_blank(), strip.text.x = element_blank())
 
 #age group
 cnts %>% group_by(part_age_group) %>%
@@ -66,14 +62,21 @@ cnts %>% group_by(part_age_group) %>%
 #   scale_x_discrete(breaks = my_list)
 
 ages <- cnts[, .(n = .N), by = .(part_age_group, week)][, freq := prop.table(n), by = week]
+ages <- ages[, var := "grp1"]
+ages_dummy <- rlang::duplicate(ages)
+ages_dummy <- ages_dummy[, .(week = "REF", part_age_group = c("18-29", "30-39", 
+                        "40-49", "50-59", "60-69", "70-120"), freq = c(0.188, 0.172, 
+                        0.16, 0.173, 0.136, 0.172), var = "grp2")]
+ages <- full_join(ages, ages_dummy)
 ggplot(data = ages, aes(x = week, y = freq, fill = part_age_group)) + geom_col() + 
-  scale_x_discrete(breaks = my_list)
+  scale_x_discrete(breaks = my_list) + facet_grid(~var, scales = "free_x", space = "free_x") +
+  theme(strip.background = element_blank(), strip.text.x = element_blank())
 
-ages2 <- cnts %>%
-  filter(!is.na(part_age_group))
-ages2 <- ages2[, .(n = .N), by = .(part_age_group, week)][, freq := prop.table(n), by = week]
-ggplot(data = ages2, aes(x = week, y = freq, fill = part_age_group)) + geom_col() + 
-  scale_x_discrete(breaks = my_list)
+# ages2 <- cnts %>%
+#   filter(!is.na(part_age_group))
+# ages2 <- ages2[, .(n = .N), by = .(part_age_group, week)][, freq := prop.table(n), by = week]
+# ggplot(data = ages2, aes(x = week, y = freq, fill = part_age_group)) + geom_col() + 
+#   scale_x_discrete(breaks = my_list)
 
 #employment status
 cnts %>% group_by(part_employstatus) %>%
@@ -88,24 +91,24 @@ cnts %>% group_by(part_employstatus) %>%
 #   ggplot(aes(x = week, y = freq, fill = part_employstatus)) + geom_col() + 
 #   scale_x_discrete(breaks = my_list)
 
-employment <- cnts[, .(n = .N), by = .(part_employstatus, week)][, freq := prop.table(n), by = week]
-ggplot(data = employment, aes(x = week, y = freq, fill = part_employstatus)) + geom_col() + 
-  scale_x_discrete(breaks = my_list)
-
-employment2 <- cnts %>%
-  filter(!is.na(part_employstatus))
-employment2 <- employment2[, .(n = .N), by = .(part_employstatus, week)][, freq := prop.table(n), by = week]
-ggplot(data = employment2, aes(x = week, y = freq, fill = part_employstatus)) + geom_col() + 
-  scale_x_discrete(breaks = my_list)
-
-proportion <- cnts[, .(n = .N), by = .(part_attend_work_yesterday, week)][, freq := prop.table(n), by = week]
-ggplot(data = proportion, aes(x = week, y = freq, fill = part_attend_work_yesterday)) + geom_col() + 
-  scale_x_discrete(breaks = my_list)
-proportion2 <- cnts %>%
-  filter(!is.na(part_attend_work_yesterday))
-proportion2 <- proportion2[, .(n = .N), by = .(part_attend_work_yesterday, week)][, freq := prop.table(n), by = week]
-ggplot(data = proportion2, aes(x = week, y = freq, fill = part_attend_work_yesterday)) + geom_col() + 
-  scale_x_discrete(breaks = my_list)
+# employment <- cnts[, .(n = .N), by = .(part_employstatus, week)][, freq := prop.table(n), by = week]
+# ggplot(data = employment, aes(x = week, y = freq, fill = part_employstatus)) + geom_col() + 
+#   scale_x_discrete(breaks = my_list)
+# 
+# employment2 <- cnts %>%
+#   filter(!is.na(part_employstatus))
+# employment2 <- employment2[, .(n = .N), by = .(part_employstatus, week)][, freq := prop.table(n), by = week]
+# ggplot(data = employment2, aes(x = week, y = freq, fill = part_employstatus)) + geom_col() + 
+#   scale_x_discrete(breaks = my_list)
+# 
+# proportion <- cnts[, .(n = .N), by = .(part_attend_work_yesterday, week)][, freq := prop.table(n), by = week]
+# ggplot(data = proportion, aes(x = week, y = freq, fill = part_attend_work_yesterday)) + geom_col() + 
+#   scale_x_discrete(breaks = my_list)
+# proportion2 <- cnts %>%
+#   filter(!is.na(part_attend_work_yesterday))
+# proportion2 <- proportion2[, .(n = .N), by = .(part_attend_work_yesterday, week)][, freq := prop.table(n), by = week]
+# ggplot(data = proportion2, aes(x = week, y = freq, fill = part_attend_work_yesterday)) + geom_col() + 
+#   scale_x_discrete(breaks = my_list)
 
 employed <- cnts
 employed[, part_employed := ifelse(part_employstatus == "employed full-time (34 hours or more)", 
@@ -114,11 +117,25 @@ employed[, part_employed := ifelse(part_employstatus == "employed full-time (34 
 employed_yn <- employed[, .(n = .N), by = .(part_employed, week)][, freq := prop.table(n), by = week]
 ggplot(data = employed_yn, aes(x = week, y = freq, fill = part_employed)) + geom_col() +
   scale_x_discrete(breaks = my_list)
+
 employed_yn2 <- employed %>%
   filter(!is.na(part_employed))
 employed_yn2 <- employed_yn2[, .(n = .N), by = .(part_employed, week)][, freq := prop.table(n), by = week]
 ggplot(data = employed_yn2, aes(x = week, y = freq, fill = part_employed)) + geom_col() +
   scale_x_discrete(breaks = my_list) 
+
+employed_yn3 <- employed %>%
+  filter(part_age <= 65)
+employed_yn3 <- employed_yn3[, .(n = .N), by = .(part_employed, week)][, freq := prop.table(n), by = week]
+employed_yn3 <- employed_yn3[, var := "grp1"]
+employed_yn3_dummy <- rlang::duplicate(employed_yn3)
+employed_yn3_dummy <- employed_yn3_dummy[, .(week = "REF", part_employed = c(FALSE, TRUE),
+                                             freq = c(0.25, 0.75), var = "grp2")]
+employed_yn3 <- full_join(employed_yn3, employed_yn3_dummy)
+ggplot(data = employed_yn3, aes(x = week, y = freq, fill = part_employed)) + 
+  geom_col() + scale_x_discrete(breaks = my_list) + 
+  facet_grid(~var, scales = "free_x", space = "free_x") +
+  theme(strip.background = element_blank(), strip.text.x = element_blank())
 
 #social class
 cnts %>% group_by(part_social_group) %>%
@@ -134,17 +151,37 @@ cnts %>% group_by(part_social_group) %>%
 #   scale_x_discrete(breaks = my_list)
 
 social <- cnts[, .(n = .N), by = .(part_social_group, week)][, freq := prop.table(n), by = week]
+social <- social[, var := "grp1"]
+social_dummy <- rlang::duplicate(social)
+social_dummy <- social_dummy[, .(week = "REF", part_social_group = c("A - Upper middle class",
+                             "B - Middle class", "C1 - Lower middle class", 
+                             "C2 - Skilled working class", "D - Working class", 
+                             "E - Lower level of subsistence"), freq = c(0.04,
+                             0.23, 0.29, 0.21, 0.15, 0.08), var = "grp2")]
+social <- full_join(social, social_dummy)
 ggplot(data = social, aes(x = week, y = freq, fill = part_social_group)) + geom_col() + 
-  scale_x_discrete(breaks = my_list)
+  scale_x_discrete(breaks = my_list) + facet_grid(~var, scales = "free_x", space = "free_x") +
+  theme(strip.background = element_blank(), strip.text.x = element_blank())
 
 #area
-cnts %>% group_by(area_2_name) %>%
+cnts %>% group_by(area_3_name) %>%
   summarise(n = n()) %>%
   mutate(freq = (n/sum(n)*100))
 
-area <- cnts[, .(n = .N), by = .(area_2_name, week)][, freq := prop.table(n), by = week]
-ggplot(data = area, aes(x = week, y = freq, fill = area_2_name)) + geom_col() + 
-  scale_x_discrete(breaks = my_list)
+area <- cnts[, .(n = .N), by = .(area_3_name, week)][, freq := prop.table(n), by = week]
+area <- area[, var := "grp1"]
+area_dummy <- rlang::duplicate(area)
+area_dummy <- area_dummy[, .(week = "REF", area_3_name = c("East Midlands", 
+                         "East of England", "Greater London", "North East",
+                         "North West", "Northern Ireland", "Scotland",
+                         "South East", "South West", "Wales", "West Midlands",
+                         "Yorkshire and The Humber"), freq = c(0.07, 0.09, 0.13,
+                          0.04, 0.11, 0.03, 0.08, 0.14, 0.09, 0.05, 0.09, 0.08), 
+                         var = "grp2")]
+area <- full_join(area, area_dummy)
+ggplot(data = area, aes(x = week, y = freq, fill = area_3_name)) + geom_col() + 
+  scale_x_discrete(breaks = my_list) + facet_grid(~var, scales = "free_x", space = "free_x") +
+  theme(strip.background = element_blank(), strip.text.x = element_blank())
 
 #household size group 
 cnts %>% group_by(hh_size_group) %>%
@@ -152,8 +189,14 @@ cnts %>% group_by(hh_size_group) %>%
   mutate(freq = (n/sum(n)*100))
 
 sizes <- cnts[, .(n = .N), by = .(hh_size_group, week)][, freq := prop.table(n), by = week]
+sizes <- sizes[, var := "grp1"]
+sizes_dummy <- rlang::duplicate(sizes)
+sizes_dummy <- sizes_dummy[, .(week = "REF", hh_size_group = c("1", "2", "3-5", 
+                           "6+"), freq = c(0.3, 0.35, 0.3, 0.05), var = "grp2")]
+sizes <- full_join(sizes, sizes_dummy)
 ggplot(data = sizes, aes(x = week, y = freq, fill = hh_size_group)) + geom_col() + 
-  scale_x_discrete(breaks = my_list)
+  scale_x_discrete(breaks = my_list) + facet_grid(~var, scales = "free_x", space = "free_x") +
+  theme(strip.background = element_blank(), strip.text.x = element_blank())
 
 ##not main variables
 
