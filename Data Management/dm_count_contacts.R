@@ -164,7 +164,7 @@ cnt_names <- c("part_wave_uid", "panel", "part_id", "sample_type", "part_age",
                "part_vacc", "part_employstatus", "part_attend_work_yesterday", 
                "part_limit_work", "part_work_closed", "part_occupation", 
                "part_gender_nb", "area_rural_urban_code", "part_ethnicity",
-               "area_rural_urban_label", "area_2_name", "hh_size_group", 
+               "area_rural_urban_label", "area_3_name", "hh_size_group", 
                "hh_type", "part_high_risk", "part_social_group", cnt_names)
 
 #subset 
