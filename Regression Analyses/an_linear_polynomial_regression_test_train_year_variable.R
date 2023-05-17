@@ -297,9 +297,51 @@ plw1
 lm_w2 <- lm(work ~ poly(workplaces, 2)*p_year, data = mob_cnt_train)
 summary(lm_w2)
 
-#GAM
-gam_w1 <- gam(work ~ s(workplaces, by = p_year) + p_year, data = mob_cnt_train)
-summary(gam_w1)
+# #GAM
+# gam_w1 <- gam(work ~ s(workplaces, by = p_year) + p_year, data = mob_cnt_train)
+# summary(gam_w1)
+# 
+# #predict using 'new' data (one for each pandemic year)
+# mob_cnt_test1 <- rlang::duplicate(mob_cnt_test)
+# mob_cnt_test2 <- rlang::duplicate(mob_cnt_test)
+# mob_cnt_test1[, p_year := 1]
+# mob_cnt_test2[, p_year := 2]
+# 
+# #predict using both data sets
+# pred1 <- predict(gam_w1, newdata = mob_cnt_test1, type = "response", se.fit = T)
+# pred1 <- as.data.table(pred1)
+# mob_cnt_test1[, work := pred1$fit]
+# mob_cnt_test1[, w_lwr := pred1$fit - 2*pred1$se.fit]
+# mob_cnt_test1[, w_uppr := pred1$fit + 2*pred1$se.fit]
+# pred2 <- predict(gam_w1, newdata = mob_cnt_test2, type = "response", se.fit = T)
+# pred2 <- as.data.table(pred2)
+# mob_cnt_test2[, work := pred2$fit]
+# mob_cnt_test2[, w_lwr := pred2$fit - 2*pred2$se.fit]
+# mob_cnt_test2[, w_uppr := pred2$fit + 2*pred2$se.fit]
+# 
+# #plot
+# plw2 = ggplot(mob_cnt_train, aes(x = workplaces, y = work,
+#           label = ifelse(status == "No restrictions", week, special))) +
+#   geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 100) +
+#   geom_line(data = mob_cnt_test1, aes(x = workplaces, y = work, linetype = "Year 1")) +
+#   #geom_ribbon(data = mob_cnt_test1, aes(ymin = w_lwr, ymax = w_uppr), alpha = 0.1) +
+#   geom_line(data = mob_cnt_test2, aes(x = workplaces, y = work, linetype = "Year 2")) +
+#   #geom_ribbon(data = mob_cnt_test2, aes(ymin = w_lwr, ymax = w_uppr), alpha = 0.1) +
+#   labs(x = "Google Mobility\n'workplaces' visits", col = "Status",
+#        y = "Number of work contacts", linetype = "Pandemic Year") +
+#   scale_colour_manual(values = c("No restrictions" = "#00BA38",
+#                                  "Some restrictions" = "#619CFF",
+#                                  "Lockdown" = "#F8766D",
+#                                  "Pre-Pandemic" = "purple")) +
+#   scale_linetype_manual(values = c("Year 1" = 2, "Year 2" = 3))
+# plw2
+
+#linear regression including interaction term for pandemic year
+lm_h1 <- lm(nonhome ~ residential*p_year, data = mob_cnt_train)
+summary(lm_h1)
+
+#plot interaction
+interact_plot(lm_h1, pred = residential, modx = p_year, modx.values = c(1, 2), plot.points = T)
 
 #predict using 'new' data (one for each pandemic year)
 mob_cnt_test1 <- rlang::duplicate(mob_cnt_test)
@@ -308,30 +350,157 @@ mob_cnt_test1[, p_year := 1]
 mob_cnt_test2[, p_year := 2]
 
 #predict using both data sets
-pred1 <- predict(gam_w1, newdata = mob_cnt_test1, type = "response", se.fit = T)
+pred1 <- predict(lm_h1, newdata = mob_cnt_test1, interval = "confidence")
 pred1 <- as.data.table(pred1)
-mob_cnt_test1[, work := pred1$fit]
-mob_cnt_test1[, w_lwr := pred1$fit - 2*pred1$se.fit]
-mob_cnt_test1[, w_uppr := pred1$fit + 2*pred1$se.fit]
-pred2 <- predict(gam_w1, newdata = mob_cnt_test2, type = "response", se.fit = T)
+mob_cnt_test1[, nonhome := pred1$fit]
+mob_cnt_test1[, h_lwr := pred1$lwr]
+mob_cnt_test1[, h_uppr := pred1$upr]
+pred2 <- predict(lm_h1, newdata = mob_cnt_test2, interval = "confidence")
 pred2 <- as.data.table(pred2)
-mob_cnt_test2[, work := pred2$fit]
-mob_cnt_test2[, w_lwr := pred2$fit - 2*pred2$se.fit]
-mob_cnt_test2[, w_uppr := pred2$fit + 2*pred2$se.fit]
+mob_cnt_test2[, nonhome := pred2$fit]
+mob_cnt_test2[, h_lwr := pred2$lwr]
+mob_cnt_test2[, h_uppr := pred2$upr]
 
 #plot
-plw2 = ggplot(mob_cnt_train, aes(x = workplaces, y = work,
+plh1 = ggplot(mob_cnt_train, aes(x = residential, y = nonhome,
           label = ifelse(status == "No restrictions", week, special))) +
   geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 100) +
-  geom_line(data = mob_cnt_test1, aes(x = workplaces, y = work, linetype = "Year 1")) +
-  #geom_ribbon(data = mob_cnt_test1, aes(ymin = w_lwr, ymax = w_uppr), alpha = 0.1) +
-  geom_line(data = mob_cnt_test2, aes(x = workplaces, y = work, linetype = "Year 2")) +
-  #geom_ribbon(data = mob_cnt_test2, aes(ymin = w_lwr, ymax = w_uppr), alpha = 0.1) +
-  labs(x = "Google Mobility\n'workplaces' visits", col = "Status",
-       y = "Number of work contacts", linetype = "Pandemic Year") +
+  geom_line(data = mob_cnt_test1, aes(x = residential, y = nonhome, linetype = "Year 1")) +
+  geom_ribbon(data = mob_cnt_test1, aes(ymin = h_lwr, ymax = h_uppr), alpha = 0.1) +
+  geom_line(data = mob_cnt_test2, aes(x = residential, y = nonhome, linetype = "Year 2")) +
+  geom_ribbon(data = mob_cnt_test2, aes(ymin = h_lwr, ymax = h_uppr), alpha = 0.1) +
+  labs(x = "Google Mobility time at 'residential' location", colour = "Status",
+       y = "Number of non-home contacts", linetype = "Pandemic Year") +
   scale_colour_manual(values = c("No restrictions" = "#00BA38",
                                  "Some restrictions" = "#619CFF",
                                  "Lockdown" = "#F8766D",
                                  "Pre-Pandemic" = "purple")) +
   scale_linetype_manual(values = c("Year 1" = 2, "Year 2" = 3))
-plw2
+plh1
+
+#quadratic regression including interaction term for pandemic year
+lm_h2 <- lm(nonhome ~ poly(residential, 2)*p_year, data = mob_cnt_train)
+summary(lm_h2)
+
+#linear regression including interaction term for pandemic year
+lm_o1 <- lm(other ~ predictor*p_year, data = mob_cnt_train)
+summary(lm_o1)
+
+#plot interaction
+interact_plot(lm_o1, pred = predictor, modx = p_year, modx.values = c(1, 2), plot.points = T)
+
+#predict using 'new' data (one for each pandemic year)
+mob_cnt_test1 <- rlang::duplicate(mob_cnt_test)
+mob_cnt_test2 <- rlang::duplicate(mob_cnt_test)
+mob_cnt_test1[, p_year := 1]
+mob_cnt_test2[, p_year := 2]
+
+#predict using both data sets
+pred1 <- predict(lm_o1, newdata = mob_cnt_test1, interval = "confidence")
+pred1 <- as.data.table(pred1)
+mob_cnt_test1[, other := pred1$fit]
+mob_cnt_test1[, o_lwr := pred1$lwr]
+mob_cnt_test1[, o_uppr := pred1$upr]
+pred2 <- predict(lm_o1, newdata = mob_cnt_test2, interval = "confidence")
+pred2 <- as.data.table(pred2)
+mob_cnt_test2[, other := pred2$fit]
+mob_cnt_test2[, o_lwr := pred2$lwr]
+mob_cnt_test2[, o_uppr := pred2$upr]
+
+#plot
+plo1 = ggplot(mob_cnt_train, aes(x = predictor, y = other,
+          label = ifelse(status == "No restrictions", week, special))) +
+  geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 100) +
+  geom_line(data = mob_cnt_test1, aes(x = predictor, y = other, linetype = "Year 1")) +
+  geom_ribbon(data = mob_cnt_test1, aes(ymin = o_lwr, ymax = o_uppr), alpha = 0.1) +
+  geom_line(data = mob_cnt_test2, aes(x = predictor, y = other, linetype = "Year 2")) +
+  geom_ribbon(data = mob_cnt_test2, aes(ymin = o_lwr, ymax = o_uppr), alpha = 0.1) +
+  labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits",
+       y = "Number of 'other' contacts",  col = "Status", linetype = "Pandemic Year") +
+  scale_colour_manual(values = c("No restrictions" = "#00BA38",
+                                 "Some restrictions" = "#619CFF",
+                                 "Lockdown" = "#F8766D",
+                                 "Pre-Pandemic" = "purple")) +
+  scale_linetype_manual(values = c("Year 1" = 2, "Year 2" = 3))
+plo1
+
+#quadratic regression including interaction term for pandemic year
+lm_o2 <- lm(other ~ poly(predictor, 2)*p_year, data = mob_cnt_train)
+summary(lm_o2)
+
+#plot interaction
+interact_plot(lm_o2, pred = predictor, modx = p_year, modx.values = c(1, 2), plot.points = T)
+
+#predict using 'new' data (one for each pandemic year)
+mob_cnt_test1 <- rlang::duplicate(mob_cnt_test)
+mob_cnt_test2 <- rlang::duplicate(mob_cnt_test)
+mob_cnt_test1[, p_year := 1]
+mob_cnt_test2[, p_year := 2]
+
+#predict using both data sets
+pred1 <- predict(lm_o2, newdata = mob_cnt_test1, interval = "confidence")
+pred1 <- as.data.table(pred1)
+mob_cnt_test1[, other := pred1$fit]
+mob_cnt_test1[, o_lwr := pred1$lwr]
+mob_cnt_test1[, o_uppr := pred1$upr]
+pred2 <- predict(lm_o2, newdata = mob_cnt_test2, interval = "confidence")
+pred2 <- as.data.table(pred2)
+mob_cnt_test2[, other := pred2$fit]
+mob_cnt_test2[, o_lwr := pred2$lwr]
+mob_cnt_test2[, o_uppr := pred2$upr]
+
+#plot
+plo2 = ggplot(mob_cnt_train, aes(x = predictor, y = other,
+          label = ifelse(status == "No restrictions", week, special))) +
+  geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 100) +
+  geom_line(data = mob_cnt_test1, aes(x = predictor, y = other, linetype = "Year 1")) +
+  geom_ribbon(data = mob_cnt_test1, aes(ymin = o_lwr, ymax = o_uppr), alpha = 0.1) +
+  geom_line(data = mob_cnt_test2, aes(x = predictor, y = other, linetype = "Year 2")) +
+  geom_ribbon(data = mob_cnt_test2, aes(ymin = o_lwr, ymax = o_uppr), alpha = 0.1) +
+  labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits",
+       y = "Number of 'other' contacts",  col = "Status", linetype = "Pandemic Year") +
+  scale_colour_manual(values = c("No restrictions" = "#00BA38",
+                                 "Some restrictions" = "#619CFF",
+                                 "Lockdown" = "#F8766D",
+                                 "Pre-Pandemic" = "purple")) +
+  scale_linetype_manual(values = c("Year 1" = 2, "Year 2" = 3))
+plo2
+
+#GAM
+gam_o1 <- gam(other ~ s(predictor, by = p_year) + p_year, data = mob_cnt_train)
+summary(gam_o1)
+
+# #predict using 'new' data (one for each pandemic year)
+# mob_cnt_test1 <- rlang::duplicate(mob_cnt_test)
+# mob_cnt_test2 <- rlang::duplicate(mob_cnt_test)
+# mob_cnt_test1[, p_year := 1]
+# mob_cnt_test2[, p_year := 2]
+# 
+# #predict using both data sets
+# pred1 <- predict(gam_o1, newdata = mob_cnt_test1, type = "response", se.fit = T)
+# pred1 <- as.data.table(pred1)
+# mob_cnt_test1[, other := pred1$fit]
+# mob_cnt_test1[, o_lwr := pred1$fit - 2*pred1$se.fit]
+# mob_cnt_test1[, o_uppr := pred1$fit + 2*pred1$se.fit]
+# pred2 <- predict(gam_o1, newdata = mob_cnt_test2, type = "response", se.fit = T)
+# pred2 <- as.data.table(pred2)
+# mob_cnt_test2[, other := pred2$fit]
+# mob_cnt_test2[, o_lwr := pred2$fit - 2*pred2$se.fit]
+# mob_cnt_test2[, o_uppr := pred2$fit + 2*pred2$se.fit]
+# 
+# #plot
+# plo3 = ggplot(mob_cnt_train, aes(x = predictor, y = other,
+#           label = ifelse(status == "No restrictions", week, special))) +
+#   geom_point(aes(col = status)) + geom_text_repel(size = 2.5, max.overlaps = 100) +
+#   geom_line(data = mob_cnt_test1, aes(x = predictor, y = other, linetype = "Year 1")) +
+#   #geom_ribbon(data = mob_cnt_test1, aes(ymin = w_lwr, ymax = w_uppr), alpha = 0.1) +
+#   geom_line(data = mob_cnt_test2, aes(x = predictor, y = other, linetype = "Year 2")) +
+#   #geom_ribbon(data = mob_cnt_test2, aes(ymin = w_lwr, ymax = w_uppr), alpha = 0.1) +
+#   labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits",
+#        y = "Number of 'other' contacts",  col = "Status", linetype = "Pandemic Year") +
+#   scale_colour_manual(values = c("No restrictions" = "#00BA38",
+#                                  "Some restrictions" = "#619CFF",
+#                                  "Lockdown" = "#F8766D",
+#                                  "Pre-Pandemic" = "purple")) +
+#   scale_linetype_manual(values = c("Year 1" = 2, "Year 2" = 3))
+# plo3
