@@ -32,8 +32,10 @@ cnts_date <- cnts_date[date <= ymd("2022-03-02")]
 
 #create data table with subset of variables
 num <- cnts_date[, .(date, part_id, panel, part_age, survey_round, weekday, 
-                     home = n_cnt_home, work = n_cnt_work, other = n_cnt_other,
-                     all = n_cnt, day_weight, social_weight = weight_raw)]
+                     home = n_cnt_home, work = n_cnt_work, other = n_cnt_other, 
+                     all = n_cnt_home + n_cnt_work + n_cnt_other, day_weight,
+                     social_weight = weight_raw)]
+
 
 #create study column
 num[, study := "CoMix"]

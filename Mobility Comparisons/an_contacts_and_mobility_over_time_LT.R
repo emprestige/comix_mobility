@@ -22,13 +22,13 @@ cnts <- qs::qread(file.path(data_path, "part_cnts_LT.qs"))
 cnts <- cnts[sample_type == "adult"]
 
 #fix age groups
-cnts <- cnts %>%
-  mutate(part_age_group = case_when(part_age >= 18 & part_age <= 29 ~ "18-29",
-                                    part_age >= 30 & part_age <= 39 ~ "30-39",
-                                    part_age >= 40 & part_age <= 49 ~ "40-49",
-                                    part_age >= 50 & part_age <= 59 ~ "50-59",
-                                    part_age >= 60 & part_age <= 69 ~ "60-69",
-                                    part_age >= 70 ~ "70+"))
+# cnts <- cnts %>%
+#   mutate(part_age_group = case_when(part_age >= 18 & part_age <= 29 ~ "18-29",
+#                                     part_age >= 30 & part_age <= 39 ~ "30-39",
+#                                     part_age >= 40 & part_age <= 49 ~ "40-49",
+#                                     part_age >= 50 & part_age <= 59 ~ "50-59",
+#                                     part_age >= 60 & part_age <= 69 ~ "60-69",
+#                                     part_age >= 70 ~ "70-120"))
 cnts <- cnts %>%
   filter(!is.na(part_age_group))
 
@@ -45,8 +45,8 @@ cnts_date_mid[, week := paste(isoyear(mid_date), "/", isoweek(mid_date))]
 
 #create data table with subset of variables
 num <- cnts_date[, .(date, part_id, panel, part_age, survey_round, weekday, 
-                     day_weight, home = n_cnt_home, work = n_cnt_work, 
-                     other = n_cnt_other, all = n_cnt)]
+                     home = n_cnt_home, work = n_cnt_work, other = n_cnt_other, 
+                     all = n_cnt_home + n_cnt_work + n_cnt_other, day_weight)]
 num[, t := as.numeric(date - ymd("2020-01-01"))]
 
 #create study column
