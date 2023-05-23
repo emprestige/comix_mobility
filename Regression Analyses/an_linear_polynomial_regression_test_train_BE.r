@@ -114,11 +114,9 @@ num_merge[, special := ifelse(date == ymd("2020-12-25"), "Xmas",
                        ifelse(date == ymd("2021-12-25"), "Xmas",
                        ifelse(date == ymd("2020-12-31"), "NYE",
                        ifelse(date == ymd("2021-12-31"), "NYE",
-                       ifelse(date == ymd("2021-01-01"), "NYD",
-                       ifelse(date == ymd("2022-01-01"), "NYD",
                        ifelse(date == ymd("2020-04-13"), "Easter",
                        ifelse(date == ymd("2021-04-05"), "Easter", 
-                       ifelse(date %within% summer, "Summer Hol", NA)))))))))]
+                       ifelse(date %within% summer, "Summer Hol", NA)))))))]
 
 #import data for stringency index
 ox <- qs::qread(file.path(data_path, "stringency_BE.qs"))
