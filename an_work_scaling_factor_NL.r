@@ -196,9 +196,9 @@ ests <- ests[study == "CoMix"]
 ests <- ests[, .(week, status, special, p_year, work, workplaces)]
 ests[, mob2 := workplaces**2]
 ests[, scaling_fac := ifelse(p_year == 1, 
-       (1.2862 - 4.6356*workplaces + 6.4870*mob2)/1.9529120,
+       (1.2862 - 4.6356*workplaces + 6.4870*mob2)/3.452366,
        (1.2862 - 4.6356*workplaces + 6.4870*mob2 - 1.5591 + 7.3495*workplaces - 
-          7.9457*mob2)/1.9529120)]
+          7.9457*mob2)/3.452366)]
 
 #calculate the different estimates
 ests[, est_mob := poly$work*workplaces]

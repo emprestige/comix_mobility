@@ -196,9 +196,9 @@ ests <- ests[study == "CoMix"]
 ests <- ests[, .(week, status, special, p_year, nonhome, residential)]
 ests[, mob2 := residential**2]
 ests[, scaling_fac := ifelse(p_year == 1, 
-       (118.31 - 192.10*residential + 78.66*mob2)/6.9151515,
+       (118.31 - 192.10*residential + 78.66*mob2)/7.152447,
        (118.31 - 192.10*residential + 78.66*mob2 - 113.03 + 190.85*residential - 
-          80.48*mob2)/6.9151515)]
+          80.48*mob2)/7.152447)]
 
 #calculate the different estimates
 ests[, est_mob := poly$nonhome*residential]
