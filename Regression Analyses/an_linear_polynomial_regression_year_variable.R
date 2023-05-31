@@ -8,7 +8,6 @@ library(lubridate)
 library(cowplot)
 library(visreg)
 library(ggrepel)
-library(lmtest)
 library(interactions)
 
 #set cowplot theme
@@ -348,6 +347,9 @@ plw3
 lm_w4 <- lm(work ~ poly(workplaces, 2, raw = T)*factor(p_year), data = mob_cnt)
 summary(lm_w4)
 
+#get confidence intervals
+confint(lm_w4)
+
 #plot interaction
 interact_plot(lm_w4, pred = workplaces, modx = p_year, plot.points = T, data = mob_cnt)
 
@@ -515,6 +517,9 @@ plh3
 lm_h4 <- lm(nonhome ~ poly(residential, 2, raw = T)*factor(p_year), data = mob_cnt)
 summary(lm_h4)
 
+#get confidence intervals 
+confint(lm_h4)
+
 #plot interaction
 interact_plot(lm_h4, pred = residential, modx = p_year, data = mob_cnt, plot.points = T)
 
@@ -678,6 +683,9 @@ plo3
 #quadratic regression including interaction term for pandemic year
 lm_o4 <- lm(other ~ poly(predictor, 2, raw = T)*factor(p_year), data = mob_cnt)
 summary(lm_o4)
+
+#get confidence intervals
+confint(lm_o4)
 
 #plot interaction
 interact_plot(lm_o4, pred = predictor, modx = p_year, data = mob_cnt, plot.points = T)
