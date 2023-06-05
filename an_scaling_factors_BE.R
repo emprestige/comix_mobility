@@ -1,4 +1,4 @@
-##linear and polynomial regression 
+##scaling factors for Belgium
 
 #load libraries
 library(data.table)

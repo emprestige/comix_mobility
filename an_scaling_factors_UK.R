@@ -1,4 +1,4 @@
-##scaling factors for The Netherlands 
+##scaling factors for the UK 
 
 #load libraries
 library(data.table)
@@ -9,7 +9,7 @@ library(lubridate)
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
 
 #import contact data
-cnts <- qs::qread(file.path(data_path, "part_cnts_NL.qs"))
+cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 
 #filter out participants of a certain age
 cnts <- cnts[sample_type == "adult"]
@@ -96,7 +96,7 @@ weighted_means <- num_merge[, .(study, status, special,
 weighted_means <- unique(weighted_means)
 
 #import mobility data
-mob <- qs::qread(file.path(data_path, "google_mob_NL.qs"))
+mob <- qs::qread(file.path(data_path, "google_mob.qs"))
 
 #subset for same date range
 mob_sub <- mob[date >= "2020-04-16" & date <= "2021-03-31"]
@@ -145,5 +145,5 @@ ests[, other_scaling_fac_lin := (-0.2955 + 1.6733*other_mob)/3.4837340]
 ests[, other_scaling_fac_quad := (2.8170 - 9.0254*other_mob + 8.8588*other_mob2)/3.4837340]
 
 #save scaling factors 
-qs::qsave(ests, file.path(data_path, "scaling_factors_NL.qs"))
-write.csv(ests, file.path(data_path, "scaling_factors_NL.csv"))
+qs::qsave(ests, file.path(data_path, "scaling_factors_UK.qs"))
+write.csv(ests, file.path(data_path, "scaling_factors_UK.csv"))
