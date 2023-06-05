@@ -17,7 +17,7 @@ theme_set(cowplot::theme_cowplot(font_size = 10) + theme(strip.background = elem
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
 
 #import contact data
-cnts <- qs::qread(file.path(data_path, "part_cnts_NL.qs"))
+cnts <- qs::qread(file.path(data_path, "part_cnts_BE.qs"))
 
 #filter out participants of a certain age
 cnts <- cnts[sample_type == "adult"]
@@ -78,7 +78,7 @@ cnts_l[, p_year := ifelse(ymd(cnts_l$date) %within% year1, 1,
                    ifelse(ymd(cnts_l$date) %within% year2, 2, NA))]
 
 #import edited polymod data
-pnum <- qs::qread(file.path(data_path, "polymod_NL.qs"))
+pnum <- qs::qread(file.path(data_path, "polymod_BE.qs"))
 
 #create study column
 pnum[, study := "POLYMOD"]
@@ -145,7 +145,7 @@ weighted_means <- weighted_means[study == "CoMix"]
 weighted_means <- rbind(weighted_means, poly)
 
 #import mobility data
-mob <- qs::qread(file.path(data_path, "google_mob_NL.qs"))
+mob <- qs::qread(file.path(data_path, "google_mob_BE.qs"))
 
 #subset for same date range
 mob_sub <- mob[date >= "2020-04-16" & date <= "2021-03-04"]
@@ -193,35 +193,35 @@ mob_cnt <- merge(weighted_means, gm, by = c("week", "study"))
 #calculate scaling factor
 ests <- rlang::duplicate(mob_cnt)
 ests <- ests[study == "CoMix"]
-ests <- ests[, .(week, status, special, p_year, work, workplaces)]
-ests[, mob2 := workplaces**2]
+ests <- ests[, .(week, status, special, p_year, nonhome, residential)]
+ests[, mob2 := residential**2]
 ests[, scaling_fac := ifelse(p_year == 1, 
-       (1.2862 - 4.6356*workplaces + 6.4870*mob2)/3.452366,
-       (1.2862 - 4.6356*workplaces + 6.4870*mob2 - 1.5591 + 7.3495*workplaces - 
-          7.9457*mob2)/3.452366)]
+       (118.31 - 192.10*residential + 78.66*mob2)/6.9151515,
+       (118.31 - 192.10*residential + 78.66*mob2 - 113.03 + 190.85*residential - 
+          80.48*mob2)/6.9151515)]
 
 #calculate the different estimates
-ests[, est_mob := poly$work*workplaces]
-ests[, est_mob2 := poly$work*mob2]
-ests[, est_scale := poly$work*scaling_fac]
+ests[, est_mob := poly$nonhome*residential]
+ests[, est_mob2 := poly$nonhome*mob2]
+ests[, est_scale := poly$nonhome*scaling_fac]
 
 #get labels for all plots
 int <- seq(1, 33, 4)
 my_list <- ests$week[int]
 
 #plot work contact estimates
-ggplot(data = ests) + geom_line(aes(x = week, y = work, col = "CoMix"), group = 1) + 
+ggplot(data = ests) + geom_line(aes(x = week, y = nonhome, col = "CoMix"), group = 1) + 
   geom_line(aes(x = week, y = est_mob, col = "Mobility"), group = 1) + 
   geom_line(aes(x = week, y = est_mob2, col = "Mobility Squared"), group = 1) + 
   geom_line(aes(x = week, y = est_scale, col = "Scaling Factor"), group = 1) +
   scale_x_discrete(breaks = my_list) + labs(col = "Estimate Type", x = "Week",
-                                            y = "Mean Work Contacts") +
+                                            y = "Mean Non-Home Contacts") +
   scale_colour_manual(values = c("CoMix" = "#7CAE00", "Mobility" = "#CD9600", 
                       "Mobility Squared" = "#00BFC4", "Scaling Factor" = "#C77CFF")) 
 
 #plot scaling factors
 ggplot(data = ests) + 
-  geom_line(aes(x = week, y = workplaces, col = "Mobility"), group = 1) + 
+  geom_line(aes(x = week, y = residential, col = "Mobility"), group = 1) + 
   geom_line(aes(x = week, y = mob2, col = "Mobility Squared"), group = 1) + 
   geom_line(aes(x = week, y = scaling_fac, col = "Scaling Factor"), group = 1) +
   scale_x_discrete(breaks = my_list) + 
@@ -231,4 +231,4 @@ ggplot(data = ests) +
                       "Scaling Factor" = "#C77CFF"))
 
 #save results
-write.csv(ests, file.path(data_path, "scaled_estimates_NL.csv"))
+write.csv(ests, file.path(data_path, "nonhome_scaled_estimates_BE.csv"))

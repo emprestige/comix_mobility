@@ -193,24 +193,24 @@ mob_cnt <- merge(weighted_means, gm, by = c("week", "study"))
 #calculate scaling factor
 ests <- rlang::duplicate(mob_cnt)
 ests <- ests[study == "CoMix"]
-ests <- ests[, .(week, status, special, p_year, nonhome, residential)]
-ests[, mob2 := residential**2]
+ests <- ests[, .(week, status, special, p_year, other, predictor)]
+ests[, mob2 := predictor**2]
 ests[, scaling_fac := ifelse(p_year == 1, 
-       (118.31 - 192.10*residential + 78.66*mob2)/7.152447,
-       (118.31 - 192.10*residential + 78.66*mob2 - 113.03 + 190.85*residential - 
-          80.48*mob2)/7.152447)]
+       (2.8380 - 9.1140*predictor + 8.9480*mob2)/3.4837340,
+       (2.8380 - 9.1140*predictor + 8.9480*mob2 - 4.8152 + 15.1137*predictor - 
+          11.9705*mob2)/3.4837340)]
 
 #calculate the different estimates
-ests[, est_mob := poly$nonhome*residential]
-ests[, est_mob2 := poly$nonhome*mob2]
-ests[, est_scale := poly$nonhome*scaling_fac]
+ests[, est_mob := poly$other*predictor]
+ests[, est_mob2 := poly$other*mob2]
+ests[, est_scale := poly$other*scaling_fac]
 
 #get labels for all plots
 int <- seq(1, 33, 4)
 my_list <- ests$week[int]
 
 #plot work contact estimates
-ggplot(data = ests) + geom_line(aes(x = week, y = nonhome, col = "CoMix"), group = 1) + 
+ggplot(data = ests) + geom_line(aes(x = week, y = other, col = "CoMix"), group = 1) + 
   geom_line(aes(x = week, y = est_mob, col = "Mobility"), group = 1) + 
   geom_line(aes(x = week, y = est_mob2, col = "Mobility Squared"), group = 1) + 
   geom_line(aes(x = week, y = est_scale, col = "Scaling Factor"), group = 1) +
@@ -221,7 +221,7 @@ ggplot(data = ests) + geom_line(aes(x = week, y = nonhome, col = "CoMix"), group
 
 #plot scaling factors
 ggplot(data = ests) + 
-  geom_line(aes(x = week, y = residential, col = "Mobility"), group = 1) + 
+  geom_line(aes(x = week, y = predictor, col = "Mobility"), group = 1) + 
   geom_line(aes(x = week, y = mob2, col = "Mobility Squared"), group = 1) + 
   geom_line(aes(x = week, y = scaling_fac, col = "Scaling Factor"), group = 1) +
   scale_x_discrete(breaks = my_list) + 
@@ -231,4 +231,4 @@ ggplot(data = ests) +
                       "Scaling Factor" = "#C77CFF"))
 
 #save results
-write.csv(ests, file.path(data_path, "nonhome_scaled_estimates_BE.csv"))
+write.csv(ests, file.path(data_path, "other_scaled_estimates_BE.csv"))
