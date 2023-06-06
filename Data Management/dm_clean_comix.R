@@ -23,7 +23,7 @@ ct_uk <- ct[country == "uk"]
 ages <- ct_uk %>% group_by(cnt_age_group) %>% tally()
 
 #filter out unnecessary variables 
-ct_nmes <- c("part_id", "cnt_age_est_min", "cnt_age_est_max", 
+ct_nmes <- c("part_id", "date", "cnt_age_est_min", "cnt_age_est_max", 
              "cnt_gender", "cnt_home", "cnt_work", "cnt_school",
              "cnt_public_transport", "cnt_other", "cnt_phys", "survey_round")
 ct_uk <- ct_uk[, ..ct_nmes]
