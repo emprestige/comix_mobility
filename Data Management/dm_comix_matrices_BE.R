@@ -70,5 +70,5 @@ for(i in 1:9) {
   e_weeks[i] <- e$values[1]
 }
 
-#save matrices
-qs::qsave(e_weeks, file.path(data_path, "comix_matrices_BE.qs"))
+#save dominant eigenvalues
+qs::qsave(e_weeks, file.path(data_path, "comix_eigens_BE.qs"))

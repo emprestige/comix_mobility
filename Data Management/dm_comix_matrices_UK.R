@@ -71,4 +71,4 @@ for(i in 1:9) {
 }
 
 #save matrices
-qs::qsave(e_weeks, file.path(data_path, "comix_matrices_UK.qs"))
+qs::qsave(e_weeks, file.path(data_path, "comix_eigens_UK.qs"))
