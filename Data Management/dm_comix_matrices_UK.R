@@ -1,16 +1,10 @@
-##estimate contact matrices from CoMix data for belgium
+##estimate contact matrices from CoMix data for the UK
 
 #load libraries
 library(data.table)
-library(ggplot2)
 library(tidyverse)
 library(lubridate)
-library(cowplot)
-library(ggrepel)
 library(socialmixr)
-
-#set cowplot theme
-theme_set(cowplot::theme_cowplot(font_size = 10) + theme(strip.background = element_blank()))
 
 #set data path
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
@@ -36,15 +30,23 @@ pt_week <- pt_date %>%
 ct_week <- ct_date %>%
   group_split(week)
 
+#get weeks for each contact matrix
+week_dates <- list()
+for (i in 1:length(ct_week)) {
+  week_dates[i] <- ct_week[[i]]["week"][[1]]
+}
+week_dates <- t(data.frame(week_dates))
+rownames(week_dates) <- 1:nrow(week_dates)
+
 #create surveys for each week
 new_survey <- list()
-for (i in 1:9) {
+for (i in 1:length(ct_week)) {
   new_survey[[i]] <- survey(pt_week[[i]], ct_week[[i]])
 }
 
 #create contact matrices for each survey round 
 weeks <- list()
-for (i in 1:9) {
+for (i in 1:length(ct_week)) {
   weeks[[i]] <- contact_matrix(new_survey[[i]], weigh.dayofweek = T, 
                                age.limits = c(0, 5, 12, 18, 30, 40, 
                                               50, 60, 65, 70))
@@ -63,12 +65,19 @@ for (i in 1:9) {
 
 #get dominant eigenvalues for each week
 e_weeks <- list()
-for(i in 1:9) {
+for(i in 1:length(ct_week)) {
   matrix <- weeks[[i]][["matrix"]]
   matrix[is.na(matrix)] <- 0
   e <- eigen(matrix)
-  e_weeks[i] <- e$values[1]
+  e_weeks[i] <- Re(e$values[1])
 }
 
-#save matrices
-qs::qsave(e_weeks, file.path(data_path, "comix_eigens_UK.qs"))
+#format results
+e_weeks_frame <- t(data.frame(e_weeks))
+rownames(e_weeks_frame) <- 1:nrow(e_weeks_frame)
+e_weeks_frame <- cbind(week_dates, e_weeks_frame)
+colnames(e_weeks_frame) <- c("week", "reproduction_number")
+e_weeks_frame <- as.data.table(e_weeks_frame)
+
+#save dominant eigenvalues
+qs::qsave(e_weeks_frame, file.path(data_path, "comix_eigens_UK.qs"))
