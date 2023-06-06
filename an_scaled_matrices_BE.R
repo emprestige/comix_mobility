@@ -82,3 +82,5 @@ for(i in 1:nrow(scaling_factors)) {
   e_quad[i] <- e$values[1]
 }
 
+#import dominant eigenvalues from comix matrices 
+eigens <- qs::qread(file.path(data_path, "comix_eigens_BE.qs"))
