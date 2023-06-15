@@ -88,8 +88,7 @@ num_merge[, special := ifelse(date == ymd("2020-12-25"), "Xmas",
                        ifelse(date %within% summer, "Summer Hol", NA)))))))]
 
 #get weighted means by week
-weighted_means <- num_merge[, .(study, status, special,
-                                work = weighted.mean(work, day_weight),
+weighted_means <- num_merge[, .(study, work = weighted.mean(work, day_weight),
                                 other = weighted.mean(other, day_weight),
                                 nonhome = weighted.mean(nonhome, day_weight)),
                   by = .(week = paste(isoyear(date), "/", sprintf("%02d", isoweek(date))))]  
@@ -135,8 +134,7 @@ mob_cnt <- merge(weighted_means, gm, by = c("week", "study"))
 #calculate scaling factor
 ests <- rlang::duplicate(mob_cnt)
 ests <- ests[study == "CoMix"]
-ests <- ests[, .(week, status, special, work, work_mob = workplaces,
-                 other, other_mob = predictor)]
+ests <- ests[, .(week, work, work_mob = workplaces, other, other_mob = predictor)]
 ests[, work_mob2 := work_mob**2]
 ests[, other_mob2 := other_mob**2]
 ests[, work_scaling_fac_lin := (-0.4360 + 2.2548*work_mob)/1.9529120]
