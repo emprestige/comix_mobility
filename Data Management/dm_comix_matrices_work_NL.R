@@ -1,4 +1,4 @@
-##estimate contact matrices from CoMix data for belgium
+##estimate contact matrices from CoMix data for The Netherlands
 
 #load libraries
 library(data.table)
@@ -10,8 +10,13 @@ library(socialmixr)
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
 
 #import participant and contact data
-pt <- qs::qread(file.path(data_path, "participants_BE.qs"))
-ct <- qs::qread(file.path(data_path, "contact_BE.qs"))
+pt <- qs::qread(file.path(data_path, "participants_NL.qs"))
+pt <- pt[part_id != "14756"]
+pt <- pt[part_id != "14895"]
+pt <- pt[part_id != "14800"]
+pt <- pt[part_id != "14308"]
+pt <- pt[part_id != "14913"]
+ct <- qs::qread(file.path(data_path, "contact_NL.qs"))
 
 #match column name for function
 pt$dayofweek <- pt$weekday
@@ -49,19 +54,9 @@ weeks <- list()
 for (i in 1:length(ct_week)) {
   weeks[[i]] <- contact_matrix(new_survey[[i]], weigh.dayofweek = T, 
                                age.limits = c(0, 5, 12, 18, 30, 40, 
-                                              50, 60, 65, 70))
+                                              50, 60, 65, 70),
+                               filter = list(cnt_work = 1))
 }
-
-# #melt dataframes 
-# dt <- list()
-# for (i in 1:9) {
-#   dt[[i]] <- melt(data.table(weeks[[i]]$matrix, keep.rownames = TRUE) ,
-#                   id.vars = c("rn"))
-#   dt[[i]]$rn <- factor(dt[[i]]$rn, levels = c("[0,5)", "[5,12)", "[12,18)",
-#                                               "[18,30)", "[30,40)", "[40,50)",
-#                                               "[50,60)", "[60,65)", "[65,70)",
-#                                               "70+"))
-# }
 
 #get dominant eigenvalues for each week
 e_weeks <- list()
@@ -76,8 +71,8 @@ for(i in 1:length(ct_week)) {
 e_weeks_frame <- t(data.frame(e_weeks))
 rownames(e_weeks_frame) <- 1:nrow(e_weeks_frame)
 e_weeks_frame <- cbind(week_dates, e_weeks_frame)
-colnames(e_weeks_frame) <- c("week", "reproduction_number")
+colnames(e_weeks_frame) <- c("week", "dominant_eigenvalue")
 e_weeks_frame <- as.data.table(e_weeks_frame)
 
 #save dominant eigenvalues
-qs::qsave(e_weeks_frame, file.path(data_path, "comix_eigens_BE.qs"))
+qs::qsave(e_weeks_frame, file.path(data_path, "comix_eigens_work_NL.qs"))
