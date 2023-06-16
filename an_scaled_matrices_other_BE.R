@@ -112,7 +112,7 @@ colnames(e_scaled) <- c("week", "dominant_eigenvalue_mob",
                         "dominant_eigenvalue_quad")
 
 #import dominant eigenvalues from comix matrices 
-eigens <- qs::qread(file.path(data_path, "comix_eigens_other_BE.qs"))
+eigens <- qs::qread(file.path(data_path, "comix_eigens_other_BE_archive.qs"))
 
 #merge comix eigenvalues and scaled estimates 
 eigens_all <- merge(eigens, e_scaled, by = "week")
@@ -139,6 +139,10 @@ ggplot(data = eigens_all, aes(x = dominant_eigenvalue)) +
                      labels = c("Mobility", "Mobility Squared", 
                                 "Linear Model", "Quadratic Model"))
 
+#get labels for all plots
+int <- seq(1, 26, 4)
+my_list <- eigens_all$week[int]
+
 #line graph
 ggplot(data = eigens_all) + 
   geom_line(aes(x = week, y = dominant_eigenvalue, col = "comix"), group = 1) +
@@ -147,6 +151,7 @@ ggplot(data = eigens_all) +
   geom_line(aes(x = week, y = dominant_eigenvalue_lin, col = "lin"), group = 1) +
   geom_line(aes(x = week, y = dominant_eigenvalue_quad, col = "quad"), group = 1) +
   labs(x = "Week", y = "Dominant Eigenvalue", colour = "Estimate Type") +
+  scale_x_discrete(breaks = my_list) +
   scale_color_manual(breaks = c("comix", "mob", "mob2", "lin", "quad"),
                      values = c("green", "purple", "red", "blue", "orange"),
                      labels = c("CoMix", "Mobility", "Mobility Squared", 
@@ -165,7 +170,8 @@ ggplot(data = resid, aes(x = week)) +
   geom_point(aes(y = mob2_resid, col = "mob2")) +
   geom_point(aes(y = lin_resid, col = "lin")) +
   geom_point(aes(y = quad_resid, col = "quad")) +
-  geom_hline(yintercept = 0, linetype = 2) +
+  geom_hline(yintercept = 0, linetype = 2) + 
+  scale_x_discrete(breaks = my_list) +
   labs(x = "Week", y = "Residuals", colour = "Scaling Factor") +
   scale_color_manual(breaks = c("mob", "mob2", "lin", "quad"),
                      values = c("purple", "red", "blue", "orange"),
