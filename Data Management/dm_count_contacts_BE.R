@@ -5,9 +5,9 @@ library(dplyr)
 ## Save participant data
 dir_data_validate <- "C:\\Users\\emiel\\Filr\\Net Folders\\EPH Shared\\Comix_survey\\data\\validated\\"
 
-pt <- qs::qread(file.path(dir_data_validate, "part.qs"))
-pt_min <- qs::qread(file.path(dir_data_validate, "part_min.qs"))
-ct <- qs::qread(file.path(dir_data_validate, "contacts.qs"))
+pt <- qs::qread(file.path(dir_data_validate, "archive/2022-03-04_part.qs"))
+pt_min <- qs::qread(file.path(dir_data_validate, "archive/2022-03-04_part_min.qs"))
+ct <- qs::qread(file.path(dir_data_validate, "archive/2022-03-04_contacts.qs"))
 
 # Map objects for labels --------------------------------------------------
 cnt_main_vars <- c(

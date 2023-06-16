@@ -10,8 +10,12 @@ library(socialmixr)
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
 
 #import participant and contact data
-pt <- qs::qread(file.path(data_path, "participants_BE.qs"))
-ct <- qs::qread(file.path(data_path, "contact_BE.qs"))
+pt <- qs::qread(file.path(data_path, "participants_BE_archive.qs"))
+pt <- pt[part_id != "12313"]
+pt <- pt[part_id != "12137"]
+pt <- pt[part_id != "12732"]
+pt <- pt[part_id != "13364"]
+ct <- qs::qread(file.path(data_path, "contact_BE_archive.qs"))
 
 #match column name for function
 pt$dayofweek <- pt$weekday
@@ -71,4 +75,4 @@ colnames(e_weeks_frame) <- c("week", "dominant_eigenvalue")
 e_weeks_frame <- as.data.table(e_weeks_frame)
 
 #save dominant eigenvalues
-qs::qsave(e_weeks_frame, file.path(data_path, "comix_eigens_work_BE.qs"))
+qs::qsave(e_weeks_frame, file.path(data_path, "comix_eigens_work_BE_archive.qs"))
