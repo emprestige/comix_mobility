@@ -10,8 +10,13 @@ library(lubridate)
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
 
 #import contact data
-cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
-cnts[, week := paste(isoyear(date), "/", sprintf("%02d", isoweek(date)))]
+cnts <- qs::qread(file.path(data_path, "part_cnts_work.qs"))
+
+#get middate for fornight periods
+cnts[, fortnight := paste(isoyear(date), "/", sprintf("%02d", ceiling(isoweek(date)/2)))]
+cnts[, start_date := min(date), by = .(fortnight)]
+cnts[, end_date := max(date), by = .(fortnight)]
+cnts[, mid_date := start_date + floor((end_date - start_date)/2) , by = .(fortnight)]
 
 #filter out people without age group
 cnts <- cnts %>%
@@ -100,19 +105,19 @@ popcnts[, pop_total3 := sum(pop_estimate3), by = c("part_social_group")]
 popcnts[, pop_proportion3 := pop_estimate3/pop_total3]
 
 #first count the number of samples in each subgroup (social group, 
-#week, and age group) 
-weightlookup <- popcnts[, .(sample = .N), by = .(part_social_group, week, 
+#mid_date, and age group) 
+weightlookup <- popcnts[, .(sample = .N), by = .(part_social_group, mid_date, 
                                                  part_age_group)]
 
-#calculate the sample total for each week
-weightlookup[, sample_total := sum(sample), by = .(week)]
+#calculate the sample total for each mid_date
+weightlookup[, sample_total := sum(sample), by = .(mid_date)]
 
 #calculate the sample proportion
 weightlookup[, sample_proportion := sample/sample_total]
 
-#create new data.table with only the needed information (week, social group,
+#create new data.table with only the needed information (mid_date, social group,
 #age group, population estimate, and population proportion)
-pop5 <- popcnts[, .(week, part_social_group, part_age_group, 
+pop5 <- popcnts[, .(mid_date, part_social_group, part_age_group, 
                     pop_estimate = pop_estimate3, pop_proportion = pop_proportion3)]
 
 #remove duplicates
@@ -127,12 +132,9 @@ weightlookup2[, weight_raw := pop_estimate/sample]
 #calculate weight proportion
 weightlookup2[, weight_proportion := pop_proportion/sample_proportion]
 
-#export weights
-write.csv(weightlookup2, file.path(data_path, "weights_exc_weekend.csv"))
-
 #merge weights to cnts2
-cnts3 <- merge(cnts2, weightlookup2, by = c("part_social_group", "week",
+cnts3 <- merge(cnts2, weightlookup2, by = c("part_social_group", "mid_date",
                                             "part_age_group"))
 
 #save
-qs::qsave(cnts3, file.path(data_path, "cnts_weight_test_new2.qs"))
+qs::qsave(cnts3, file.path(data_path, "cnts_weight_work_middate.qs"))

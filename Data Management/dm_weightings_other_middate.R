@@ -10,8 +10,13 @@ library(lubridate)
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
 
 #import contact data
-cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
-cnts[, week := paste(isoyear(date), "/", sprintf("%02d", isoweek(date)))]
+cnts <- qs::qread(file.path(data_path, "part_cnts_other.qs"))
+
+#get middate for fornight periods
+cnts[, fortnight := paste(isoyear(date), "/", sprintf("%02d", ceiling(isoweek(date)/2)))]
+cnts[, start_date := min(date), by = .(fortnight)]
+cnts[, end_date := max(date), by = .(fortnight)]
+cnts[, mid_date := start_date + floor((end_date - start_date)/2) , by = .(fortnight)]
 
 #filter out people without age group
 cnts <- cnts %>%
@@ -29,10 +34,6 @@ cnts2[, pop_proportion1 := ifelse(part_social_group == "A - Upper middle class",
 
 #calculate population estimate from the proportion 
 cnts2[, pop_estimate1 := pop_proportion1*67866]
-
-#define variable for whether the day of the week is a weekend or not
-cnts2[, weekend := ifelse(weekday == "Saturday", T, ifelse(weekday == "Sunday", T, F))]
-#cnts2[, pop_estimate1 := ifelse(weekend == T, pop_estimate1*(2/7), pop_estimate1*(5/7))]
 
 #rename gender column
 cnts2[, part_gender := part_gender_nb]
@@ -103,20 +104,20 @@ popcnts[, pop_total3 := sum(pop_estimate3), by = c("part_social_group")]
 #calculate the population prpoportions 
 popcnts[, pop_proportion3 := pop_estimate3/pop_total3]
 
-#first count the number of samples in each subgroup (social group, weekend/not,
-#week, and age group) 
-weightlookup <- popcnts[, .(sample = .N), by = .(part_social_group, weekend, week, 
+#first count the number of samples in each subgroup (social group, 
+#mid_date, and age group) 
+weightlookup <- popcnts[, .(sample = .N), by = .(part_social_group, mid_date, 
                                                  part_age_group)]
 
-#calculate the sample total for each week
-weightlookup[, sample_total := sum(sample), by = .(week)]
+#calculate the sample total for each mid_date
+weightlookup[, sample_total := sum(sample), by = .(mid_date)]
 
 #calculate the sample proportion
 weightlookup[, sample_proportion := sample/sample_total]
 
-#create new data.table with only the needed information (week, social group,
-#age group, weekend/not, population estimate, and population proportion)
-pop5 <- popcnts[, .(week, part_social_group, part_age_group, weekend, 
+#create new data.table with only the needed information (mid_date, social group,
+#age group, population estimate, and population proportion)
+pop5 <- popcnts[, .(mid_date, part_social_group, part_age_group, 
                     pop_estimate = pop_estimate3, pop_proportion = pop_proportion3)]
 
 #remove duplicates
@@ -131,12 +132,9 @@ weightlookup2[, weight_raw := pop_estimate/sample]
 #calculate weight proportion
 weightlookup2[, weight_proportion := pop_proportion/sample_proportion]
 
-#export weights
-write.csv(weightlookup2, file.path(data_path, "weights_inc_weekend.csv"))
-
 #merge weights to cnts2
-cnts3 <- merge(cnts2, weightlookup2, by = c("part_social_group", "weekend", "week",
+cnts3 <- merge(cnts2, weightlookup2, by = c("part_social_group", "mid_date",
                                             "part_age_group"))
 
 #save
-qs::qsave(cnts3, file.path(data_path, "cnts_weight_test_new.qs"))
+qs::qsave(cnts3, file.path(data_path, "cnts_weight_other_middate.qs"))

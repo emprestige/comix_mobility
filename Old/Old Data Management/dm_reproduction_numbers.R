@@ -16,11 +16,12 @@ rt2 <- rlang::duplicate(rt)
 rt2 <- rt2[, .(mean = mean(mean)), by = .(fortnight = paste(isoyear(date), "/", 
                                    sprintf("%02d", ceiling(isoweek(date)/2))))]
 
-#get evenly spaced dates
-my_list <- seq(1, 28, length.out = 4)
-
-#extract the correct values 
-rt3 <- rt2[my_list]
-
 #export them 
 qs::qsave(rt2, file.path(data_path, "reproduction_numbers_UK.qs"))
+
+# source("https://gist.githubusercontent.com/sbfnk/d2900c745312219e3e48e08adde47cde/raw/c98fbdd738eafa71af12d05af0d3e068cf5b607b/get_covid19_nowcasts.r")
+# df <- get_covid19_nowcasts()
+# df <- as.data.table(df)
+# df_be <- df[country == "Belgium"]
+# df_nl <- df[country == "Netherlands"]
+#neither have estimates early enough
