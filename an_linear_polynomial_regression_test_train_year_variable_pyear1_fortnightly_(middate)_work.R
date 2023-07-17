@@ -11,7 +11,7 @@ library(ggrepel)
 library(lmtest)
 
 #set cowplot theme
-theme_set(cowplot::theme_cowplot(font_size = 10) + theme(strip.background = element_blank()))
+theme_set(cowplot::theme_cowplot(font_size = 15) + theme(strip.background = element_blank()))
 
 #set data path
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
@@ -161,6 +161,7 @@ mob_cnt <- mob_cnt[, .(mid_date, study, status, special, work, other,
 #linear regression including interaction term for pandemic year 1
 lm_w1 <- lm(work ~ workplaces, data = mob_cnt)
 summary(lm_w1)
+confint(lm_w1)
 
 #predict 
 pred <- predict(lm_w1, interval = "confidence")
@@ -170,7 +171,7 @@ mob_cnt <- cbind(mob_cnt, pred)
 
 #plot
 plw1 = ggplot(mob_cnt, aes(x = workplaces, y = work, label = special)) +
-  geom_point(aes(col = status)) + geom_text_repel(size = 2.5) +
+  geom_point(aes(col = status)) + geom_text_repel(size = 4) +
   geom_line(data = mob_cnt, aes(x = workplaces, y = w1_fit)) +
   geom_ribbon(data = mob_cnt, aes(ymin = w1_lwr, ymax = w1_uppr), alpha = 0.1) +
   labs(x = "Google Mobility\n'workplaces' visits", col = "Status", 
@@ -183,6 +184,7 @@ plw1
 #quadratic regression including interaction term for pandemic year 1
 lm_w2 <- lm(work ~ poly(workplaces, 2, raw = T), data = mob_cnt)
 summary(lm_w2)
+confint(lm_w2)
 
 #predict
 pred <- predict(lm_w2, interval = "confidence")
@@ -192,7 +194,7 @@ mob_cnt <- cbind(mob_cnt, pred)
 
 #plot
 plw2 = ggplot(mob_cnt, aes(x = workplaces, y = work, label = special)) +
-  geom_point(aes(col = status)) + geom_text_repel(size = 2.5) +
+  geom_point(aes(col = status)) + geom_text_repel(size = 4) +
   geom_line(data = mob_cnt, aes(x = workplaces, y = w2_fit)) +
   geom_ribbon(data = mob_cnt, aes(ymin = w2_lwr, ymax = w2_uppr), alpha = 0.1) +
   labs(x = "Google Mobility\n'workplaces' visits", col = "Status", 

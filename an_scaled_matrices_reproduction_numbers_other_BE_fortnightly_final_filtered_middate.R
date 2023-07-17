@@ -250,19 +250,19 @@ ggplot(data = reproduction_all) +
 
 #calculate residuals
 resid2 <- rlang::duplicate(reproduction_all)
-resid2 <- resid2 %>%
-  drop_na()
+resid2 <- resid2 %>% drop_na()
 resid2 <- resid2[, mob_resid2 := reproduction_number - reproduction_number_mob]
 resid2 <- resid2[, mob2_resid2 := reproduction_number - reproduction_number_mob2]
 resid2 <- resid2[, lin_resid2 := reproduction_number - reproduction_number_lin]
 resid2 <- resid2[, quad_resid2 := reproduction_number - reproduction_number_quad]
+resid3 <- full_join(resid2, reproduction_all)
 
 #plot residuals 
-ggplot(data = resid2, aes(x = mid_date)) + 
-  geom_point(aes(y = mob_resid2, col = "mob")) +
-  geom_point(aes(y = mob2_resid2, col = "mob2")) +
-  geom_point(aes(y = lin_resid2, col = "lin")) +
-  geom_point(aes(y = quad_resid2, col = "quad")) +
+ggplot(data = resid3, aes(x = mid_date)) + 
+  geom_line(aes(y = mob_resid2, col = "mob")) +
+  geom_line(aes(y = mob2_resid2, col = "mob2")) +
+  geom_line(aes(y = lin_resid2, col = "lin")) +
+  geom_line(aes(y = quad_resid2, col = "quad")) +
   geom_hline(yintercept = 0, linetype = 2) + 
   labs(x = "Date", y = "Residuals", colour = "Scaling Factor") +
   scale_color_manual(breaks = c("mob", "mob2", "lin", "quad"),
