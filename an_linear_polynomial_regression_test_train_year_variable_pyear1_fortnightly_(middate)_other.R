@@ -11,7 +11,7 @@ library(ggrepel)
 library(lmtest)
 
 #set cowplot theme
-theme_set(cowplot::theme_cowplot(font_size = 15) + theme(strip.background = element_blank()))
+theme_set(cowplot::theme_cowplot(font_size = 12) + theme(strip.background = element_blank()))
 
 #set data path
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"

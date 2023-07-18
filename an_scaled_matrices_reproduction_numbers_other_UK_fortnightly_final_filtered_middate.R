@@ -6,10 +6,10 @@ library(ggplot2)
 library(tidyverse)
 library(lubridate)
 library(cowplot)
-library(ggforce)
+library(scales)
 
 #set cowplot theme
-theme_set(cowplot::theme_cowplot(font_size = 10) + theme(strip.background = element_blank()))
+theme_set(cowplot::theme_cowplot(font_size = 12) + theme(strip.background = element_blank()))
 
 #set data path
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
@@ -163,6 +163,7 @@ ggplot(data = eigens_all) +
   geom_line(aes(x = mid_date, y = dominant_eigenvalue_lin, col = "lin"), group = 1) +
   geom_line(aes(x = mid_date, y = dominant_eigenvalue_quad, col = "quad"), group = 1) +
   labs(x = "Date", y = "Dominant Eigenvalue", colour = "Estimate Type") +
+  scale_x_date(labels = date_format("%B-%Y")) +
   scale_color_manual(breaks = c("comix", "mob", "mob2", "lin", "quad"),
                      values = c("green", "purple", "red", "blue", "orange"),
                      labels = c("CoMix", "Mobility", "Mobility Squared", 
@@ -182,6 +183,7 @@ ggplot(data = resid, aes(x = mid_date)) +
   geom_point(aes(y = lin_resid, col = "lin")) +
   geom_point(aes(y = quad_resid, col = "quad")) +
   geom_hline(yintercept = 0, linetype = 2) + 
+  scale_x_date(labels = date_format("%B-%Y")) +
   labs(x = "Date", y = "Residuals", colour = "Scaling Factor") +
   scale_color_manual(breaks = c("mob", "mob2", "lin", "quad"),
                      values = c("purple", "red", "blue", "orange"),
@@ -243,7 +245,8 @@ ggplot(data = reproduction_all) +
   geom_line(aes(x = mid_date, y = reproduction_number_mob2, col = "mob2"), group = 1) +
   geom_line(aes(x = mid_date, y = reproduction_number_lin, col = "lin"), group = 1) +
   geom_line(aes(x = mid_date, y = reproduction_number_quad, col = "quad"), group = 1) +
-  labs(x = "Date", y = "Reproduction Number", colour = "Estimate Type") + 
+  labs(x = "Date", y = "Reproduction Number", colour = "Estimate Type") +
+  scale_x_date(labels = date_format("%B-%Y")) +
   scale_color_manual(breaks = c("comix", "mob", "mob2", "lin", "quad"),
                      values = c("green", "purple", "red", "blue", "orange"),
                      labels = c("CoMix", "Mobility", "Mobility Squared", 
@@ -263,6 +266,7 @@ ggplot(data = resid2, aes(x = mid_date)) +
   geom_line(aes(y = lin_resid2, col = "lin")) +
   geom_line(aes(y = quad_resid2, col = "quad")) +
   geom_hline(yintercept = 0, linetype = 2) + 
+  scale_x_date(labels = date_format("%B-%Y")) +
   labs(x = "Date", y = "Residuals", colour = "Scaling Factor") +
   scale_color_manual(breaks = c("mob", "mob2", "lin", "quad"),
                      values = c("purple", "red", "blue", "orange"),
@@ -276,7 +280,7 @@ lin_rootMSE <- sqrt(mean((reproduction_all$reproduction_number - reproduction_al
 quad_rootMSE <- sqrt(mean((reproduction_all$reproduction_number - reproduction_all$reproduction_number_quad)^2))
 
 #line graph
-ggplot(data = reproduction_all) +
+ggplot(data = reproduction_all) + scale_x_date(labels = date_format("%B-%Y")) +
   geom_line(aes(x = mid_date, y = reproduction_number, col = "comix"), group = 1) +
   geom_line(aes(x = mid_date, y = reproduction_number_mob, col = "mob"), group = 1) +
   geom_line(aes(x = mid_date, y = reproduction_number_mob2, col = "mob2"), group = 1) +
