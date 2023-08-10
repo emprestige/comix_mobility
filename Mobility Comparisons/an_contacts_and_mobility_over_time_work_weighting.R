@@ -12,7 +12,7 @@ library(ggrepel)
 library(scales)
 
 #set cowplot theme
-theme_set(cowplot::theme_cowplot(font_size = 12) + theme(strip.background = element_blank()))
+theme_set(cowplot::theme_cowplot(font_size = 18) + theme(strip.background = element_blank()))
 
 #set data path
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
@@ -180,11 +180,11 @@ gm_av <- unique(gm_av)
 workplaces <- ggplot(gm_av, aes(mid_date, workplaces,
                  label = ifelse(status == "No restrictions", 
                          ifelse(is.na(special) == F, special, NA), special))) + 
-  geom_line(group = "status") + geom_text_repel(size = 4, max.overlaps = 80) +
-  geom_point(aes(x = mid_date, y = ifelse(is.na(special) == F, workplaces, NA))) +
+  geom_line(group = "status", size = 0.8) + geom_text_repel(size = 4, max.overlaps = 80) +
+  geom_point(aes(x = mid_date, y = ifelse(is.na(special) == F, workplaces, NA)), size = 2) +
   geom_rect(aes(xmin = mid_date, xmax = lead(mid_date), ymin = 0, 
                 ymax = Inf, fill = status), alpha = 0.5) +
-  scale_x_date(labels = date_format("%B-%Y")) +
+  scale_x_date(labels = date_format("%B-%Y")) + ylim(0, 1.25) +
   labs(x = "Date", y = "Google Mobility\n'workplaces' Visits", fill = "Status") +
   scale_fill_manual(values = c("No restrictions" = "#00BA38", 
                                "Some restrictions" = "#619CFF", 
@@ -196,12 +196,12 @@ workplaces <- ggplot(gm_av, aes(mid_date, workplaces,
 work <- ggplot(weighted_date, aes(mid_date, work,
            label = ifelse(status == "No restrictions", 
                    ifelse(is.na(special) == F, special, NA), special))) + 
-  geom_line(group = 1) + geom_text_repel(size = 4, max.overlaps = 80) +
-  geom_point(aes(x = mid_date, y = ifelse(is.na(special) == F, work, NA))) +
+  geom_line(group = 1, size = 0.8) + geom_text_repel(size = 4, max.overlaps = 80) +
+  geom_point(aes(x = mid_date, y = ifelse(is.na(special) == F, work, NA)), size = 2) +
   geom_rect(aes(xmin = mid_date, xmax = lead(mid_date), ymin = 0, 
                 ymax = Inf, fill = status), alpha = 0.5) +
-  scale_x_date(labels = date_format("%B-%Y")) +
-  labs(x = "Date", y = "Mean Number of Work Contacts", fill = "Status") +
+  scale_x_date(labels = date_format("%B-%Y")) + ylim(0, 1.25) +
+  labs(x = "Date", y = "Mean Number of\nWork Contacts", fill = "Status") +
   scale_fill_manual(values = c("No restrictions" = "#00BA38", 
                                "Some restrictions" = "#619CFF", 
                                "Lockdown" = "#F8766D"), 

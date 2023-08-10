@@ -11,7 +11,7 @@ library(ggrepel)
 library(lmtest)
 
 #set cowplot theme
-theme_set(cowplot::theme_cowplot(font_size = 12) + theme(strip.background = element_blank()))
+theme_set(cowplot::theme_cowplot(font_size = 18) + theme(strip.background = element_blank()))
 
 #set data path
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
@@ -171,11 +171,11 @@ mob_cnt <- cbind(mob_cnt, pred)
 
 #plot
 plo1 = ggplot(mob_cnt, aes(x = predictor, y = other, label = special)) +
-  geom_point(aes(col = status)) + geom_text_repel(size = 4) +
-  geom_line(data = mob_cnt, aes(x = predictor, y = o1_fit)) +
+  geom_point(aes(col = status), size = 2) + geom_text_repel(size = 4) +
+  geom_line(data = mob_cnt, aes(x = predictor, y = o1_fit), size = 0.8) +
   geom_ribbon(data = mob_cnt, aes(ymin = o1_lwr, ymax = o1_uppr), alpha = 0.1) +
-  labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits",
-       y = "Number of 'other' contacts", col = "Status") +
+  labs(x = "Google Mobility Weighted Predictor",
+       y = "Mean Number of Other Contacts", col = "Status") +
   scale_colour_manual(values = c("No restrictions" = "#00BA38",
                                  "Some restrictions" = "#619CFF",
                                  "Lockdown" = "#F8766D")) 
@@ -194,11 +194,11 @@ mob_cnt <- cbind(mob_cnt, pred)
 
 #plot
 plo2 = ggplot(mob_cnt, aes(x = predictor, y = other, label = special)) +
-  geom_point(aes(col = status)) + geom_text_repel(size = 4) +
-  geom_line(data = mob_cnt, aes(x = predictor, y = o2_fit)) +
+  geom_point(aes(col = status), size = 2) + geom_text_repel(size = 4) +
+  geom_line(data = mob_cnt, aes(x = predictor, y = o2_fit), size = 0.8) +
   geom_ribbon(data = mob_cnt, aes(ymin = o2_lwr, ymax = o2_uppr), alpha = 0.1) +
-  labs(x = "Google Mobility weighted 'transit stations',\n'retail and recreation', and 'grocery and pharmacy' visits",
-       y = "Number of 'other' contacts",  col = "Status") +
+  labs(x = "Google Mobility Weighted Predictor",
+       y = "Mean Number of Other Contacts",  col = "Status") +
   scale_colour_manual(values = c("No restrictions" = "#00BA38",
                                  "Some restrictions" = "#619CFF",
                                  "Lockdown" = "#F8766D")) 

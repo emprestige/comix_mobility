@@ -11,7 +11,7 @@ library(ggrepel)
 library(lmtest)
 
 #set cowplot theme
-theme_set(cowplot::theme_cowplot(font_size = 12) + theme(strip.background = element_blank()))
+theme_set(cowplot::theme_cowplot(font_size = 18) + theme(strip.background = element_blank()))
 
 #set data path
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
@@ -171,11 +171,11 @@ mob_cnt <- cbind(mob_cnt, pred)
 
 #plot
 plw1 = ggplot(mob_cnt, aes(x = workplaces, y = work, label = special)) +
-  geom_point(aes(col = status)) + geom_text_repel(size = 4) +
-  geom_line(data = mob_cnt, aes(x = workplaces, y = w1_fit)) +
+  geom_point(aes(col = status), size = 2) + geom_text_repel(size = 4) +
+  geom_line(data = mob_cnt, aes(x = workplaces, y = w1_fit), size = 0.8) +
   geom_ribbon(data = mob_cnt, aes(ymin = w1_lwr, ymax = w1_uppr), alpha = 0.1) +
-  labs(x = "Google Mobility\n'workplaces' visits", col = "Status", 
-       y = "Number of work contacts") +
+  labs(x = "Google Mobility 'workplaces' Visits", col = "Status", 
+       y = "Mean Number of Work Contacts") +
   scale_colour_manual(values = c("No restrictions" = "#00BA38",
                                  "Some restrictions" = "#619CFF",
                                  "Lockdown" = "#F8766D")) 
@@ -194,11 +194,11 @@ mob_cnt <- cbind(mob_cnt, pred)
 
 #plot
 plw2 = ggplot(mob_cnt, aes(x = workplaces, y = work, label = special)) +
-  geom_point(aes(col = status)) + geom_text_repel(size = 4) +
-  geom_line(data = mob_cnt, aes(x = workplaces, y = w2_fit)) +
+  geom_point(aes(col = status), size = 2) + geom_text_repel(size = 4) +
+  geom_line(data = mob_cnt, aes(x = workplaces, y = w2_fit), size = 0.8) +
   geom_ribbon(data = mob_cnt, aes(ymin = w2_lwr, ymax = w2_uppr), alpha = 0.1) +
-  labs(x = "Google Mobility\n'workplaces' visits", col = "Status", 
-       y = "Number of work contacts") +
+  labs(x = "Google Mobility 'workplaces' Visits", col = "Status", 
+       y = "Mean Number of Work Contacts") +
   scale_colour_manual(values = c("No restrictions" = "#00BA38",
                                  "Some restrictions" = "#619CFF",
                                  "Lockdown" = "#F8766D")) 

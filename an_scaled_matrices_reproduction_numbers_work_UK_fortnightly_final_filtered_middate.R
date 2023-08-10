@@ -9,7 +9,7 @@ library(cowplot)
 library(scales)
 
 #set cowplot theme
-theme_set(cowplot::theme_cowplot(font_size = 12) + theme(strip.background = element_blank()))
+theme_set(cowplot::theme_cowplot(font_size = 18) + theme(strip.background = element_blank()))
 
 #set data path
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
@@ -130,38 +130,38 @@ eigens_all$dominant_eigenvalue_quad <- sapply(eigens_all$dominant_eigenvalue_qua
 
 #scatter plot
 p1 <- ggplot(data = eigens_all, aes(x = dominant_eigenvalue)) + 
-  geom_point(aes(y = dominant_eigenvalue_mob, col = "mob")) +
+  geom_point(aes(y = dominant_eigenvalue_mob, col = "mob"), size = 2) +
   labs(x = "Dominant Eigenvalue (CoMix)", y = "Dominant Eigenvalue (Estimates)",
        colour = "Scaling Factor") + xlim(0, 3) + ylim(0, 3) + 
-  geom_abline(intercept = 0, slope = 1, linetype = 2) +
+  geom_abline(intercept = 0, slope = 1, linetype = 2, size = 0.8) +
   scale_color_manual(breaks = "mob", values = "purple", labels = "Mobility")
 p2 <- ggplot(data = eigens_all, aes(x = dominant_eigenvalue)) + 
-  geom_point(aes(y = dominant_eigenvalue_mob2, col = "mob2")) +
+  geom_point(aes(y = dominant_eigenvalue_mob2, col = "mob2"), size = 2) +
   labs(x = "Dominant Eigenvalue (CoMix)", y = "Dominant Eigenvalue (Estimates)",
        colour = "Scaling Factor") + xlim(0, 3) + ylim(0, 3) +
-  geom_abline(intercept = 0, slope = 1, linetype = 2) +
+  geom_abline(intercept = 0, slope = 1, linetype = 2, size = 0.8) +
   scale_color_manual(breaks = "mob2", values = "red", labels = "Mobility Squared")
 p3 <- ggplot(data = eigens_all, aes(x = dominant_eigenvalue)) + 
-  geom_point(aes(y = dominant_eigenvalue_lin, col = "lin")) +
+  geom_point(aes(y = dominant_eigenvalue_lin, col = "lin"), size = 2) +
   labs(x = "Dominant Eigenvalue (CoMix)", y = "Dominant Eigenvalue (Estimates)",
        colour = "Scaling Factor") + xlim(0, 3) + ylim(0, 3) +
-  geom_abline(intercept = 0, slope = 1, linetype = 2) +
+  geom_abline(intercept = 0, slope = 1, linetype = 2, size = 0.8) +
   scale_color_manual(breaks = "lin", values = "blue", labels = "Linear Model")
 p4 <- ggplot(data = eigens_all, aes(x = dominant_eigenvalue)) + 
-  geom_point(aes(y = dominant_eigenvalue_quad, col = "quad")) +
+  geom_point(aes(y = dominant_eigenvalue_quad, col = "quad"), size = 2) +
   labs(x = "Dominant Eigenvalue (CoMix)", y = "Dominant Eigenvalue (Estimates)",
        colour = "Scaling Factor") + xlim(0, 3) + ylim(0, 3) +
-  geom_abline(intercept = 0, slope = 1, linetype = 2) +
+  geom_abline(intercept = 0, slope = 1, linetype = 2, size = 0.8) +
   scale_color_manual(breaks = "quad", values = "orange", labels = "Quadratic Model")
 plot_grid(p1, p2, p3, p4)
 
 #line graph
 ggplot(data = eigens_all) + 
-  geom_line(aes(x = mid_date, y = dominant_eigenvalue, col = "comix"), group = 1) +
-  geom_line(aes(x = mid_date, y = dominant_eigenvalue_mob, col = "mob"), group = 1) +
-  geom_line(aes(x = mid_date, y = dominant_eigenvalue_mob2, col = "mob2"), group = 1) +
-  geom_line(aes(x = mid_date, y = dominant_eigenvalue_lin, col = "lin"), group = 1) +
-  geom_line(aes(x = mid_date, y = dominant_eigenvalue_quad, col = "quad"), group = 1) +
+  geom_line(aes(x = mid_date, y = dominant_eigenvalue, col = "comix"), group = 1, size = 0.8) +
+  geom_line(aes(x = mid_date, y = dominant_eigenvalue_mob, col = "mob"), group = 1, size = 0.8) +
+  geom_line(aes(x = mid_date, y = dominant_eigenvalue_mob2, col = "mob2"), group = 1, size = 0.8) +
+  geom_line(aes(x = mid_date, y = dominant_eigenvalue_lin, col = "lin"), group = 1, size = 0.8) +
+  geom_line(aes(x = mid_date, y = dominant_eigenvalue_quad, col = "quad"), group = 1, size = 0.8) +
   labs(x = "Date", y = "Dominant Eigenvalue", colour = "Estimate Type") + 
   scale_x_date(labels = date_format("%B-%Y")) +
   scale_color_manual(breaks = c("comix", "mob", "mob2", "lin", "quad"),
@@ -178,11 +178,11 @@ resid <- resid[, quad_resid := dominant_eigenvalue - dominant_eigenvalue_quad]
 
 #plot residuals 
 ggplot(data = resid, aes(x = mid_date)) + 
-  geom_point(aes(y = mob_resid, col = "mob")) +
-  geom_point(aes(y = mob2_resid, col = "mob2")) +
-  geom_point(aes(y = lin_resid, col = "lin")) +
-  geom_point(aes(y = quad_resid, col = "quad")) +
-  geom_hline(yintercept = 0, linetype = 2) + 
+  geom_point(aes(y = mob_resid, col = "mob"), size = 2) +
+  geom_point(aes(y = mob2_resid, col = "mob2"), size = 2) +
+  geom_point(aes(y = lin_resid, col = "lin"), size = 2) +
+  geom_point(aes(y = quad_resid, col = "quad"), size = 2) +
+  geom_hline(yintercept = 0, linetype = 2, siz = 0.8) + 
   scale_x_date(labels = date_format("%B-%Y")) +
   labs(x = "Date", y = "Residuals", colour = "Scaling Factor") +
   scale_color_manual(breaks = c("mob", "mob2", "lin", "quad"),
@@ -213,38 +213,38 @@ reproduction_all <- merge(reproduction_all, reproduction_model, by = "mid_date")
 
 #scatter plot
 p5 <- ggplot(data = reproduction_all, aes(x = reproduction_number)) + 
-  geom_point(aes(y = reproduction_number_mob, col = "mob")) +
-  labs(x = "Reproduction Number (CoMix)", y = "Reproduction Number (Estimates)",
+  geom_point(aes(y = reproduction_number_mob, col = "mob"), size = 2) +
+  labs(x = "Reproduction Number (CoMix)", y = "Reproduction Number\n(Estimates)",
        colour = "Scaling Factor") + xlim(0, 0.4) + ylim(0, 0.4) + 
-  geom_abline(intercept = 0, slope = 1, linetype = 2) +
+  geom_abline(intercept = 0, slope = 1, linetype = 2, size = 0.8) +
   scale_color_manual(breaks = "mob", values = "purple", labels = "Mobility")
 p6 <- ggplot(data = reproduction_all, aes(x = reproduction_number)) + 
-  geom_point(aes(y = reproduction_number_mob2, col = "mob2")) +
-  labs(x = "Reproduction Number (CoMix)", y = "Reproduction Number (Estimates)",
+  geom_point(aes(y = reproduction_number_mob2, col = "mob2"), size = 2) +
+  labs(x = "Reproduction Number (CoMix)", y = "Reproduction Number\n(Estimates)",
        colour = "Scaling Factor") + xlim(0, 0.4) + ylim(0, 0.4) +
-  geom_abline(intercept = 0, slope = 1, linetype = 2) +
+  geom_abline(intercept = 0, slope = 1, linetype = 2, size = 0.8) +
   scale_color_manual(breaks = "mob2", values = "red", labels = "Mobility Squared")
 p7 <- ggplot(data = reproduction_all, aes(x = reproduction_number)) + 
-  geom_point(aes(y = reproduction_number_lin, col = "lin")) +
-  labs(x = "Reproduction Number (CoMix)", y = "Reproduction Number (Estimates)",
+  geom_point(aes(y = reproduction_number_lin, col = "lin"), size = 2) +
+  labs(x = "Reproduction Number (CoMix)", y = "Reproduction Number\n(Estimates)",
        colour = "Scaling Factor") + xlim(0, 0.4) + ylim(0, 0.4) +
-  geom_abline(intercept = 0, slope = 1, linetype = 2) +
+  geom_abline(intercept = 0, slope = 1, linetype = 2, size = 0.8) +
   scale_color_manual(breaks = "lin", values = "blue", labels = "Linear Model")
 p8 <- ggplot(data = reproduction_all, aes(x = reproduction_number)) + 
-  geom_point(aes(y = reproduction_number_quad, col = "quad")) +
-  labs(x = "Reproduction Number (CoMix)", y = "Reproduction Number (Estimates)",
+  geom_point(aes(y = reproduction_number_quad, col = "quad"), size = 2) +
+  labs(x = "Reproduction Number (CoMix)", y = "Reproduction Number\n(Estimates)",
        colour = "Scaling Factor") + xlim(0, 0.4) + ylim(0, 0.4) +
-  geom_abline(intercept = 0, slope = 1, linetype = 2) +
+  geom_abline(intercept = 0, slope = 1, linetype = 2, size = 0.8) +
   scale_color_manual(breaks = "quad", values = "orange", labels = "Quadratic Model")
 plot_grid(p5, p6, p7, p8)
 
 #line graph
 ggplot(data = reproduction_all) + 
-  geom_line(aes(x = mid_date, y = reproduction_number, col = "comix"), group = 1) +
-  geom_line(aes(x = mid_date, y = reproduction_number_mob, col = "mob"), group = 1) +
-  geom_line(aes(x = mid_date, y = reproduction_number_mob2, col = "mob2"), group = 1) +
-  geom_line(aes(x = mid_date, y = reproduction_number_lin, col = "lin"), group = 1) +
-  geom_line(aes(x = mid_date, y = reproduction_number_quad, col = "quad"), group = 1) +
+  geom_line(aes(x = mid_date, y = reproduction_number, col = "comix"), group = 1, size = 0.8) +
+  geom_line(aes(x = mid_date, y = reproduction_number_mob, col = "mob"), group = 1, size = 0.8) +
+  geom_line(aes(x = mid_date, y = reproduction_number_mob2, col = "mob2"), group = 1, size = 0.8) +
+  geom_line(aes(x = mid_date, y = reproduction_number_lin, col = "lin"), group = 1, size = 0.8) +
+  geom_line(aes(x = mid_date, y = reproduction_number_quad, col = "quad"), group = 1, size = 0.8) +
   labs(x = "Date", y = "Reproduction Number", colour = "Estimate Type") + 
   scale_x_date(labels = date_format("%B-%Y")) +
   scale_color_manual(breaks = c("comix", "mob", "mob2", "lin", "quad"),
@@ -261,11 +261,11 @@ resid2 <- resid2[, quad_resid2 := reproduction_number - reproduction_number_quad
 
 #plot residuals 
 ggplot(data = resid2, aes(x = mid_date)) + 
-  geom_line(aes(y = mob_resid2, col = "mob")) +
-  geom_line(aes(y = mob2_resid2, col = "mob2")) +
-  geom_line(aes(y = lin_resid2, col = "lin")) +
-  geom_line(aes(y = quad_resid2, col = "quad")) +
-  geom_hline(yintercept = 0, linetype = 2) + 
+  geom_line(aes(y = mob_resid2, col = "mob"), size = 0.8) +
+  geom_line(aes(y = mob2_resid2, col = "mob2"), size = 0.8) +
+  geom_line(aes(y = lin_resid2, col = "lin"), size = 0.8) +
+  geom_line(aes(y = quad_resid2, col = "quad"), size = 0.8) +
+  geom_hline(yintercept = 0, linetype = 2, size = 0.9) + 
   scale_x_date(labels = date_format("%B-%Y")) +
   labs(x = "Date", y = "Residuals", colour = "Scaling Factor") +
   scale_color_manual(breaks = c("mob", "mob2", "lin", "quad"),
@@ -281,12 +281,12 @@ quad_rootMSE <- sqrt(mean((reproduction_all$reproduction_number - reproduction_a
 
 #line graph
 ggplot(data = reproduction_all) + scale_x_date(labels = date_format("%B-%Y")) +
-  geom_line(aes(x = mid_date, y = reproduction_number, col = "comix"), group = 1) +
-  geom_line(aes(x = mid_date, y = reproduction_number_mob, col = "mob"), group = 1) +
-  geom_line(aes(x = mid_date, y = reproduction_number_mob2, col = "mob2"), group = 1) +
-  geom_line(aes(x = mid_date, y = reproduction_number_lin, col = "lin"), group = 1) +
-  geom_line(aes(x = mid_date, y = reproduction_number_quad, col = "quad"), group = 1) +
-  geom_line(aes(x = mid_date, y = reproduction_number_model, col = "model"), group = 1) +
+  geom_line(aes(x = mid_date, y = reproduction_number, col = "comix"), group = 1, size = 0.8) +
+  geom_line(aes(x = mid_date, y = reproduction_number_mob, col = "mob"), group = 1, size = 0.8) +
+  geom_line(aes(x = mid_date, y = reproduction_number_mob2, col = "mob2"), group = 1, size = 0.8) +
+  geom_line(aes(x = mid_date, y = reproduction_number_lin, col = "lin"), group = 1, size = 0.8) +
+  geom_line(aes(x = mid_date, y = reproduction_number_quad, col = "quad"), group = 1, size = 0.8) +
+  geom_line(aes(x = mid_date, y = reproduction_number_model, col = "model"), group = 1, size = 0.8) +
   labs(x = "Date", y = "Reproduction Number", colour = "Estimate Type") + 
   scale_color_manual(breaks = c("comix", "mob", "mob2", "lin", "quad", "model"),
                      values = c("green", "purple", "red", "blue", "orange", "black"),
