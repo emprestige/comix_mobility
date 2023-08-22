@@ -98,12 +98,11 @@ num_merge[, nonhome := all - home]
 #add column for special dates 
 summer <- interval(ymd("2020-08-03"), ymd("2020-08-09"))
 num_merge[, special := ifelse(date == ymd("2020-12-25"), "Xmas",
-                              ifelse(date == ymd("2021-12-25"), "Xmas",
                               ifelse(date == ymd("2020-12-31"), "NYE",
-                              ifelse(date == ymd("2021-12-31"), "NYE",
+                              ifelse(date == ymd("2021-12-31"), "Xmas/NYE",
                               ifelse(date == ymd("2020-04-13"), "Easter",
                               ifelse(date == ymd("2021-04-05"), "Easter", 
-                              ifelse(date %within% summer, "Summer Hol", NA)))))))]
+                              ifelse(date %within% summer, "Summer Hol", NA))))))]
 num_merge <- num_merge[order(date)]
 
 #get middate for fornight periods 
@@ -150,12 +149,11 @@ gm2 <- gm2[order(date)]
 #lockdown info and special dates
 mob_merge <- merge(gm2, lockdowns, by = "date", all.y = F)
 mob_merge[, special := ifelse(date == ymd("2020-12-25"), "Xmas",
-                              ifelse(date == ymd("2021-12-25"), "Xmas",
                               ifelse(date == ymd("2020-12-31"), "NYE",
-                              ifelse(date == ymd("2021-12-31"), "NYE",
+                              ifelse(date == ymd("2021-12-31"), "Xmas/NYE",
                               ifelse(date == ymd("2020-04-13"), "Easter",
                               ifelse(date == ymd("2021-04-05"), "Easter", 
-                              ifelse(date %within% summer, "Summer Hol", NA)))))))]
+                              ifelse(date %within% summer, "Summer Hol", NA))))))]
 mob_merge <- mob_merge[order(date)]
 
 #get middate for fornight periods 
@@ -182,11 +180,13 @@ gm_av_sub <- gm_av[-c(7,8), ]
 workplaces <- ggplot(gm_av_sub, aes(mid_date, workplaces,
                  label = ifelse(status == "No restrictions", 
                          ifelse(is.na(special) == F, special, NA), special))) + 
-  geom_line(group = "status", size = 0.8) + geom_text_repel(size = 4, max.overlaps = 80) +
+  geom_line(group = "status", size = 0.8) + 
+  geom_text_repel(size = 4, max.overlaps = 80, box.padding = 0.25) +
   geom_point(aes(x = mid_date, y = ifelse(is.na(special) == F, workplaces, NA)), size = 2) +
   geom_rect(aes(xmin = mid_date, xmax = lead(mid_date), ymin = 0, 
                 ymax = Inf, fill = status), alpha = 0.5) +
-  scale_x_date(labels = date_format("%B-%Y")) + ylim(0, 1.25) +
+  scale_x_date(labels = date_format("%B-%Y")) + 
+  scale_y_continuous(limits = c(0, 1.25), breaks = seq(0, 1.25, by = 0.25)) +
   labs(x = "Date", y = "Google Mobility\n'workplaces' Visits", fill = "Status") +
   scale_fill_manual(values = c("No restrictions" = "#00BA38", 
                                "Some restrictions" = "#619CFF", 
@@ -198,11 +198,13 @@ workplaces <- ggplot(gm_av_sub, aes(mid_date, workplaces,
 work <- ggplot(weighted_date, aes(mid_date, work,
            label = ifelse(status == "No restrictions", 
                    ifelse(is.na(special) == F, special, NA), special))) + 
-  geom_line(group = 1, size = 0.8) + geom_text_repel(size = 4, max.overlaps = 80) +
+  geom_line(group = 1, size = 0.8) + 
+  geom_text_repel(size = 4, max.overlaps = 80, box.padding = 0.25) +
   geom_point(aes(x = mid_date, y = ifelse(is.na(special) == F, work, NA)), size = 2) +
   geom_rect(aes(xmin = mid_date, xmax = lead(mid_date), ymin = 0, 
                 ymax = Inf, fill = status), alpha = 0.5) +
-  scale_x_date(labels = date_format("%B-%Y")) + ylim(0, 1.25) +
+  scale_x_date(labels = date_format("%B-%Y")) + 
+  scale_y_continuous(limits = c(0, 1.25), breaks = seq(0, 1.25, by = 0.25)) +
   labs(x = "Date", y = "Mean Number of\nWork Contacts", fill = "Status") +
   scale_fill_manual(values = c("No restrictions" = "#00BA38", 
                                "Some restrictions" = "#619CFF", 
@@ -293,12 +295,11 @@ num_merge[, nonhome := all - home]
 #add column for special dates 
 summer <- interval(ymd("2020-08-03"), ymd("2020-08-09"))
 num_merge[, special := ifelse(date == ymd("2020-12-25"), "Xmas",
-                       ifelse(date == ymd("2021-12-25"), "Xmas",
                        ifelse(date == ymd("2020-12-31"), "NYE",
-                       ifelse(date == ymd("2021-12-31"), "NYE",
+                       ifelse(date == ymd("2021-12-31"), "Xmas/NYE",
                        ifelse(date == ymd("2020-04-13"), "Easter",
                        ifelse(date == ymd("2021-04-05"), "Easter", 
-                       ifelse(date %within% summer, "Summer Hol", NA)))))))]
+                       ifelse(date %within% summer, "Summer Hol", NA))))))]
 num_merge <- num_merge[order(date)]
 
 #get middate for fornight periods 
@@ -345,12 +346,11 @@ gm2 <- gm2[order(date)]
 #lockdown info and special dates
 mob_merge <- merge(gm2, lockdowns, by = "date", all.y = F)
 mob_merge[, special := ifelse(date == ymd("2020-12-25"), "Xmas",
-                       ifelse(date == ymd("2021-12-25"), "Xmas",
                        ifelse(date == ymd("2020-12-31"), "NYE",
-                       ifelse(date == ymd("2021-12-31"), "NYE",
+                       ifelse(date == ymd("2021-12-31"), "Xmas/NYE",
                        ifelse(date == ymd("2020-04-13"), "Easter",
                        ifelse(date == ymd("2021-04-05"), "Easter", 
-                       ifelse(date %within% summer, "Summer Hol", NA)))))))]
+                       ifelse(date %within% summer, "Summer Hol", NA))))))]
 mob_merge <- mob_merge[order(date)]
 
 #get middate for fornight periods 
@@ -380,12 +380,14 @@ gm_av_sub <- gm_av[-c(7,8), ]
 predictor <- ggplot(gm_av_sub, aes(mid_date, predictor,
                     label = ifelse(status == "No restrictions", 
                     ifelse(is.na(special) == F, special, NA), special))) + 
-  geom_line(group = "status", size = 0.8) + geom_text_repel(size = 4, max.overlaps = 80) +
+  geom_line(group = "status", size = 0.8) + 
+  geom_text_repel(size = 4, max.overlaps = 80, box.padding = 0.25) +
   geom_point(aes(x = mid_date, y = ifelse(is.na(special) == F, predictor, NA)), size = 2) +
   geom_rect(aes(xmin = mid_date, xmax = lead(mid_date), ymin = 0, 
                 ymax = Inf, fill = status), alpha = 0.5) + 
-  scale_x_date(labels = date_format("%B-%Y")) + ylim(0, 1.25) +
-  labs(y = "Google Mobility\nWeighted Predictor",
+  scale_x_date(labels = date_format("%B-%Y")) + 
+  scale_y_continuous(limits = c(0, 1.25), breaks = seq(0, 1.25, by = 0.25)) +
+  labs(y = "Google Mobility\n'other' Visits",
        x = "Date", fill = "Status") + scale_x_date(labels = date_format("%B-%Y")) +
   scale_fill_manual(values = c("No restrictions" = "#00BA38", 
                                "Some restrictions" = "#619CFF", 
@@ -397,11 +399,13 @@ predictor <- ggplot(gm_av_sub, aes(mid_date, predictor,
 other <- ggplot(weighted_date, aes(mid_date, other,
                 label = ifelse(status == "No restrictions", 
                 ifelse(is.na(special) == F, special, NA), special))) + 
-  geom_line(group = 1, size = 0.8) + geom_text_repel(size = 4, max.overlaps = 80) +
+  geom_line(group = 1, size = 0.8) + 
+  geom_text_repel(size = 4, max.overlaps = 80, box.padding = 0.25) +
   geom_point(aes(x = mid_date, y = ifelse(is.na(special) == F, other, NA)), size = 2) +
   geom_rect(aes(xmin = mid_date, xmax = lead(mid_date), ymin = 0, 
                 ymax = Inf, fill = status), alpha = 0.5) +
-  scale_x_date(labels = date_format("%B-%Y")) + ylim(0, 1.25) +
+  scale_x_date(labels = date_format("%B-%Y")) + 
+  scale_y_continuous(limits = c(0, 1.25), breaks = seq(0, 1.25, by = 0.25)) +
   labs(x = "Date", y = "Mean Number of\nOther Contacts", fill = "Status") +
   scale_fill_manual(values = c("No restrictions" = "#00BA38", 
                                "Some restrictions" = "#619CFF", 
@@ -413,4 +417,5 @@ other <- ggplot(weighted_date, aes(mid_date, other,
 others <- plot_grid(predictor, other, ncol = 1, align = 'v')
 
 #plot work and other 
-ggarrange(work, other, workplaces, predictor, common.legend = T, legend = "bottom")
+ggarrange(work, other, workplaces, predictor, common.legend = T, 
+          legend = "bottom", labels = "AUTO")

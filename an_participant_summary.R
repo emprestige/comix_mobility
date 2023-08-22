@@ -22,12 +22,17 @@ cnts <- cnts[sample_type == "adult"]
 #                                     part_age >= 60 & part_age <= 69 ~ "60-69",
 #                                     part_age >= 70 ~ "70+"))
 
-cnts[area_2_name == "Greater", area_2_name := "Greater London"]
+#cnts[area_2_name == "Greater", area_2_name := "Greater London"]
 
 #filter data for NA age group, order it by date 
 cnts <- cnts %>%
   filter(!is.na(part_age_group))
 cnts <- cnts[order(date)]
+
+#check proportion for each day of the week
+cnts %>% group_by(part_vacc) %>%
+  summarise(n = n()) %>%
+  mutate(freq = round(n/sum(n)*100, 1))
 
 ##main variables 
 
@@ -52,12 +57,20 @@ cnts %>% group_by(part_social_group) %>%
   mutate(freq = round(n/sum(n)*100, 1))
 
 #area
-cnts %>% group_by(area_2_name) %>%
+cnts %>% group_by(area_3_name) %>%
   summarise(n = n()) %>%
   mutate(freq = round(n/sum(n)*100, 1))
 
 #household size group 
 cnts %>% group_by(hh_size_group) %>%
+  summarise(n = n()) %>%
+  mutate(freq = round(n/sum(n)*100, 1))
+
+#employed yes or not 
+cnts[, part_employed := ifelse(part_employstatus == "employed full-time (34 hours or more)", 
+     T, ifelse(part_employstatus == "employed part-time (less than 34 hours)",
+     T, ifelse(part_employstatus == "self employed", T, F)))]
+cnts %>% group_by(part_employed) %>%
   summarise(n = n()) %>%
   mutate(freq = round(n/sum(n)*100, 1))
 
@@ -118,12 +131,17 @@ cnts %>% group_by(part_social_group) %>%
   mutate(freq = round(n/sum(n)*100, 1))
 
 #area
-cnts %>% group_by(area_2_name) %>%
+cnts %>% group_by(area_3_name) %>%
   summarise(n = n()) %>%
   mutate(freq = round(n/sum(n)*100, 1))
 
 #household size group 
 cnts %>% group_by(hh_size_group) %>%
+  summarise(n = n()) %>%
+  mutate(freq = round(n/sum(n)*100, 1))
+
+#employed yes or no
+cnts %>% group_by(part_employed) %>%
   summarise(n = n()) %>%
   mutate(freq = round(n/sum(n)*100, 1))
 
