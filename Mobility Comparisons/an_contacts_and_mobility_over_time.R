@@ -11,6 +11,7 @@ library(gghighlight)
 library(ggrepel)
 library(scales)
 library(ggpubr)
+library(patchwork)
 
 #set cowplot theme
 theme_set(cowplot::theme_cowplot(font_size = 18) + theme(strip.background = element_blank(),
@@ -184,7 +185,7 @@ workplaces <- ggplot(gm_av_sub, aes(mid_date, workplaces,
   geom_text_repel(size = 4, max.overlaps = 80, box.padding = 0.25) +
   geom_point(aes(x = mid_date, y = ifelse(is.na(special) == F, workplaces, NA)), size = 2) +
   geom_rect(aes(xmin = mid_date, xmax = lead(mid_date), ymin = 0, 
-                ymax = Inf, fill = status), alpha = 0.5) +
+                ymax = Inf, fill = status), alpha = 0.4) +
   scale_x_date(labels = date_format("%B-%Y")) + 
   scale_y_continuous(limits = c(0, 1.25), breaks = seq(0, 1.25, by = 0.25)) +
   labs(x = "Date", y = "Google Mobility\n'workplaces' Visits", fill = "Status") +
@@ -202,7 +203,7 @@ work <- ggplot(weighted_date, aes(mid_date, work,
   geom_text_repel(size = 4, max.overlaps = 80, box.padding = 0.25) +
   geom_point(aes(x = mid_date, y = ifelse(is.na(special) == F, work, NA)), size = 2) +
   geom_rect(aes(xmin = mid_date, xmax = lead(mid_date), ymin = 0, 
-                ymax = Inf, fill = status), alpha = 0.5) +
+                ymax = Inf, fill = status), alpha = 0.4) +
   scale_x_date(labels = date_format("%B-%Y")) + 
   scale_y_continuous(limits = c(0, 1.25), breaks = seq(0, 1.25, by = 0.25)) +
   labs(x = "Date", y = "Mean Number of\nWork Contacts", fill = "Status") +
@@ -215,6 +216,141 @@ work <- ggplot(weighted_date, aes(mid_date, work,
 
 #plot workplaces and work
 works <- plot_grid(workplaces, work, ncol = 1, align = 'v')
+
+#combine datasets
+work.plus <- merge(weighted_date, gm_av_sub)
+
+#plot with two y-axes
+test.plot1 <- ggplot(data = work.plus, aes(x = mid_date,
+                     label = ifelse(status == "No restrictions", 
+                     ifelse(is.na(special) == F, special, NA), special))) +
+  geom_rect(aes(xmin = mid_date, xmax = lead(mid_date), ymin = 0, 
+                ymax = Inf, fill = status), alpha = 0.4) +
+  geom_line(aes(y = work, linetype = "CoMix"), group = 1, size = 1) + 
+  geom_text_repel(aes(y = work), size = 4, max.overlaps = 80, box.padding = 0.25) +
+  geom_point(aes(x = mid_date, y = ifelse(is.na(special) == F, work, NA)), size = 2) +
+  geom_line(aes(y = workplaces, linetype = "Google Mobility"), group = "status", size = 1) + 
+  geom_point(aes(x = mid_date, y = ifelse(is.na(special) == F, workplaces, NA)), size = 2) +
+  geom_text_repel(aes(y = workplaces), size = 4, max.overlaps = 80, box.padding = 0.25) +
+  scale_x_date(labels = date_format("%B-%Y")) + 
+  scale_y_continuous(limits = c(0, 1.25), breaks = seq(0, 1.25, by = 0.25),
+                     name = "Mean Number of Work Contacts",
+                     sec.axis = sec_axis(trans = ~ .,
+                     name = "Google Mobility 'workplaces' Visits")) +
+  labs(x = "Date", fill = "Status", linetype = "Data Type") +
+  scale_fill_manual(values = c("No restrictions" = "#00BA38", 
+                               "Some restrictions" = "#619CFF", 
+                               "Lockdown" = "#F8766D"), 
+                    labels = c("No restrictions", "Some restrictions", 
+                               "Lockdown")) +
+  scale_linetype_manual(values = c("CoMix" = 1, "Google Mobility" = 2)) +
+  guides(linetype = guide_legend(keywidth = 3)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+test.plot1
+
+#compare correlations in first year vs second year 
+work.plus.y1 <- rlang::duplicate(work.plus)
+work.plus.y1 <- work.plus.y1[mid_date <= ymd("2021-03-31")]
+work.plus.y2 <- rlang::duplicate(work.plus)
+work.plus.y2 <- work.plus.y2[mid_date > ymd("2021-03-31")]
+cor(work.plus.y1$work, work.plus.y1$workplaces)
+cor.test(work.plus.y1$work, work.plus.y1$workplaces)
+cor(work.plus.y2$work, work.plus.y2$workplaces)
+cor.test(work.plus.y2$work, work.plus.y2$workplaces)
+
+#create new data set with necessary variables, removing duplicate rows 
+work.plus_new <- rlang::duplicate(work.plus)
+work.plus_new <- work.plus_new[, .(mid_date, work, workplaces)]
+work.plus_new <- unique(work.plus_new)
+
+#try to test correlation using sliding window
+compute_sliding_correlation <- function(ts1, ts2, widthW) {
+  n <- length(ts1)
+  num_windows <- n - widthW + 1
+  # Initialize an empty vector to store correlation values
+  correlations <- numeric(num_windows)
+  for (i in 1:num_windows) {
+    # Extract the subseries from both time series for the current window
+    window_ts1 <- ts1[i:(i + widthW - 1)]
+    window_ts2 <- ts2[i:(i + widthW - 1)]
+    # Compute the correlation for the current window
+    correlation <- cor(window_ts1, window_ts2)
+    # Store the correlation value in the vector
+    correlations[i] <- correlation
+  }
+  return(correlations)
+}
+width_window <- 9 ## NB needs to be odd
+dum <- compute_sliding_correlation(work.plus_new$work, work.plus_new$workplaces, 
+                                   width_window)
+
+df_all <- data.frame(
+  x = (1:nrow(work.plus_new)),
+  contacts = work.plus_new$work,
+  mobility = work.plus_new$workplaces,
+  slidingCorrelation = c(rep(NA, (width_window - 1)/2), dum, 
+                         rep(NA, (width_window - 1)/2))
+)
+
+df_all <- cbind(df_all, mid_date = work.plus_new$mid_date)
+
+a <- ggplot(df_all) + geom_line(aes(x = mid_date, y = contacts, col = "con"), size = 0.8) +
+  geom_line(aes(x = mid_date, y = mobility, col = "mob"), size = 1) +
+  labs(y = "Work Contacts or \nWorkpalce Mobility", col = "Measurement Type", x = "Date") +
+  scale_colour_manual(breaks = c("mob", "con"), values = c("blue", "red"),
+                      labels = c("Mobility", "Contacts"))
+b <- ggplot(df_all) + geom_point(aes(x = mid_date, y = slidingCorrelation), size = 2) +
+  geom_line(aes(x = mid_date, y = slidingCorrelation), size = 1) + xlab("Date") +
+  ylab("Sliding Window Correlation")
+
+#plot the stuff together
+plot_combined <- a / b
+plot_combined
+
+#try to test correlation using sliding window
+compute_sliding_correlation <- function(ts1, ts2, widthW) {
+  n <- length(ts1)
+  num_windows <- n - widthW + 1
+  # Initialize an empty vector to store correlation values
+  correlations <- numeric(num_windows)
+  for (i in 1:num_windows) {
+    # Extract the subseries from both time series for the current window
+    window_ts1 <- ts1[i:(i + widthW - 1)]
+    window_ts2 <- ts2[i:(i + widthW - 1)]
+    # Compute the correlation for the current window
+    correlation <- cor.test(window_ts1, window_ts2)$p.value
+    # Store the correlation value in the vector
+    correlations[i] <- correlation
+  }
+  return(correlations)
+}
+width_window <- 9 ## NB needs to be even 
+dum<-compute_sliding_correlation(work.plus_new$work, work.plus_new$workplaces, width_window)
+
+df_all<-data.frame(
+  x = (1:nrow(work.plus_new)),
+  contacts = work.plus_new$work,
+  mobility = work.plus_new$workplaces,
+  slidingCorrelation = c(rep(NA, (width_window - 1)/2), dum,
+                         rep(NA, (width_window - 1)/2))
+)
+
+df_all <- cbind(df_all, mid_date = work.plus_new$mid_date)
+
+a <- ggplot(df_all) + geom_line(aes(x = mid_date, y = contacts, col = "con"), size = 1)+
+  geom_line(aes(x = mid_date, y = mobility, col = "mob"), size = 1) +
+  labs(x = "Date", y = "Work Contacts and \nWorkplace Mobility", col = "Measurement Type") +
+  scale_colour_manual(breaks = c("mob", "con"), values = c("blue", "red"),
+                      labels = c("Mobility", "Contacts"))
+b <- ggplot(df_all) + geom_point(aes(x = mid_date, y = slidingCorrelation), size = 2)+
+  geom_line(aes(x = mid_date, y = slidingCorrelation), size = 1) + xlab("Date") +
+  ylab("Sliding Window Correlation \n(p-value)")
+
+plot_combined <- a / b
+plot_combined 
+
+work_pval_cor <- plot_combined + scale_colour_manual(guide="none")
 
 #import contact data
 cnts <- qs::qread(file.path(data_path, "cnts_weight_other_middate.qs"))
@@ -384,7 +520,7 @@ predictor <- ggplot(gm_av_sub, aes(mid_date, predictor,
   geom_text_repel(size = 4, max.overlaps = 80, box.padding = 0.25) +
   geom_point(aes(x = mid_date, y = ifelse(is.na(special) == F, predictor, NA)), size = 2) +
   geom_rect(aes(xmin = mid_date, xmax = lead(mid_date), ymin = 0, 
-                ymax = Inf, fill = status), alpha = 0.5) + 
+                ymax = Inf, fill = status), alpha = 0.4) + 
   scale_x_date(labels = date_format("%B-%Y")) + 
   scale_y_continuous(limits = c(0, 1.25), breaks = seq(0, 1.25, by = 0.25)) +
   labs(y = "Google Mobility\n'other' Visits",
@@ -403,7 +539,7 @@ other <- ggplot(weighted_date, aes(mid_date, other,
   geom_text_repel(size = 4, max.overlaps = 80, box.padding = 0.25) +
   geom_point(aes(x = mid_date, y = ifelse(is.na(special) == F, other, NA)), size = 2) +
   geom_rect(aes(xmin = mid_date, xmax = lead(mid_date), ymin = 0, 
-                ymax = Inf, fill = status), alpha = 0.5) +
+                ymax = Inf, fill = status), alpha = 0.4) +
   scale_x_date(labels = date_format("%B-%Y")) + 
   scale_y_continuous(limits = c(0, 1.25), breaks = seq(0, 1.25, by = 0.25)) +
   labs(x = "Date", y = "Mean Number of\nOther Contacts", fill = "Status") +
@@ -418,4 +554,146 @@ others <- plot_grid(predictor, other, ncol = 1, align = 'v')
 
 #plot work and other 
 ggarrange(work, other, workplaces, predictor, common.legend = T, 
+          legend = "bottom", labels = "AUTO")
+
+#combine datasets
+other.plus <- merge(weighted_date, gm_av_sub)
+
+#plot with two y-axes
+test.plot2 <- ggplot(data = other.plus, aes(x = mid_date,
+                     label = ifelse(status == "No restrictions", 
+                     ifelse(is.na(special) == F, special, NA), special))) +
+  geom_rect(aes(xmin = mid_date, xmax = lead(mid_date), ymin = 0, 
+                ymax = Inf, fill = status), alpha = 0.4) +
+  geom_line(aes(y = other, linetype = "CoMix"), group = 1, size = 1) + 
+  geom_text_repel(aes(y = other), size = 4, max.overlaps = 80, box.padding = 0.25) +
+  geom_point(aes(x = mid_date, y = ifelse(is.na(special) == F, other, NA)), size = 2) +
+  geom_line(aes(y = predictor, linetype = "Google Mobility"), group = "status", size = 1) + 
+  geom_text_repel(aes(y = predictor), size = 4, max.overlaps = 80, box.padding = 0.25) +
+  geom_point(aes(x = mid_date, y = ifelse(is.na(special) == F, predictor, NA)), size = 2) +
+  scale_x_date(labels = date_format("%B-%Y")) + 
+  scale_y_continuous(limits = c(0, 1.25), breaks = seq(0, 1.25, by = 0.25),
+                     name = "Mean Number of Other Contacts",
+                     sec.axis = sec_axis(trans = ~ .,
+                     name = "Google Mobility 'other' Visits")) +
+  labs(x = "Date", fill = "Status", linetype = "Data Type") +
+  scale_fill_manual(values = c("No restrictions" = "#00BA38", 
+                               "Some restrictions" = "#619CFF", 
+                               "Lockdown" = "#F8766D"), 
+                    labels = c("No restrictions", "Some restrictions", 
+                               "Lockdown")) + 
+  scale_linetype_manual(values = c("CoMix" = 1, "Google Mobility" = 2)) +
+  guides(linetype = guide_legend(keywidth = 3)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+test.plot2
+
+#compare correlations in first year vs second year 
+other.plus.y1 <- rlang::duplicate(other.plus)
+other.plus.y1 <- other.plus.y1[mid_date <= ymd("2021-03-31")]
+other.plus.y2 <- rlang::duplicate(other.plus)
+other.plus.y2 <- other.plus.y2[mid_date > ymd("2021-03-31")]
+cor(other.plus.y1$other, other.plus.y1$predictor)
+cor.test(other.plus.y1$other, other.plus.y1$predictor)
+cor(other.plus.y2$other, other.plus.y2$predictor)
+cor.test(other.plus.y2$other, other.plus.y2$predictor)
+
+#create new data set with necessary variables, removing duplicate rows 
+other.plus_new <- rlang::duplicate(other.plus)
+other.plus_new <- other.plus_new[, .(mid_date, other, predictor)]
+other.plus_new <- unique(other.plus_new)
+
+#try to test correlation using sliding window
+compute_sliding_correlation <- function(ts1, ts2, widthW) {
+  n <- length(ts1)
+  num_windows <- n - widthW + 1
+  # Initialize an empty vector to store correlation values
+  correlations <- numeric(num_windows)
+  for (i in 1:num_windows) {
+    # Extract the subseries from both time series for the current window
+    window_ts1 <- ts1[i:(i + widthW - 1)]
+    window_ts2 <- ts2[i:(i + widthW - 1)]
+    # Compute the correlation for the current window
+    correlation <- cor(window_ts1, window_ts2)
+    # Store the correlation value in the vector
+    correlations[i] <- correlation
+  }
+  return(correlations)
+}
+width_window <- 9 ## NB needs to be odd
+dum <- compute_sliding_correlation(other.plus_new$other, other.plus_new$predictor, 
+                                   width_window)
+
+df_all <- data.frame(
+  x = (1:nrow(work.plus_new)),
+  contacts = other.plus_new$other,
+  mobility = other.plus_new$predictor,
+  slidingCorrelation = c(rep(NA, (width_window - 1)/2), dum, 
+                         rep(NA, (width_window - 1)/2))
+)
+
+df_all <- cbind(df_all, mid_date = other.plus_new$mid_date)
+
+a <- ggplot(df_all) + geom_line(aes(x = mid_date, y = contacts, col = "con"), size = 0.8) +
+  geom_line(aes(x = mid_date, y = mobility, col = "mob"), size = 1) +
+  labs(y = "Other Contacts and \nOther Mobility", col = "Measurement Type", x = "Date") +
+  scale_colour_manual(breaks = c("mob", "con"), values = c("blue", "red"),
+                      labels = c("Mobility", "Contacts"))
+b <- ggplot(df_all) + geom_point(aes(x = mid_date, y = slidingCorrelation), size = 2) +
+  geom_line(aes(x = mid_date, y = slidingCorrelation), size = 1) + xlab("Date") +
+  ylab("Sliding Window Correlation")
+
+#plot the stuff together
+plot_combined <- a / b
+plot_combined
+
+#try to test correlation using sliding window
+compute_sliding_correlation <- function(ts1, ts2, widthW) {
+  n <- length(ts1)
+  num_windows <- n - widthW + 1
+  # Initialize an empty vector to store correlation values
+  correlations <- numeric(num_windows)
+  for (i in 1:num_windows) {
+    # Extract the subseries from both time series for the current window
+    window_ts1 <- ts1[i:(i + widthW - 1)]
+    window_ts2 <- ts2[i:(i + widthW - 1)]
+    # Compute the correlation for the current window
+    correlation <- cor.test(window_ts1, window_ts2)$p.value
+    # Store the correlation value in the vector
+    correlations[i] <- correlation
+  }
+  return(correlations)
+}
+width_window <- 9 ## NB needs to be even 
+dum <- compute_sliding_correlation(other.plus_new$other, other.plus_new$predictor,
+                                   width_window)
+
+df_all<-data.frame(
+  x = (1:nrow(other.plus_new)),
+  contacts = other.plus_new$other,
+  mobility = other.plus_new$predictor,
+  slidingCorrelation = c(rep(NA, (width_window - 1)/2), dum,
+                         rep(NA, (width_window - 1)/2))
+)
+
+df_all <- cbind(df_all, mid_date = other.plus_new$mid_date)
+
+a <- ggplot(df_all) + geom_line(aes(x = mid_date, y = contacts, col = "con"), size = 1)+
+  geom_line(aes(x = mid_date, y = mobility, col = "mob"), size = 1) +
+  labs(x = "Date", y = "Other Contacts and \nOther Mobility", col = "Measurement Type") +
+  scale_colour_manual(breaks = c("mob", "con"), values = c("blue", "red"),
+                      labels = c("Mobility", "Contacts"))
+b <- ggplot(df_all) + geom_point(aes(x = mid_date, y = slidingCorrelation), size = 2)+
+  geom_line(aes(x = mid_date, y = slidingCorrelation), size = 1) + xlab("Date") +
+  ylab("Sliding Window Correlation \n(p-value)")
+
+plot_combined <- a / b
+plot_combined
+
+other_pval_cor <- plot_combined
+
+#plot work and other 
+ggarrange(test.plot1, test.plot2, common.legend = T, 
+          legend = "bottom", labels = "AUTO")
+ggarrange(work_pval_cor, other_pval_cor, common.legend = F, 
           legend = "bottom", labels = "AUTO")

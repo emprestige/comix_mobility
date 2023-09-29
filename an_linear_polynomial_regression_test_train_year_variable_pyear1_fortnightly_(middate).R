@@ -164,6 +164,7 @@ mob_cnt <- mob_cnt[, .(mid_date, study, status, special, work, other,
 lm_w1 <- lm(work ~ workplaces, data = mob_cnt)
 summary(lm_w1)
 confint(lm_w1)
+AIC(lm_w1)
 
 #predict 
 pred <- predict(lm_w1, interval = "confidence")
@@ -183,6 +184,7 @@ plw1
 lm_w2 <- lm(work ~ poly(workplaces, 2, raw = T), data = mob_cnt)
 summary(lm_w2)
 confint(lm_w2)
+AIC(lm_w2)
 
 #predict
 pred <- predict(lm_w2, interval = "confidence")
@@ -203,16 +205,22 @@ mob_cnt[, workplaces2 := workplaces*workplaces]
 mob_cnt[, mob2 := workplaces2*1.9529120]
 
 plw = ggplot(mob_cnt) +
-  geom_line(data = mob_cnt, aes(x = workplaces, y = w1_fit, col = "lin"), linewidth = 0.8) +
-  geom_line(data = mob_cnt, aes(x = workplaces, y = w2_fit, col = "quad"), linewidth = 0.8) +
-  geom_line(data = mob_cnt, aes(x = workplaces, y = mob1, col = "mob"), linewidth = 0.8) +
-  geom_line(data = mob_cnt, aes(x = workplaces, y = mob2, col = "mob2"), linewidth = 0.8) +
-  labs(x = "Google Mobility 'workplaces' Visits", col = "Model Type",
-       y = "Mean Work Contacts") +
+  geom_line(aes(x = workplaces, y = w1_fit, col = "lin"), linewidth = 0.8) +
+  geom_ribbon(aes(x = workplaces, ymin = w1_lwr, ymax = w1_uppr, fill = "lin"), alpha = 0.1) +
+  geom_line(aes(x = workplaces, y = w2_fit, col = "quad"), linewidth = 0.8) +
+  geom_ribbon(aes(x = workplaces, ymin = w2_lwr, ymax = w2_uppr, fill = "quad"), alpha = 0.1) +
+  geom_line(aes(x = workplaces, y = mob1, col = "mob"), linewidth = 0.8) +
+  geom_line(aes(x = workplaces, y = mob2, col = "mob2"), linewidth = 0.8) +
+  geom_point(aes(x = workplaces, y = work), size = 2) +
+  labs(x = "Google Mobility 'workplaces' Visits", col = " ",
+       y = "Mean Work Contacts", fill = "Model Type") +
   scale_color_manual(breaks = c("mob", "mob2", "lin", "quad"),
                      values = c("purple", "red", "blue", "orange"),
                      labels = c("Mobility", "Mobility Squared", 
-                                "Linear Model", "Quadratic Model"))
+                                "Linear Model", "Quadratic Model")) +
+  scale_fill_manual(breaks = c("lin", "quad"),
+                    values = c("blue", "orange"),
+                    labels = c("Linear Model", "Quadratic Model"))
 
 plw
 
@@ -362,6 +370,7 @@ mob_cnt <- mob_cnt[, .(mid_date, study, status, special, work, other,
 lm_o1 <- lm(other ~ predictor, data = mob_cnt)
 summary(lm_o1)
 confint(lm_o1)
+AIC(lm_o1)
 
 #predict 
 pred <- predict(lm_o1, interval = "confidence")
@@ -381,6 +390,7 @@ plo1
 lm_o2 <- lm(other ~ poly(predictor, 2, raw = T), data = mob_cnt)
 summary(lm_o2)
 confint(lm_o2)
+AIC(lm_o2)
 
 #predict 
 pred <- predict(lm_o2, interval = "confidence")
@@ -401,16 +411,23 @@ mob_cnt[, predictor2 := predictor*predictor]
 mob_cnt[, mob2 := predictor2*3.4837340]
 
 plo = ggplot(mob_cnt) +
-  geom_line(data = mob_cnt, aes(x = predictor, y = o1_fit, col = "lin"), linewidth = 0.8) +
-  geom_line(data = mob_cnt, aes(x = predictor, y = o2_fit, col = "quad"), linewidth = 0.8) +
-  geom_line(data = mob_cnt, aes(x = predictor, y = mob1, col = "mob"), linewidth = 0.8) +
-  geom_line(data = mob_cnt, aes(x = predictor, y = mob2, col = "mob2"), linewidth = 0.8) +
-  labs(x = "Google Mobility 'other' Visits", col = "Model Type", 
-       y = "Mean Other Contacts") +
+  geom_line(aes(x = predictor, y = o1_fit, col = "lin"), linewidth = 0.8) +
+  geom_ribbon(aes(x = predictor, ymin = o1_lwr, ymax = o1_uppr, fill = "lin"), alpha = 0.1) +
+  geom_line(aes(x = predictor, y = o2_fit, col = "quad"), linewidth = 0.8) +
+  geom_ribbon(aes(x = predictor, ymin = o2_lwr, ymax = o2_uppr, fill = "quad"), alpha = 0.1) +
+  geom_line(aes(x = predictor, y = mob1, col = "mob"), linewidth = 0.8) +
+  geom_line(aes(x = predictor, y = mob2, col = "mob2"), linewidth = 0.8) +
+  geom_point(aes(x = predictor, y = other), size = 2) +
+  labs(x = "Google Mobility 'other' Visits", col = " ", 
+       y = "Mean Other Contacts", fill = "Model Type") +
   scale_color_manual(breaks = c("mob", "mob2", "lin", "quad"),
                      values = c("purple", "red", "blue", "orange"),
                      labels = c("Mobility", "Mobility Squared", 
-                                "Linear Model", "Quadratic Model"))
+                                "Linear Model", "Quadratic Model")) +
+  scale_fill_manual(breaks = c("lin", "quad"),
+                    values = c("blue", "orange"),
+                    labels = c("Linear Model", "Quadratic Model"))
+
 plo
 
 #plot work and other together

@@ -15,6 +15,7 @@ theme_set(cowplot::theme_cowplot(font_size = 18) + theme(strip.background = elem
 #import participant and contact data
 cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 cnts <- cnts[order(date)]
+cnts <- cnts[date <= ymd("2021-03-31")]
 
 #filter data for NA age group, order it by date
 cnts <- cnts %>%
@@ -88,9 +89,13 @@ employed_yn <- employed[, .(n = .N), by = .(part_employed, mid_date)][, freq := 
 # ggplot(data = employed_yn, aes(x = mid_date, y = freq, fill = part_employed)) + 
 #   geom_col() + scale_x_discrete(breaks = my_list)
 
-employed_yn2 <- employed %>%
-  filter(!is.na(part_employed))
-employed_yn2 <- employed_yn2[, .(n = .N), by = .(part_employed, mid_date)][, freq := prop.table(n), by = mid_date]
+employed %>% group_by(part_employed) %>%
+  summarise(n = n()) %>%
+  mutate(freq = (n/sum(n)*100))
+
+# employed_yn2 <- employed %>%
+#   filter(!is.na(part_employed))
+# employed_yn2 <- employed_yn2[, .(n = .N), by = .(part_employed, mid_date)][, freq := prop.table(n), by = mid_date]
 # ggplot(data = employed_yn2, aes(x = mid_date, y = freq, fill = part_employed)) + 
 #   geom_col() + scale_x_discrete(breaks = my_list) 
 

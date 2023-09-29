@@ -28,9 +28,10 @@ cnts <- cnts[sample_type == "adult"]
 cnts <- cnts %>%
   filter(!is.na(part_age_group))
 cnts <- cnts[order(date)]
+cnts <- cnts[date <= ymd("2021-03-31")]
 
 #check proportion for each day of the week
-cnts %>% group_by(part_vacc) %>%
+cnts %>% group_by(weekday) %>%
   summarise(n = n()) %>%
   mutate(freq = round(n/sum(n)*100, 1))
 
@@ -125,6 +126,11 @@ cnts %>% group_by(part_employstatus) %>%
   summarise(n = n()) %>%
   mutate(freq = round(n/sum(n)*100, 1))
 
+#employed yes or no
+cnts %>% group_by(part_employed) %>%
+  summarise(n = n()) %>%
+  mutate(freq = round(n/sum(n)*100, 1))
+
 #social class
 cnts %>% group_by(part_social_group) %>%
   summarise(n = n()) %>%
@@ -137,11 +143,6 @@ cnts %>% group_by(area_3_name) %>%
 
 #household size group 
 cnts %>% group_by(hh_size_group) %>%
-  summarise(n = n()) %>%
-  mutate(freq = round(n/sum(n)*100, 1))
-
-#employed yes or no
-cnts %>% group_by(part_employed) %>%
   summarise(n = n()) %>%
   mutate(freq = round(n/sum(n)*100, 1))
 
