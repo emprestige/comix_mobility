@@ -11,7 +11,7 @@ library(lmtest)
 library(ggpubr)
 
 #set cowplot theme
-theme_set(cowplot::theme_cowplot(font_size = 18) + theme(strip.background = element_blank(),
+theme_set(cowplot::theme_cowplot(font_size = 14) + theme(strip.background = element_blank(),
                                                          legend.box.margin = margin(l = 10, r = 10, b = 5),
                                                          plot.margin = margin(l = 10, r = 10, b = 5, t = 5)))
 
@@ -212,14 +212,14 @@ plw = ggplot(mob_cnt) +
   geom_line(aes(x = workplaces, y = mob1, col = "mob"), linewidth = 0.8) +
   geom_line(aes(x = workplaces, y = mob2, col = "mob2"), linewidth = 0.8) +
   geom_point(aes(x = workplaces, y = work), size = 2) +
-  labs(x = "Google Mobility 'workplaces' Visits", col = " ",
-       y = "Mean Work Contacts", fill = "Model Type") +
+  labs(x = "Google Mobility ''Workplaces'' Visits", col = " ",
+       y = "Mean ''Work'' Contacts", fill = "Model Type") +
   scale_color_manual(breaks = c("mob", "mob2", "lin", "quad"),
-                     values = c("purple", "red", "blue", "orange"),
+                     values = c("#CC79A7", "#D55E00", "#0072B2", "#F0E442"),
                      labels = c("Mobility", "Mobility Squared", 
                                 "Linear Model", "Quadratic Model")) +
   scale_fill_manual(breaks = c("lin", "quad"),
-                    values = c("blue", "orange"),
+                    values = c("#0072B2", "#F0E442"),
                     labels = c("Linear Model", "Quadratic Model"))
 
 plw
@@ -418,14 +418,14 @@ plo = ggplot(mob_cnt) +
   geom_line(aes(x = predictor, y = mob1, col = "mob"), linewidth = 0.8) +
   geom_line(aes(x = predictor, y = mob2, col = "mob2"), linewidth = 0.8) +
   geom_point(aes(x = predictor, y = other), size = 2) +
-  labs(x = "Google Mobility 'other' Visits", col = " ", 
-       y = "Mean Other Contacts", fill = "Model Type") +
+  labs(x = "Google Mobility ''Other'' Visits", col = " ", 
+       y = "Mean ''Other'' Contacts", fill = "Model Type") +
   scale_color_manual(breaks = c("mob", "mob2", "lin", "quad"),
-                     values = c("purple", "red", "blue", "orange"),
+                     values = c("#CC79A7", "#D55E00", "#0072B2", "#F0E442"),
                      labels = c("Mobility", "Mobility Squared", 
                                 "Linear Model", "Quadratic Model")) +
   scale_fill_manual(breaks = c("lin", "quad"),
-                    values = c("blue", "orange"),
+                    values = c("#0072B2", "#F0E442"),
                     labels = c("Linear Model", "Quadratic Model"))
 
 plo

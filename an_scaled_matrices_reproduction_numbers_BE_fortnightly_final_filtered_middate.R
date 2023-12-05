@@ -10,7 +10,7 @@ library(scales)
 library(ggpubr)
 
 #set cowplot theme
-theme_set(cowplot::theme_cowplot(font_size = 18) + theme(strip.background = element_blank(),
+theme_set(cowplot::theme_cowplot(font_size = 14) + theme(strip.background = element_blank(),
                                                          legend.box.margin = margin(l = 10, b = 10)))
 
 #set data path
@@ -144,10 +144,10 @@ work <- ggplot(data = reproduction_all) +
   geom_line(aes(x = mid_date, y = reproduction_number_mob2, col = "mob2"), group = 1, size = 0.8) +
   geom_line(aes(x = mid_date, y = reproduction_number_lin, col = "lin"), group = 1, size = 0.8) +
   geom_line(aes(x = mid_date, y = reproduction_number_quad, col = "quad"), group = 1, size = 0.8) +
-  labs(x = "Date", y = "Reproduction Number (Work)", colour = "Estimate Type") + 
+  labs(x = "Date", y = "Reproduction Number (''Work'')", colour = "Estimate Type") + 
   scale_x_date(labels = date_format("%b-%y"), breaks = "2 months") + ylim(0, 0.9) +
   scale_color_manual(breaks = c("comix", "mob", "mob2", "lin", "quad"),
-                     values = c("green", "purple", "red", "blue", "orange"),
+                     values = c("#009E73", "#CC79A7", "#D55E00", "#0072B2", "#F0E442"),
                      labels = c("CoMix", "Mobility", "Mobility Squared", 
                                 "Linear Model", "Quadratic Model"))
 
@@ -278,10 +278,10 @@ other <- ggplot(data = reproduction_all) +
   geom_line(aes(x = mid_date, y = reproduction_number_mob2, col = "mob2"), group = 1, size = 0.8) +
   geom_line(aes(x = mid_date, y = reproduction_number_lin, col = "lin"), group = 1, size = 0.8) +
   geom_line(aes(x = mid_date, y = reproduction_number_quad, col = "quad"), group = 1, size = 0.8) +
-  labs(x = "Date", y = "Reproduction Number (Other)", colour = "Estimate Type") +
+  labs(x = "Date", y = "Reproduction Number (''Other'')", colour = "Estimate Type") +
   scale_x_date(labels = date_format("%b-%y"), breaks = "2 months") + ylim(0, 0.9) +
   scale_color_manual(breaks = c("comix", "mob", "mob2", "lin", "quad"),
-                     values = c("green", "purple", "red", "blue", "orange"),
+                     values = c("#009E73", "#CC79A7", "#D55E00", "#0072B2", "#F0E442"),
                      labels = c("CoMix", "Mobility", "Mobility Squared", 
                                 "Linear Model", "Quadratic Model"))
 

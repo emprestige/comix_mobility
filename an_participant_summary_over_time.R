@@ -10,7 +10,7 @@ library(cowplot)
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
 
 #set cowplot theme
-theme_set(cowplot::theme_cowplot(font_size = 18) + theme(strip.background = element_blank()))
+theme_set(cowplot::theme_cowplot(font_size = 14) + theme(strip.background = element_blank()))
 
 #import participant and contact data
 cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
@@ -74,7 +74,7 @@ ggplot(data = ages, aes(x = mid_date, y = freq, fill = part_age_group)) + geom_c
   scale_x_discrete(breaks = my_list) + facet_grid(~var, scales = "free_x", space = "free_x") +
   theme(strip.background = element_blank(), strip.text.x = element_blank()) +
   labs(x = "Date", y = "Proportion", fill = "Age Group") +
-  scale_fill_discrete(labels = c("18-29", "30-39", "40-49", "50-59", "60-69", "70+"))
+  scale_fill_colorblind(labels = c("18-29", "30-39", "40-49", "50-59", "60-69", "70+"))
 
 #employment status
 cnts %>% group_by(part_employstatus) %>%
@@ -113,7 +113,7 @@ ggplot(data = employed_yn3, aes(x = mid_date, y = freq, fill = part_employed)) +
   facet_grid(~var, scales = "free_x", space = "free_x") +
   theme(strip.background = element_blank(), strip.text.x = element_blank()) +
   labs(x = "Date", y = "Proportion", fill = "Employment Status") +
-  scale_fill_discrete(labels = c("Unemployed", "Employed"))
+  scale_fill_colorblind(labels = c("Unemployed", "Employed"))
 
 #social class
 cnts %>% group_by(part_social_group) %>%
@@ -133,7 +133,8 @@ social <- full_join(social, social_dummy)
 ggplot(data = social, aes(x = mid_date, y = freq, fill = part_social_group)) + geom_col() + 
   scale_x_discrete(breaks = my_list) + facet_grid(~var, scales = "free_x", space = "free_x") +
   theme(strip.background = element_blank(), strip.text.x = element_blank()) +
-  labs(x = "Date", y = "Proportion", fill = "Social Group") 
+  labs(x = "Date", y = "Proportion", fill = "Social Group") +
+  scale_fill_colorblind()
 
 #area
 cnts %>% group_by(area_3_name) %>%

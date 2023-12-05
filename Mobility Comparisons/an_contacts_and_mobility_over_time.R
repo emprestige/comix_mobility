@@ -14,7 +14,7 @@ library(ggpubr)
 library(patchwork)
 
 #set cowplot theme
-theme_set(cowplot::theme_cowplot(font_size = 18) + theme(strip.background = element_blank(),
+theme_set(cowplot::theme_cowplot(font_size = 14) + theme(strip.background = element_blank(),
                                                          legend.box.margin = margin(l = 10, b = 10)))
 
 #set data path
@@ -97,13 +97,14 @@ week <- week[, week := isoweek(date)]
 num_merge[, nonhome := all - home]
 
 #add column for special dates 
-summer <- interval(ymd("2020-08-03"), ymd("2020-08-09"))
-num_merge[, special := ifelse(date == ymd("2020-12-25"), "Xmas",
-                              ifelse(date == ymd("2020-12-31"), "NYE",
+summer1 <- interval(ymd("2020-08-03"), ymd("2020-08-09"))
+summer2 <- interval(ymd("2021-08-03"), ymd("2021-08-09"))
+num_merge[, special := ifelse(date == ymd("2020-12-25"), "Xmas/NYE",
                               ifelse(date == ymd("2021-12-31"), "Xmas/NYE",
                               ifelse(date == ymd("2020-04-13"), "Easter",
-                              ifelse(date == ymd("2021-04-05"), "Easter", 
-                              ifelse(date %within% summer, "Summer Hol", NA))))))]
+                              ifelse(date == ymd("2021-04-05"), "Easter",
+                              ifelse(date %within% summer1, "Summer Hol",
+                              ifelse(date %within% summer2, "Summer Hol", NA))))))]
 num_merge <- num_merge[order(date)]
 
 #get middate for fornight periods 
@@ -149,12 +150,12 @@ gm2 <- gm2[order(date)]
 
 #lockdown info and special dates
 mob_merge <- merge(gm2, lockdowns, by = "date", all.y = F)
-mob_merge[, special := ifelse(date == ymd("2020-12-25"), "Xmas",
-                              ifelse(date == ymd("2020-12-31"), "NYE",
+mob_merge[, special := ifelse(date == ymd("2020-12-25"), "Xmas/NYE",
                               ifelse(date == ymd("2021-12-31"), "Xmas/NYE",
                               ifelse(date == ymd("2020-04-13"), "Easter",
                               ifelse(date == ymd("2021-04-05"), "Easter", 
-                              ifelse(date %within% summer, "Summer Hol", NA))))))]
+                              ifelse(date %within% summer1, "Summer Hol",
+                              ifelse(date %within% summer2, "Summer Hol", NA))))))]
 mob_merge <- mob_merge[order(date)]
 
 #get middate for fornight periods 
@@ -188,10 +189,10 @@ workplaces <- ggplot(gm_av_sub, aes(mid_date, workplaces,
                 ymax = Inf, fill = status), alpha = 0.4) +
   scale_x_date(labels = date_format("%B-%Y")) + 
   scale_y_continuous(limits = c(0, 1.25), breaks = seq(0, 1.25, by = 0.25)) +
-  labs(x = "Date", y = "Google Mobility\n'workplaces' Visits", fill = "Status") +
-  scale_fill_manual(values = c("No restrictions" = "#00BA38", 
-                               "Some restrictions" = "#619CFF", 
-                               "Lockdown" = "#F8766D"), 
+  labs(x = "Date", y = "Google Mobility\n''Workplaces'' Visits", fill = "Status") +
+  scale_fill_manual(values = c("No restrictions" = "#009E73", 
+                               "Some restrictions" = "#0072B2", 
+                               "Lockdown" = "#D55E00"), 
                     labels = c("No restrictions", "Some restrictions", 
                                "Lockdown"))
 
@@ -206,10 +207,10 @@ work <- ggplot(weighted_date, aes(mid_date, work,
                 ymax = Inf, fill = status), alpha = 0.4) +
   scale_x_date(labels = date_format("%B-%Y")) + 
   scale_y_continuous(limits = c(0, 1.25), breaks = seq(0, 1.25, by = 0.25)) +
-  labs(x = "Date", y = "Mean Number of\nWork Contacts", fill = "Status") +
-  scale_fill_manual(values = c("No restrictions" = "#00BA38", 
-                               "Some restrictions" = "#619CFF", 
-                               "Lockdown" = "#F8766D"), 
+  labs(x = "Date", y = "Mean Number of\n''Work'' Contacts", fill = "Status") +
+  scale_fill_manual(values = c("No restrictions" = "#009E73", 
+                               "Some restrictions" = "#0072B2", 
+                               "Lockdown" = "#D55E00"),
                     labels = c("No restrictions", "Some restrictions", 
                                "Lockdown"))
  
@@ -221,26 +222,27 @@ works <- plot_grid(workplaces, work, ncol = 1, align = 'v')
 work.plus <- merge(weighted_date, gm_av_sub)
 
 #plot with two y-axes
-test.plot1 <- ggplot(data = work.plus, aes(x = mid_date,
-                     label = ifelse(status == "No restrictions", 
-                     ifelse(is.na(special) == F, special, NA), special))) +
+test.plot1 <- ggplot(data = work.plus, aes(x = mid_date)) +
   geom_rect(aes(xmin = mid_date, xmax = lead(mid_date), ymin = 0, 
                 ymax = Inf, fill = status), alpha = 0.4) +
-  geom_line(aes(y = work, linetype = "CoMix"), group = 1, size = 1) + 
-  geom_text_repel(aes(y = work), size = 4, max.overlaps = 80, box.padding = 0.25) +
-  geom_point(aes(x = mid_date, y = ifelse(is.na(special) == F, work, NA)), size = 2) +
-  geom_line(aes(y = workplaces, linetype = "Google Mobility"), group = "status", size = 1) + 
-  geom_point(aes(x = mid_date, y = ifelse(is.na(special) == F, workplaces, NA)), size = 2) +
-  geom_text_repel(aes(y = workplaces), size = 4, max.overlaps = 80, box.padding = 0.25) +
+  geom_line(aes(y = work, linetype = "CoMix"), group = 1, size = 1) +
+  geom_line(aes(y = workplaces, linetype = "Google Mobility"), group = "status", size = 1) +
+  geom_vline(aes(xintercept = ifelse(is.na(special), NA, mid_date)), linetype = 4) +
+  geom_text(aes(x = ymd("2020-04-12"), y = +Inf, vjust = 2, label = "Easter")) +
+  geom_text(aes(x = ymd("2020-08-02"), y = 0, vjust = -2, label = "Summer Hols")) +
+  geom_text(aes(x = ymd("2020-12-20"), y = +Inf, vjust = 2, label = "Xmas/NYE")) +
+  geom_text(aes(x = ymd("2021-04-04"), y = 0, vjust = -2, label = "Easter")) +
+  geom_text(aes(x = ymd("2021-08-08"), y = +Inf, vjust = 2, label = "Summer Hols")) +
+  geom_text(aes(x = ymd("2021-12-26"), y = 0, vjust = -2, label = "Xmas/NYE")) +
   scale_x_date(labels = date_format("%B-%Y")) + 
   scale_y_continuous(limits = c(0, 1.25), breaks = seq(0, 1.25, by = 0.25),
-                     name = "Mean Number of Work Contacts",
+                     name = "Mean Number of ''Work'' Contacts",
                      sec.axis = sec_axis(trans = ~ .,
-                     name = "Google Mobility 'workplaces' Visits")) +
+                     name = "Google Mobility ''Workplaces'' Visits")) +
   labs(x = "Date", fill = "Status", linetype = "Data Type") +
-  scale_fill_manual(values = c("No restrictions" = "#00BA38", 
-                               "Some restrictions" = "#619CFF", 
-                               "Lockdown" = "#F8766D"), 
+  scale_fill_manual(values = c("No restrictions" = "#009E73", 
+                               "Some restrictions" = "#0072B2", 
+                               "Lockdown" = "#D55E00"), 
                     labels = c("No restrictions", "Some restrictions", 
                                "Lockdown")) +
   scale_linetype_manual(values = c("CoMix" = 1, "Google Mobility" = 2)) +
@@ -297,7 +299,7 @@ df_all <- cbind(df_all, mid_date = work.plus_new$mid_date)
 
 a <- ggplot(df_all) + geom_line(aes(x = mid_date, y = contacts, col = "con"), size = 0.8) +
   geom_line(aes(x = mid_date, y = mobility, col = "mob"), size = 1) +
-  labs(y = "Work Contacts or \nWorkpalce Mobility", col = "Measurement Type", x = "Date") +
+  labs(y = "Work Contacts or \nWorkplace Mobility", col = "Measurement Type", x = "Date") +
   scale_colour_manual(breaks = c("mob", "con"), values = c("blue", "red"),
                       labels = c("Mobility", "Contacts"))
 b <- ggplot(df_all) + geom_point(aes(x = mid_date, y = slidingCorrelation), size = 2) +
@@ -429,13 +431,14 @@ week <- week[, week := isoweek(date)]
 num_merge[, nonhome := all - home]
 
 #add column for special dates 
-summer <- interval(ymd("2020-08-03"), ymd("2020-08-09"))
-num_merge[, special := ifelse(date == ymd("2020-12-25"), "Xmas",
-                       ifelse(date == ymd("2020-12-31"), "NYE",
+summer1 <- interval(ymd("2020-08-03"), ymd("2020-08-09"))
+summer2 <- interval(ymd("2021-08-03"), ymd("2021-08-09"))
+num_merge[, special := ifelse(date == ymd("2020-12-25"), "Xmas/NYE",
                        ifelse(date == ymd("2021-12-31"), "Xmas/NYE",
                        ifelse(date == ymd("2020-04-13"), "Easter",
                        ifelse(date == ymd("2021-04-05"), "Easter", 
-                       ifelse(date %within% summer, "Summer Hol", NA))))))]
+                       ifelse(date %within% summer1, "Summer Hol",
+                       ifelse(date %within% summer2, "Summer Hol", NA))))))]
 num_merge <- num_merge[order(date)]
 
 #get middate for fornight periods 
@@ -481,12 +484,12 @@ gm2 <- gm2[order(date)]
 
 #lockdown info and special dates
 mob_merge <- merge(gm2, lockdowns, by = "date", all.y = F)
-mob_merge[, special := ifelse(date == ymd("2020-12-25"), "Xmas",
-                       ifelse(date == ymd("2020-12-31"), "NYE",
+mob_merge[, special := ifelse(date == ymd("2020-12-25"), "Xmas/NYE",
                        ifelse(date == ymd("2021-12-31"), "Xmas/NYE",
                        ifelse(date == ymd("2020-04-13"), "Easter",
                        ifelse(date == ymd("2021-04-05"), "Easter", 
-                       ifelse(date %within% summer, "Summer Hol", NA))))))]
+                       ifelse(date %within% summer1, "Summer Hol",
+                       ifelse(date %within% summer2, "Summer Hol", NA))))))]
 mob_merge <- mob_merge[order(date)]
 
 #get middate for fornight periods 
@@ -523,11 +526,11 @@ predictor <- ggplot(gm_av_sub, aes(mid_date, predictor,
                 ymax = Inf, fill = status), alpha = 0.4) + 
   scale_x_date(labels = date_format("%B-%Y")) + 
   scale_y_continuous(limits = c(0, 1.25), breaks = seq(0, 1.25, by = 0.25)) +
-  labs(y = "Google Mobility\n'other' Visits",
+  labs(y = "Google Mobility\n''Other'' Visits",
        x = "Date", fill = "Status") + scale_x_date(labels = date_format("%B-%Y")) +
-  scale_fill_manual(values = c("No restrictions" = "#00BA38", 
-                               "Some restrictions" = "#619CFF", 
-                               "Lockdown" = "#F8766D"), 
+  scale_fill_manual(values = c("No restrictions" = "#009E73", 
+                               "Some restrictions" = "#0072B2", 
+                               "Lockdown" = "#D55E00"), 
                     labels = c("No restrictions", "Some restrictions", 
                                "Lockdown"))
 
@@ -542,10 +545,10 @@ other <- ggplot(weighted_date, aes(mid_date, other,
                 ymax = Inf, fill = status), alpha = 0.4) +
   scale_x_date(labels = date_format("%B-%Y")) + 
   scale_y_continuous(limits = c(0, 1.25), breaks = seq(0, 1.25, by = 0.25)) +
-  labs(x = "Date", y = "Mean Number of\nOther Contacts", fill = "Status") +
-  scale_fill_manual(values = c("No restrictions" = "#00BA38", 
-                               "Some restrictions" = "#619CFF", 
-                               "Lockdown" = "#F8766D"), 
+  labs(x = "Date", y = "Mean Number of\n''Other'' Contacts", fill = "Status") +
+  scale_fill_manual(values = c("No restrictions" = "#009E73", 
+                               "Some restrictions" = "#0072B2", 
+                               "Lockdown" = "#D55E00"), 
                     labels = c("No restrictions", "Some restrictions", 
                                "Lockdown"))
 
@@ -558,28 +561,32 @@ ggarrange(work, other, workplaces, predictor, common.legend = T,
 
 #combine datasets
 other.plus <- merge(weighted_date, gm_av_sub)
+other.plus.special <- rlang::duplicate(other.plus)
+other.plus.special <- other.plus.special[, .(mid_date, special)]
+other.plus.special <- na.omit(other.plus.special)
 
 #plot with two y-axes
-test.plot2 <- ggplot(data = other.plus, aes(x = mid_date,
-                     label = ifelse(status == "No restrictions", 
-                     ifelse(is.na(special) == F, special, NA), special))) +
+test.plot2 <- ggplot(data = other.plus, aes(x = mid_date)) + 
   geom_rect(aes(xmin = mid_date, xmax = lead(mid_date), ymin = 0, 
                 ymax = Inf, fill = status), alpha = 0.4) +
   geom_line(aes(y = other, linetype = "CoMix"), group = 1, size = 1) + 
-  geom_text_repel(aes(y = other), size = 4, max.overlaps = 80, box.padding = 0.25) +
-  geom_point(aes(x = mid_date, y = ifelse(is.na(special) == F, other, NA)), size = 2) +
   geom_line(aes(y = predictor, linetype = "Google Mobility"), group = "status", size = 1) + 
-  geom_text_repel(aes(y = predictor), size = 4, max.overlaps = 80, box.padding = 0.25) +
-  geom_point(aes(x = mid_date, y = ifelse(is.na(special) == F, predictor, NA)), size = 2) +
+  geom_vline(aes(xintercept = ifelse(is.na(special), NA, mid_date)), linetype = 4) +
+  geom_text(aes(x = ymd("2020-04-12"), y = +Inf, vjust = 2, label = "Easter")) +
+  geom_text(aes(x = ymd("2020-08-02"), y = 0, vjust = -2, label = "Summer Hols")) +
+  geom_text(aes(x = ymd("2020-12-20"), y = +Inf, vjust = 2, label = "Xmas/NYE")) +
+  geom_text(aes(x = ymd("2021-04-04"), y = 0, vjust = -2, label = "Easter")) +
+  geom_text(aes(x = ymd("2021-08-08"), y = +Inf, vjust = 2, label = "Summer Hols")) +
+  geom_text(aes(x = ymd("2021-12-26"), y = 0, vjust = -2, label = "Xmas/NYE")) +
   scale_x_date(labels = date_format("%B-%Y")) + 
   scale_y_continuous(limits = c(0, 1.25), breaks = seq(0, 1.25, by = 0.25),
-                     name = "Mean Number of Other Contacts",
+                     name = "Mean Number of ''Other'' Contacts",
                      sec.axis = sec_axis(trans = ~ .,
-                     name = "Google Mobility 'other' Visits")) +
+                     name = "Google Mobility ''Other'' Visits")) +
   labs(x = "Date", fill = "Status", linetype = "Data Type") +
-  scale_fill_manual(values = c("No restrictions" = "#00BA38", 
-                               "Some restrictions" = "#619CFF", 
-                               "Lockdown" = "#F8766D"), 
+  scale_fill_manual(values = c("No restrictions" = "#009E73", 
+                               "Some restrictions" = "#0072B2", 
+                               "Lockdown" = "#D55E00"), 
                     labels = c("No restrictions", "Some restrictions", 
                                "Lockdown")) + 
   scale_linetype_manual(values = c("CoMix" = 1, "Google Mobility" = 2)) +

@@ -9,7 +9,7 @@ library(cowplot)
 library(scales)
 
 #set cowplot theme
-theme_set(cowplot::theme_cowplot(font_size = 18) + theme(strip.background = element_blank()))
+theme_set(cowplot::theme_cowplot(font_size = 14) + theme(strip.background = element_blank()))
 
 #set data path
 data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
@@ -142,25 +142,25 @@ p5 <- ggplot(data = reproduction_all, aes(x = reproduction_number)) +
   labs(x = "Reproduction Number (CoMix)", y = "Reproduction Number\n(Estimates)",
        colour = "Scaling Factor") + xlim(0, 0.5) + ylim(0, 0.5) + 
   geom_abline(intercept = 0, slope = 1, linetype = 2, size = 0.8) +
-  scale_color_manual(breaks = "mob", values = "purple", labels = "Mobility")
+  scale_color_manual(breaks = "mob", values = "#CC79A7", labels = "Mobility")
 p6 <- ggplot(data = reproduction_all, aes(x = reproduction_number)) + 
   geom_point(aes(y = reproduction_number_mob2, col = "mob2"), size = 2) +
   labs(x = "Reproduction Number (CoMix)", y = "Reproduction Number\n(Estimates)",
        colour = "Scaling Factor") + xlim(0, 0.5) + ylim(0, 0.5) +
   geom_abline(intercept = 0, slope = 1, linetype = 2, size = 0.8) +
-  scale_color_manual(breaks = "mob2", values = "red", labels = "Mobility Squared")
+  scale_color_manual(breaks = "mob2", values = "#D55E00", labels = "Mobility Squared")
 p7 <- ggplot(data = reproduction_all, aes(x = reproduction_number)) + 
   geom_point(aes(y = reproduction_number_lin, col = "lin"), size = 2) +
   labs(x = "Reproduction Number (CoMix)", y = "Reproduction Number\n(Estimates)",
        colour = "Scaling Factor") + xlim(0, 0.5) + ylim(0, 0.5) +
   geom_abline(intercept = 0, slope = 1, linetype = 2, size = 0.8) +
-  scale_color_manual(breaks = "lin", values = "blue", labels = "Linear Model")
+  scale_color_manual(breaks = "lin", values = "#0072B2", labels = "Linear Model")
 p8 <- ggplot(data = reproduction_all, aes(x = reproduction_number)) + 
   geom_point(aes(y = reproduction_number_quad, col = "quad"), size = 2) +
   labs(x = "Reproduction Number (CoMix)", y = "Reproduction Number\n(Estimates)",
        colour = "Scaling Factor") + xlim(0, 0.5) + ylim(0, 0.5) +
   geom_abline(intercept = 0, slope = 1, linetype = 2, size = 0.8) +
-  scale_color_manual(breaks = "quad", values = "orange", labels = "Quadratic Model")
+  scale_color_manual(breaks = "quad", values = "#F0E442", labels = "Quadratic Model")
 plot_grid(p5, p6, p7, p8)
 
 #line graph
@@ -173,7 +173,7 @@ ggplot(data = reproduction_all) +
   labs(x = "Date", y = "Reproduction Number", colour = "Estimate Type") + 
   scale_x_date(labels = date_format("%B-%Y")) +
   scale_color_manual(breaks = c("comix", "mob", "mob2", "lin", "quad"),
-                     values = c("green", "purple", "red", "blue", "orange"),
+                     values = c("#009E73", "#CC79A7", "#D55E00", "#0072B2", "#F0E442"),
                      labels = c("CoMix", "Mobility", "Mobility Squared", 
                                 "Linear Model", "Quadratic Model"))
 
@@ -196,7 +196,7 @@ ggplot(data = resid3, aes(x = mid_date)) +
   scale_x_date(labels = date_format("%B-%Y")) +
   labs(x = "Date", y = "Residuals", colour = "Scaling Factor") +
   scale_color_manual(breaks = c("mob", "mob2", "lin", "quad"),
-                     values = c("purple", "red", "blue", "orange"),
+                     values = c("#CC79A7", "#D55E00", "#0072B2", "#F0E442"),
                      labels = c("Mobility", "Mobility Squared", 
                                 "Linear Model", "Quadratic Model"))
 
