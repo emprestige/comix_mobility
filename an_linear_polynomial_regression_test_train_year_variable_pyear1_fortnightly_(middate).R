@@ -9,6 +9,7 @@ library(cowplot)
 library(visreg)
 library(lmtest)
 library(ggpubr)
+library(here)
 
 #set cowplot theme
 theme_set(cowplot::theme_cowplot(font_size = 14) + theme(strip.background = element_blank(),
@@ -16,10 +17,10 @@ theme_set(cowplot::theme_cowplot(font_size = 14) + theme(strip.background = elem
                                                          plot.margin = margin(l = 10, r = 10, b = 5, t = 5)))
 
 #set data path
-data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
+data_path <- here()
 
 #import contact data
-cnts <- qs::qread(file.path(data_path, "cnts_weight_work_middate.qs"))
+cnts <- qs::qread(file.path(data_path, "data", "cnts_weight_work_middate.qs"))
 
 #filter out participants of a certain age
 cnts <- cnts[sample_type == "adult"]
@@ -115,7 +116,7 @@ weighted_means <- num_merge[, .(study, status, special,
 weighted_means <- unique(weighted_means)
 
 #import mobility data
-mob <- qs::qread(file.path(data_path, "google_mob.qs"))
+mob <- qs::qread(file.path(data_path, "data", "google_mob.qs"))
 
 #subset for same date range
 mob_sub <- mob[date >= "2020-03-23" & date <= "2021-03-31"]
@@ -206,9 +207,9 @@ mob_cnt[, mob2 := workplaces2*1.9529120]
 
 plw = ggplot(mob_cnt) +
   geom_line(aes(x = workplaces, y = w1_fit, col = "lin"), linewidth = 0.8) +
-  geom_ribbon(aes(x = workplaces, ymin = w1_lwr, ymax = w1_uppr, fill = "lin"), alpha = 0.1) +
+  geom_ribbon(aes(x = workplaces, ymin = w1_lwr, ymax = w1_uppr, fill = "lin"), alpha = 0.3) +
   geom_line(aes(x = workplaces, y = w2_fit, col = "quad"), linewidth = 0.8) +
-  geom_ribbon(aes(x = workplaces, ymin = w2_lwr, ymax = w2_uppr, fill = "quad"), alpha = 0.1) +
+  geom_ribbon(aes(x = workplaces, ymin = w2_lwr, ymax = w2_uppr, fill = "quad"), alpha = 0.4) +
   geom_line(aes(x = workplaces, y = mob1, col = "mob"), linewidth = 0.8) +
   geom_line(aes(x = workplaces, y = mob2, col = "mob2"), linewidth = 0.8) +
   geom_point(aes(x = workplaces, y = work), size = 2) +
@@ -225,7 +226,7 @@ plw = ggplot(mob_cnt) +
 plw
 
 #import contact data
-cnts <- qs::qread(file.path(data_path, "cnts_weight_other_middate.qs"))
+cnts <- qs::qread(file.path(data_path, "data", "cnts_weight_other_middate.qs"))
 
 #filter out participants of a certain age
 cnts <- cnts[sample_type == "adult"]
@@ -321,7 +322,7 @@ weighted_means <- num_merge[, .(study, status, special,
 weighted_means <- unique(weighted_means)
 
 #import mobility data
-mob <- qs::qread(file.path(data_path, "google_mob.qs"))
+mob <- qs::qread(file.path(data_path, "data", "google_mob.qs"))
 
 #subset for same date range
 mob_sub <- mob[date >= "2020-03-23" & date <= "2021-03-31"]
@@ -412,9 +413,9 @@ mob_cnt[, mob2 := predictor2*3.4837340]
 
 plo = ggplot(mob_cnt) +
   geom_line(aes(x = predictor, y = o1_fit, col = "lin"), linewidth = 0.8) +
-  geom_ribbon(aes(x = predictor, ymin = o1_lwr, ymax = o1_uppr, fill = "lin"), alpha = 0.1) +
+  geom_ribbon(aes(x = predictor, ymin = o1_lwr, ymax = o1_uppr, fill = "lin"), alpha = 0.3) +
   geom_line(aes(x = predictor, y = o2_fit, col = "quad"), linewidth = 0.8) +
-  geom_ribbon(aes(x = predictor, ymin = o2_lwr, ymax = o2_uppr, fill = "quad"), alpha = 0.1) +
+  geom_ribbon(aes(x = predictor, ymin = o2_lwr, ymax = o2_uppr, fill = "quad"), alpha = 0.4) +
   geom_line(aes(x = predictor, y = mob1, col = "mob"), linewidth = 0.8) +
   geom_line(aes(x = predictor, y = mob2, col = "mob2"), linewidth = 0.8) +
   geom_point(aes(x = predictor, y = other), size = 2) +

@@ -5,15 +5,16 @@ library(data.table)
 library(tidyverse)
 library(lubridate)
 library(cowplot)
+library(here)
 
 #set data path
-data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
+data_path <-here()
 
 #set cowplot theme
 theme_set(cowplot::theme_cowplot(font_size = 14) + theme(strip.background = element_blank()))
 
 #import participant and contact data
-cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
+cnts <- qs::qread(file.path(data_path, "data", "part_cnts.qs"))
 cnts <- cnts[order(date)]
 cnts <- cnts[date <= ymd("2021-03-31")]
 
