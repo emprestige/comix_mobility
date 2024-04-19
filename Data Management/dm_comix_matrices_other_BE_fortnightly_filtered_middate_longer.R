@@ -2,20 +2,48 @@
 
 #load libraries
 library(data.table)
-library(tidyverse)
+library(dplyr)
 library(lubridate)
 library(socialmixr)
 library(here)
 
 #set data path
-data_path <- here()
+data_path <- here("data")
 
 #import participant and contact data
-pt <- qs::qread(file.path(data_path, "data", "participants_BE.qs"))
-ct <- qs::qread(file.path(data_path, "data", "contact_other_BE.qs"))
+pt <- qs::qread(file.path(data_path, "participants_BE_longer.qs"))
+pt <- pt[, part_age_group := part_age]
+pt <- pt[, part_age := NULL]
+ct <- qs::qread(file.path(data_path, "contact_other_BE_longer.qs"))
+pt <- pt[, date := as.Date(parse_date_time(sday_id, orders = "ymd"))]
+ct <- ct[, date := as.Date(parse_date_time(sday_id, orders = "ymd"))]
+
+# Convert age groups to numeric vectors
+pt$part_age_group_numeric <- sapply(pt$part_age_group, function(group) {
+  as.numeric(unlist(strsplit(gsub("\\[|\\)", "", group), ",")))
+})
+
+# Function to calculate midpoint of an age group
+midpoint <- function(group) {
+  mean(group)
+}
+
+# Calculate midpoints for each age group
+part_ages <- sapply(pt$part_age_group_numeric, midpoint)
+
+# Update pt with the calculated midpoints
+pt <- pt[, part_age := part_ages]
+
+# Remove the intermediate numeric vector column
+pt[, part_age_group_numeric := NULL]
 
 #match column name for function
-pt$dayofweek <- pt$weekday
+pt <- pt[, dayofweek := ifelse(pt$dayofweek == 0, "Monday",
+                        ifelse(pt$dayofweek == 1, "Tuesday",
+                        ifelse(pt$dayofweek == 2, "Wednesday",
+                        ifelse(pt$dayofweek == 3, "Thursday",
+                        ifelse(pt$dayofweek == 4, "Friday",
+                        ifelse(pt$dayofweek == 5, "Saturday", "Sunday"))))))]
 
 #filter to relevant dates 
 pt_date <- pt[date <= ymd("2022-03-31")]
@@ -55,9 +83,10 @@ for (i in 1:length(ct_middate)) {
 middates <- list()
 for (i in 1:length(ct_middate)) {
   middates[[i]] <- contact_matrix(new_survey[[i]], weigh.dayofweek = T, 
-                                  age.limits = c(0, 5, 12, 18, 30, 40, 
-                                                 50, 60, 65, 70),
-                                  filter = list(cnt_other = 1))
+                                  age.limits = c(0, 1, 5, 12, 18, 30, 40, 
+                                                 50, 60, 70),
+                                  estimated.contact.age = "mean",
+                                  filter = list(cnt_otherplace = 1))
 }
 
 #get dominant eigenvalues for each middate
@@ -78,4 +107,4 @@ e_middates_frame <- as.data.table(e_middates_frame)
 e_middates_frame$dominant_eigenvalue <- sapply(e_middates_frame$dominant_eigenvalue, as.numeric)
 
 #save dominant eigenvalues
-qs::qsave(e_middates_frame, file.path(data_path, "data", "comix_eigens_other_BE_fortnightly_filtered_middate_longer.qs"))
+qs::qsave(e_middates_frame, file.path(data_path, "comix_eigens_other_BE_fortnightly_filtered_middate_longer.qs"))

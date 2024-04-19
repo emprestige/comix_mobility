@@ -19,7 +19,7 @@ data_path <- here("data")
 
 #import contact matrices and scaling factors 
 contact_matrices <- qs::qread(file.path(data_path, "contact_matrices_BE.qs"))
-scaling_factors <- qs::qread(file.path(data_path, "scaling_factors_BE_fortnightly_filtered_middate_longer.qs"))
+scaling_factors <- qs::qread(file.path(data_path, "scaling_factors_BE_fortnightly_filtered_middate_all.qs"))
 
 #get dates for scaling factors 
 scaling_factor_middates <- as.data.table(scaling_factors$mid_date)
@@ -116,7 +116,7 @@ colnames(e_scaled) <- c("mid_date", "dominant_eigenvalue_mob",
                         "dominant_eigenvalue_quad")
 
 #import dominant eigenvalues from comix matrices 
-eigens <- qs::qread(file.path(data_path, "comix_eigens_work_BE_fortnightly_filtered_middate_longer.qs"))
+eigens <- qs::qread(file.path(data_path, "comix_eigens_work_BE_fortnightly_filtered_middate_all.qs"))
 
 #merge comix eigenvalues and scaled estimates 
 eigens_all <- full_join(eigens, e_scaled, by = "mid_date")
@@ -150,11 +150,12 @@ work <- ggplot(data = reproduction_all) +
   scale_color_manual(breaks = c("comix", "mob", "mob2", "lin", "quad"),
                      values = c("#009E73", "#CC79A7", "#D55E00", "#0072B2", "#F0E442"),
                      labels = c("CoMix", "Mobility", "Mobility Squared", 
-                                "Linear Model", "Quadratic Model"))
+                                "Linear Model", "Quadratic Model")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 #import contact matrices and scaling factors 
 contact_matrices <- qs::qread(file.path(data_path, "contact_matrices_BE.qs"))
-scaling_factors <- qs::qread(file.path(data_path, "scaling_factors_BE_fortnightly_filtered_middate_longer.qs"))
+scaling_factors <- qs::qread(file.path(data_path, "scaling_factors_BE_fortnightly_filtered_middate_all.qs"))
 
 #get dates for scaling factors 
 scaling_factor_middates <- as.data.table(scaling_factors$mid_date)
@@ -251,7 +252,7 @@ colnames(e_scaled) <- c("mid_date", "dominant_eigenvalue_mob",
                         "dominant_eigenvalue_quad")
 
 #import dominant eigenvalues from comix matrices 
-eigens <- qs::qread(file.path(data_path, "comix_eigens_other_BE_fortnightly_filtered_middate_longer.qs"))
+eigens <- qs::qread(file.path(data_path, "comix_eigens_other_BE_fortnightly_filtered_middate_all.qs"))
 
 #merge comix eigenvalues and scaled estimates 
 eigens_all <- full_join(eigens, e_scaled, by = "mid_date")
@@ -284,7 +285,8 @@ other <- ggplot(data = reproduction_all) +
   scale_color_manual(breaks = c("comix", "mob", "mob2", "lin", "quad"),
                      values = c("#009E73", "#CC79A7", "#D55E00", "#0072B2", "#F0E442"),
                      labels = c("CoMix", "Mobility", "Mobility Squared", 
-                                "Linear Model", "Quadratic Model"))
+                                "Linear Model", "Quadratic Model")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 #plot work and other together
 ggarrange(work, other, common.legend = T, legend = "bottom")

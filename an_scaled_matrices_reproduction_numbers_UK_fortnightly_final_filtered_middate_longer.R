@@ -3,7 +3,7 @@
 #load libraries
 library(data.table)
 library(ggplot2)
-library(tidyverse)
+library(dplyr)
 library(lubridate)
 library(cowplot)
 library(scales)
@@ -16,11 +16,11 @@ theme_set(cowplot::theme_cowplot(font_size = 14) + theme(strip.background = elem
                                                          plot.margin = margin(l = 10, r = 10)))
 
 #set data path
-data_path <- here()
+data_path <- here("data")
 
 #import contact matrices and scaling factors 
-contact_matrices <- qs::qread(file.path(data_path, "data", "contact_matrices_UK.qs"))
-scaling_factors <- qs::qread(file.path(data_path, "data", "scaling_factors_UK_fortnightly_filtered_middate_longer.qs"))
+contact_matrices <- qs::qread(file.path(data_path, "contact_matrices_UK.qs"))
+scaling_factors <- qs::qread(file.path(data_path, "scaling_factors_UK_fortnightly_filtered_middate_longer.qs"))
 
 #get dates for scaling factors 
 scaling_factor_middates <- as.data.table(scaling_factors$mid_date)
@@ -117,7 +117,7 @@ colnames(e_scaled) <- c("mid_date", "dominant_eigenvalue_mob",
                         "dominant_eigenvalue_quad")
 
 #import dominant eigenvalues from comix matrices 
-eigens <- qs::qread(file.path(data_path, "data", "comix_eigens_work_UK_fortnightly_filtered_middate_longer.qs"))
+eigens <- qs::qread(file.path(data_path, "comix_eigens_work_UK_fortnightly_filtered_middate_longer.qs"))
 
 #merge comix eigenvalues and scaled estimates 
 eigens_all <- merge(eigens, e_scaled, by = "mid_date")
@@ -130,11 +130,11 @@ eigens_all$dominant_eigenvalue_mob2 <- sapply(eigens_all$dominant_eigenvalue_mob
 eigens_all$dominant_eigenvalue_lin <- sapply(eigens_all$dominant_eigenvalue_lin, as.numeric)
 eigens_all$dominant_eigenvalue_quad <- sapply(eigens_all$dominant_eigenvalue_quad, as.numeric)
 
-#calculate mean squared error
-mob_MSE <- mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_mob)^2)
-mob2_MSE <- mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_mob2)^2)
-lin_MSE <- mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_lin)^2)
-quad_MSE <- mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_quad)^2)
+#calculate root mean squared error
+mob_rootMSE <- sqrt(mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_mob)^2))
+mob2_rootMSE <- sqrt(mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_mob2)^2))
+lin_rootMSE <- sqrt(mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_lin)^2))
+quad_rootMSE <- sqrt(mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_quad)^2))
 
 #now multiply the dominant eigenvalues by the scalar to calculate the reproduction number
 reproduction_all <- rlang::duplicate(eigens_all)
@@ -160,8 +160,8 @@ work <- ggplot(data = reproduction_all) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 #import contact matrices and scaling factors 
-contact_matrices <- qs::qread(file.path(data_path, "data", "contact_matrices_UK.qs"))
-scaling_factors <- qs::qread(file.path(data_path, "data", "scaling_factors_UK_fortnightly_filtered_middate_longer.qs"))
+contact_matrices <- qs::qread(file.path(data_path, "contact_matrices_UK.qs"))
+scaling_factors <- qs::qread(file.path(data_path, "scaling_factors_UK_fortnightly_filtered_middate_longer.qs"))
 
 #get dates for scaling factors 
 scaling_factor_middates <- as.data.table(scaling_factors$mid_date)
@@ -258,7 +258,7 @@ colnames(e_scaled) <- c("mid_date", "dominant_eigenvalue_mob",
                         "dominant_eigenvalue_quad")
 
 #import dominant eigenvalues from comix matrices 
-eigens <- qs::qread(file.path(data_path, "data", "comix_eigens_other_UK_fortnightly_filtered_middate_longer.qs"))
+eigens <- qs::qread(file.path(data_path, "comix_eigens_other_UK_fortnightly_filtered_middate_longer.qs"))
 
 #merge comix eigenvalues and scaled estimates 
 eigens_all <- merge(eigens, e_scaled, by = "mid_date")
@@ -271,11 +271,11 @@ eigens_all$dominant_eigenvalue_mob2 <- sapply(eigens_all$dominant_eigenvalue_mob
 eigens_all$dominant_eigenvalue_lin <- sapply(eigens_all$dominant_eigenvalue_lin, as.numeric)
 eigens_all$dominant_eigenvalue_quad <- sapply(eigens_all$dominant_eigenvalue_quad, as.numeric)
 
-#calculate mean squared error
-mob_MSE <- mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_mob)^2)
-mob2_MSE <- mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_mob2)^2)
-lin_MSE <- mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_lin)^2)
-quad_MSE <- mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_quad)^2)
+#calculate root mean squared error
+mob_rootMSE <- sqrt(mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_mob)^2))
+mob2_rootMSE <- sqrt(mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_mob2)^2))
+lin_rootMSE <- sqrt(mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_lin)^2))
+quad_rootMSE <- sqrt(mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_quad)^2))
 
 #now multiply the dominant eigenvalues by the scalar to calculate the reproduction number
 reproduction_all <- rlang::duplicate(eigens_all)

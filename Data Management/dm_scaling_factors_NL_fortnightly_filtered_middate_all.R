@@ -1,22 +1,41 @@
-##scaling factors for the BE
+##scaling factors for the NL
 
 #load libraries
 library(data.table)
 library(dplyr)
 library(lubridate)
 library(here)
+library(stringr)
 
 #set data path
 data_path <- here("data")
 
 #import mobility data
-mob <- qs::qread(file.path(data_path, "google_mob_BE.qs"))
+mob <- qs::qread(file.path(data_path, "google_mob_NL.qs"))
 
 #subset for same date range
-comix <- qs::qread(file.path(data_path, "participants_BE_longer.qs"))
-comix <- comix[, date := as.Date(parse_date_time(sday_id, orders = "ymd"))]
-comix <- comix[date <= "2022-03-31"]
-dates <- comix$date
+comix <- qs::qread(file.path(data_path, "participants_NL.qs"))
+comix <- comix[date <= ymd("2021-03-24")]
+comix_longer <- qs::qread(file.path(data_path, "participants_NL_longer.qs"))
+comix_longer <- comix_longer[, date := as.Date(parse_date_time(sday_id, orders = "ymd"))]
+comix_longer <- comix_longer[date > "2021-03-24"]
+comix_longer[, sday_id := NULL]
+comix_longer[, weekday := ifelse(dayofweek == 0, "Monday",
+                         ifelse(dayofweek == 1, "Tuesday",
+                         ifelse(dayofweek == 2, "Wednesday",
+                         ifelse(dayofweek == 3, "Thursday",
+                         ifelse(dayofweek == 4, "Friday",
+                         ifelse(dayofweek == 5, "Saturday", "Sunday"))))))]
+comix_longer[, dayofweek := NULL]
+comix_longer[, day := NULL]
+comix_longer[, hh_id := NULL]
+comix_longer[, month := NULL]
+comix_longer[, year := NULL]
+comix_longer[, part_gender := NULL]
+comix_names <- names(comix_longer)
+comix <- comix[, ..comix_names]
+comix_all <- rbind(comix, comix_longer)
+dates <- comix_all$date
 mob_sub1 <- mob[date %in% dates]
 
 #duplicate google mobility data and rename columns
@@ -63,7 +82,7 @@ ests[, other_scaling_fac_quad := (2.9441 - 9.2762*other_mob + 8.5566*other_mob2)
 ests1 <- ests
 
 #now for new subset
-mob_sub2 <- mob[date >= "2020-04-16" & date <= "2022-03-04"]
+mob_sub2 <- mob[date >= "2020-04-16" & date <= "2022-03-31"]
 
 #duplicate google mobility data and rename columns
 gm2 <- rlang::duplicate(mob_sub2)
@@ -116,4 +135,4 @@ ests4 <- full_join(ests1, ests3, by = colnames(ests1))
 ests4 <- ests4[order(ests4$mid_date)]
 
 #save scaling factors 
-qs::qsave(ests4, file.path(data_path, "scaling_factors_BE_fortnightly_filtered_middate_longer.qs"))
+qs::qsave(ests4, file.path(data_path, "scaling_factors_NL_fortnightly_filtered_middate_all.qs"))

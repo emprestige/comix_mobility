@@ -11,16 +11,20 @@ library(here)
 data_path <- here()
 
 #import participant and contact data
-pt <- qs::qread(file.path(data_path, "data", "participants_NL.qs"))
-ct <- qs::qread(file.path(data_path, "data", "contact_other_NL.qs"))
-
-#match column name for function
-pt$dayofweek <- pt$weekday
+pt <- qs::qread(file.path(data_path, "participants_NL_longer.qs"))
+ct <- qs::qread(file.path(data_path, "contact_other_NL_longer.qs"))
+pt <- pt[, date := as.Date(parse_date_time(sday_id, orders = "ymd"))]
+pt <- pt[, dayofweek := ifelse(pt$dayofweek == 0, "Monday",
+                        ifelse(pt$dayofweek == 1, "Tuesday",
+                        ifelse(pt$dayofweek == 2, "Wednesday",
+                        ifelse(pt$dayofweek == 3, "Thursday",
+                        ifelse(pt$dayofweek == 4, "Friday",
+                        ifelse(pt$dayofweek == 5, "Saturday", "Sunday"))))))]
 
 #filter to relevant dates 
 pt_date <- pt[date <= ymd("2022-03-31")]
 ct_date <- ct[date <= ymd("2022-03-31")]
-
+ct_date <- ct_date[, date := as.Date(ct_date$date)]
 #define fortnight variable
 pt_date[, fortnight := paste(isoyear(date), "/", sprintf("%02d", ceiling(isoweek(date)/2)))]
 pt_date[, start_date := min(date), by = .(fortnight)]

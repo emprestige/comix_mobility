@@ -1,4 +1,4 @@
-##using the scaling factors for the BE
+##using the scaling factors for the NL
 
 #load libraries
 library(data.table)
@@ -18,15 +18,15 @@ theme_set(cowplot::theme_cowplot(font_size = 14) + theme(strip.background = elem
 data_path <- here("data")
 
 #import contact matrices and scaling factors 
-contact_matrices <- qs::qread(file.path(data_path, "contact_matrices_BE.qs"))
-scaling_factors <- qs::qread(file.path(data_path, "scaling_factors_BE_fortnightly_filtered_middate_longer.qs"))
+contact_matrices <- qs::qread(file.path(data_path, "contact_matrices_NL.qs"))
+scaling_factors <- qs::qread(file.path(data_path, "scaling_factors_NL_fortnightly_filtered_middate_all.qs"))
 
 #get dates for scaling factors 
 scaling_factor_middates <- as.data.table(scaling_factors$mid_date)
 
 #extract matrices
-work_matrix <- as.matrix(contact_matrices[[1]]$BEL)
-other_matrix <- as.matrix(contact_matrices[[2]]$BEL)
+work_matrix <- as.matrix(contact_matrices[[1]]$NLD)
+other_matrix <- as.matrix(contact_matrices[[2]]$NLD)
 
 #create new matrices which have been scaled by mobility 
 work_mob_scaled <- list()
@@ -116,7 +116,7 @@ colnames(e_scaled) <- c("mid_date", "dominant_eigenvalue_mob",
                         "dominant_eigenvalue_quad")
 
 #import dominant eigenvalues from comix matrices 
-eigens <- qs::qread(file.path(data_path, "comix_eigens_work_BE_fortnightly_filtered_middate_longer.qs"))
+eigens <- qs::qread(file.path(data_path, "comix_eigens_work_NL_fortnightly_filtered_middate_all.qs"))
 
 #merge comix eigenvalues and scaled estimates 
 eigens_all <- full_join(eigens, e_scaled, by = "mid_date")
@@ -146,22 +146,23 @@ work <- ggplot(data = reproduction_all) +
   geom_line(aes(x = mid_date, y = reproduction_number_lin, col = "lin"), group = 1, size = 0.8) +
   geom_line(aes(x = mid_date, y = reproduction_number_quad, col = "quad"), group = 1, size = 0.8) +
   labs(x = "Date", y = "Reproduction Number (''Work'')", colour = "Estimate Type") + 
-  scale_x_date(labels = date_format("%b-%y"), breaks = "2 months") + ylim(0, 1) +
+  scale_x_date(labels = date_format("%b-%y"), breaks = "2 months") + ylim(0, 1.25) +
   scale_color_manual(breaks = c("comix", "mob", "mob2", "lin", "quad"),
                      values = c("#009E73", "#CC79A7", "#D55E00", "#0072B2", "#F0E442"),
                      labels = c("CoMix", "Mobility", "Mobility Squared", 
-                                "Linear Model", "Quadratic Model"))
+                                "Linear Model", "Quadratic Model")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 #import contact matrices and scaling factors 
-contact_matrices <- qs::qread(file.path(data_path, "contact_matrices_BE.qs"))
-scaling_factors <- qs::qread(file.path(data_path, "scaling_factors_BE_fortnightly_filtered_middate_longer.qs"))
+contact_matrices <- qs::qread(file.path(data_path, "contact_matrices_NL.qs"))
+scaling_factors <- qs::qread(file.path(data_path, "scaling_factors_NL_fortnightly_filtered_middate_all.qs"))
 
 #get dates for scaling factors 
 scaling_factor_middates <- as.data.table(scaling_factors$mid_date)
 
 #extract matrices
-work_matrix <- as.matrix(contact_matrices[[1]]$BEL)
-other_matrix <- as.matrix(contact_matrices[[2]]$BEL)
+work_matrix <- as.matrix(contact_matrices[[1]]$NLD)
+other_matrix <- as.matrix(contact_matrices[[2]]$NLD)
 
 #create new matrices which have been scaled by mobility 
 other_mob_scaled <- list()
@@ -251,7 +252,7 @@ colnames(e_scaled) <- c("mid_date", "dominant_eigenvalue_mob",
                         "dominant_eigenvalue_quad")
 
 #import dominant eigenvalues from comix matrices 
-eigens <- qs::qread(file.path(data_path, "comix_eigens_other_BE_fortnightly_filtered_middate_longer.qs"))
+eigens <- qs::qread(file.path(data_path, "comix_eigens_other_NL_fortnightly_filtered_middate_all.qs"))
 
 #merge comix eigenvalues and scaled estimates 
 eigens_all <- full_join(eigens, e_scaled, by = "mid_date")
@@ -280,11 +281,12 @@ other <- ggplot(data = reproduction_all) +
   geom_line(aes(x = mid_date, y = reproduction_number_lin, col = "lin"), group = 1, size = 0.8) +
   geom_line(aes(x = mid_date, y = reproduction_number_quad, col = "quad"), group = 1, size = 0.8) +
   labs(x = "Date", y = "Reproduction Number (''Other'')", colour = "Estimate Type") +
-  scale_x_date(labels = date_format("%b-%y"), breaks = "2 months") + ylim(0, 1) +
+  scale_x_date(labels = date_format("%b-%y"), breaks = "2 months") + ylim(0, 1.25) +
   scale_color_manual(breaks = c("comix", "mob", "mob2", "lin", "quad"),
                      values = c("#009E73", "#CC79A7", "#D55E00", "#0072B2", "#F0E442"),
                      labels = c("CoMix", "Mobility", "Mobility Squared", 
-                                "Linear Model", "Quadratic Model"))
+                                "Linear Model", "Quadratic Model")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 #plot work and other together
 ggarrange(work, other, common.legend = T, legend = "bottom")

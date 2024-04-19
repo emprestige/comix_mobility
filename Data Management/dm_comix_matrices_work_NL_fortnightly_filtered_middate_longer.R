@@ -2,24 +2,29 @@
 
 #load libraries
 library(data.table)
-library(tidyverse)
+library(dplyr)
 library(lubridate)
 library(socialmixr)
 library(here)
 
 #set data path
-data_path <- here()
+data_path <- here("data")
 
 #import participant and contact data
-pt <- qs::qread(file.path(data_path, "data", "participants_NL.qs"))
-ct <- qs::qread(file.path(data_path, "data", "contact_work_NL.qs"))
-
-#match column name for function
-pt$dayofweek <- pt$weekday
+pt <- qs::qread(file.path(data_path, "participants_NL_longer.qs"))
+ct <- qs::qread(file.path(data_path, "contact_work_NL_longer.qs"))
+pt <- pt[, date := as.Date(parse_date_time(sday_id, orders = "ymd"))]
+pt <- pt[, dayofweek := ifelse(pt$dayofweek == 0, "Monday",
+                         ifelse(pt$dayofweek == 1, "Tuesday",
+                         ifelse(pt$dayofweek == 2, "Wednesday",
+                         ifelse(pt$dayofweek == 3, "Thursday",
+                         ifelse(pt$dayofweek == 4, "Friday",
+                         ifelse(pt$dayofweek == 5, "Saturday", "Sunday"))))))]
 
 #filter to relevant dates 
 pt_date <- pt[date <= ymd("2022-03-31")]
 ct_date <- ct[date <= ymd("2022-03-31")]
+ct_date <- ct_date[, date := as.Date(ct_date$date)]
 
 #define fortnight variable
 pt_date[, fortnight := paste(isoyear(date), "/", sprintf("%02d", ceiling(isoweek(date)/2)))]
@@ -57,6 +62,7 @@ for (i in 1:length(ct_middate)) {
   middates[[i]] <- contact_matrix(new_survey[[i]], weigh.dayofweek = T, 
                                age.limits = c(0, 5, 12, 18, 30, 40, 
                                               50, 60, 65, 70),
+                               estimated.contact.age = "mean",
                                filter = list(cnt_work = 1))
 }
 
@@ -78,4 +84,4 @@ e_middates_frame <- as.data.table(e_middates_frame)
 e_middates_frame$dominant_eigenvalue <- sapply(e_middates_frame$dominant_eigenvalue, as.numeric)
 
 #save dominant eigenvalues
-qs::qsave(e_middates_frame, file.path(data_path, "data", "comix_eigens_work_NL_fortnightly_filtered_middate_longer.qs"))
+qs::qsave(e_middates_frame, file.path(data_path, "comix_eigens_work_NL_fortnightly_filtered_middate_longer.qs"))

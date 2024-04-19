@@ -2,19 +2,20 @@
 
 #load libraries
 library(data.table)
-library(tidyverse)
+library(dplyr)
 library(lubridate)
 library(cowplot)
 library(here)
+library(ggthemes)
 
 #set data path
-data_path <-here()
+data_path <- here("data")
 
 #set cowplot theme
 theme_set(cowplot::theme_cowplot(font_size = 14) + theme(strip.background = element_blank()))
 
 #import participant and contact data
-cnts <- qs::qread(file.path(data_path, "data", "part_cnts.qs"))
+cnts <- qs::qread(file.path(data_path, "part_cnts.qs"))
 cnts <- cnts[order(date)]
 cnts <- cnts[date <= ymd("2021-03-31")]
 
@@ -174,7 +175,7 @@ sizes <- full_join(sizes, sizes_dummy)
 ggplot(data = sizes, aes(x = mid_date, y = freq, fill = hh_size_group)) + geom_col() + 
   scale_x_discrete(breaks = my_list) + facet_grid(~var, scales = "free_x", space = "free_x") +
   theme(strip.background = element_blank(), strip.text.x = element_blank()) +
-  labs(x = "Date", y = "Proportion", fill = "Household Size") 
+  labs(x = "Date", y = "Proportion", fill = "Household Size") + scale_fill_colorblind()
 
 ##not main variables
 

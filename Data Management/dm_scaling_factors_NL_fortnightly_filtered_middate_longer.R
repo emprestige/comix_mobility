@@ -13,7 +13,8 @@ data_path <- here()
 mob <- qs::qread(file.path(data_path, "data", "google_mob_NL.qs"))
 
 #subset for same date range
-comix <- qs::qread(file.path(data_path, "data", "participants_NL.qs"))
+comix <- qs::qread(file.path(data_path, "data", "participants_NL_longer.qs"))
+comix <- comix[, date := as.Date(parse_date_time(sday_id, orders = "ymd"))]
 comix <- comix[date <= "2022-03-31"]
 dates <- comix$date
 mob_sub1 <- mob[date %in% dates]
