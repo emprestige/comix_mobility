@@ -3,20 +3,21 @@
 #load libraries
 library(data.table)
 library(ggplot2)
-library(tidyverse)
+library(dplyr)
 library(lubridate)
 library(cowplot)
 library(scales)
+library(here)
 
 #set cowplot theme
 theme_set(cowplot::theme_cowplot(font_size = 14) + theme(strip.background = element_blank()))
 
 #set data path
-data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
+data_path <- here("data")
 
 #import contact matrices and scaling factors 
 contact_matrices <- qs::qread(file.path(data_path, "contact_matrices_UK.qs"))
-scaling_factors <- qs::qread(file.path(data_path, "scaling_factors_UK_fortnightly_filtered_middate.qs"))
+scaling_factors <- qs::qread(file.path(data_path, "scaling_factors_UK_fortnightly_filtered_middate_longer.qs"))
 
 #get dates for scaling factors 
 scaling_factor_middates <- as.data.table(scaling_factors$mid_date)
@@ -113,7 +114,7 @@ colnames(e_scaled) <- c("mid_date", "dominant_eigenvalue_mob",
                         "dominant_eigenvalue_quad")
 
 #import dominant eigenvalues from comix matrices 
-eigens <- qs::qread(file.path(data_path, "comix_eigens_work_UK_fortnightly_filtered_middate.qs"))
+eigens <- qs::qread(file.path(data_path, "comix_eigens_work_UK_fortnightly_filtered_middate_longer.qs"))
 
 #merge comix eigenvalues and scaled estimates 
 eigens_all <- merge(eigens, e_scaled, by = "mid_date")
@@ -190,6 +191,12 @@ ggplot(data = resid, aes(x = mid_date)) +
                      labels = c("Mobility", "Mobility Squared", 
                                 "Linear Model", "Quadratic Model"))
 
+#calculate mean squared error
+mob_MSE <- mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_mob)^2)
+mob2_MSE <- mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_mob2)^2)
+lin_MSE <- mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_lin)^2)
+quad_MSE <- mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_quad)^2)
+
 #now multiply the dominant eigenvalues by the scalar to calculate the reproduction number
 reproduction_all <- rlang::duplicate(eigens_all)
 reproduction_all <- reproduction_all[, .(mid_date,reproduction_number = dominant_eigenvalue*0.1581799,
@@ -198,10 +205,10 @@ reproduction_all <- reproduction_all[, .(mid_date,reproduction_number = dominant
                                          reproduction_number_lin = dominant_eigenvalue_lin*0.1581799,
                                          reproduction_number_quad = dominant_eigenvalue_quad*0.1581799)]
 
-#import correct reproduction numebers 
-reproduction_model <- qs::qread(file.path(data_path, "reproduction_numbers_UK.qs"))
-colnames(reproduction_model) <- c("mid_date", "reproduction_number_model")
-reproduction_all <- merge(reproduction_all, reproduction_model, by = "mid_date")
+# #import correct reproduction numebers 
+# reproduction_model <- qs::qread(file.path(data_path, "reproduction_numbers_UK.qs"))
+# colnames(reproduction_model) <- c("mid_date", "reproduction_number_model")
+# reproduction_all <- merge(reproduction_all, reproduction_model, by = "mid_date")
 
 ##plot comparisons
 
@@ -267,17 +274,23 @@ ggplot(data = resid2, aes(x = mid_date)) +
                      labels = c("Mobility", "Mobility Squared", 
                                 "Linear Model", "Quadratic Model"))
 
-#line graph
-ggplot(data = reproduction_all) + scale_x_date(labels = date_format("%B-%Y")) +
-  geom_line(aes(x = mid_date, y = reproduction_number, col = "comix"), group = 1, size = 0.8) +
-  geom_line(aes(x = mid_date, y = reproduction_number_mob, col = "mob"), group = 1, size = 0.8) +
-  geom_line(aes(x = mid_date, y = reproduction_number_mob2, col = "mob2"), group = 1, size = 0.8) +
-  geom_line(aes(x = mid_date, y = reproduction_number_lin, col = "lin"), group = 1, size = 0.8) +
-  geom_line(aes(x = mid_date, y = reproduction_number_quad, col = "quad"), group = 1, size = 0.8) +
-  geom_line(aes(x = mid_date, y = reproduction_number_model, col = "model"), group = 1, size = 0.8) +
-  labs(x = "Date", y = "Reproduction Number", colour = "Estimate Type") + 
-  scale_color_manual(breaks = c("comix", "mob", "mob2", "lin", "quad", "model"),
-                     values = c("#009E73", "#CC79A7", "#D55E00", "#0072B2", "#F0E442", "black"),
-                     labels = c("CoMix", "Mobility", "Mobility Squared", 
-                                "Linear Model", "Quadratic Model",
-                                "Transmission Model"))
+#calculate mean squared error
+mob_rootMSE <- sqrt(mean((reproduction_all$reproduction_number - reproduction_all$reproduction_number_mob)^2))
+mob2_rootMSE <- sqrt(mean((reproduction_all$reproduction_number - reproduction_all$reproduction_number_mob2)^2))
+lin_rootMSE <- sqrt(mean((reproduction_all$reproduction_number - reproduction_all$reproduction_number_lin)^2))
+quad_rootMSE <- sqrt(mean((reproduction_all$reproduction_number - reproduction_all$reproduction_number_quad)^2))
+
+# #line graph
+# ggplot(data = reproduction_all) + scale_x_date(labels = date_format("%B-%Y")) +
+#   geom_line(aes(x = mid_date, y = reproduction_number, col = "comix"), group = 1, size = 0.8) +
+#   geom_line(aes(x = mid_date, y = reproduction_number_mob, col = "mob"), group = 1, size = 0.8) +
+#   geom_line(aes(x = mid_date, y = reproduction_number_mob2, col = "mob2"), group = 1, size = 0.8) +
+#   geom_line(aes(x = mid_date, y = reproduction_number_lin, col = "lin"), group = 1, size = 0.8) +
+#   geom_line(aes(x = mid_date, y = reproduction_number_quad, col = "quad"), group = 1, size = 0.8) +
+#   geom_line(aes(x = mid_date, y = reproduction_number_model, col = "model"), group = 1, size = 0.8) +
+#   labs(x = "Date", y = "Reproduction Number", colour = "Estimate Type") + 
+#   scale_color_manual(breaks = c("comix", "mob", "mob2", "lin", "quad", "model"),
+#                      values = c("#009E73", "#CC79A7", "#D55E00", "#0072B2", "#F0E442", "black"),
+#                      labels = c("CoMix", "Mobility", "Mobility Squared", 
+#                                 "Linear Model", "Quadratic Model",
+#                                 "Transmission Model"))
