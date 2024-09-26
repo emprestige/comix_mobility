@@ -15,7 +15,7 @@ theme_set(cowplot::theme_cowplot(font_size = 14) + theme(strip.background = elem
                                                          plot.margin = margin(l = 10, r = 10)))
 
 #set data path
-data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
+data_path <- here("data")
 
 #import contact matrices and scaling factors 
 contact_matrices <- qs::qread(file.path(data_path, "contact_matrices_UK.qs"))

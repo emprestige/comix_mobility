@@ -190,6 +190,12 @@ ggplot(data = resid, aes(x = mid_date)) +
                      labels = c("Mobility", "Mobility Squared", 
                                 "Linear Model", "Quadratic Model"))
 
+#calculate mean squared error
+mob_MSE <- mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_mob)^2)
+mob2_MSE <- mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_mob2)^2)
+lin_MSE <- mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_lin)^2)
+quad_MSE <- mean((eigens_all$dominant_eigenvalue - eigens_all$dominant_eigenvalue_quad)^2)
+
 #now multiply the dominant eigenvalues by the scalar to calculate the reproduction number
 reproduction_all <- rlang::duplicate(eigens_all)
 reproduction_all <- reproduction_all[, .(mid_date,reproduction_number = dominant_eigenvalue*0.1581799,
@@ -266,6 +272,12 @@ ggplot(data = resid2, aes(x = mid_date)) +
                      values = c("#CC79A7", "#D55E00", "#0072B2", "#F0E442"),
                      labels = c("Mobility", "Mobility Squared", 
                                 "Linear Model", "Quadratic Model"))
+
+#calculate mean squared error
+mob_rootMSE <- sqrt(mean((reproduction_all$reproduction_number - reproduction_all$reproduction_number_mob)^2))
+mob2_rootMSE <- sqrt(mean((reproduction_all$reproduction_number - reproduction_all$reproduction_number_mob2)^2))
+lin_rootMSE <- sqrt(mean((reproduction_all$reproduction_number - reproduction_all$reproduction_number_lin)^2))
+quad_rootMSE <- sqrt(mean((reproduction_all$reproduction_number - reproduction_all$reproduction_number_quad)^2))
 
 #line graph
 ggplot(data = reproduction_all) + scale_x_date(labels = date_format("%B-%Y")) +
