@@ -2,14 +2,12 @@
 
 #load libraries
 library(data.table)
-library(dplyr)
+library(tidyverse)
 library(lubridate)
 library(cowplot)
-library(here)
-library(ggthemes)
 
 #set data path
-data_path <- here("data")
+data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
 
 #set cowplot theme
 theme_set(cowplot::theme_cowplot(font_size = 14) + theme(strip.background = element_blank()))
@@ -175,7 +173,7 @@ sizes <- full_join(sizes, sizes_dummy)
 ggplot(data = sizes, aes(x = mid_date, y = freq, fill = hh_size_group)) + geom_col() + 
   scale_x_discrete(breaks = my_list) + facet_grid(~var, scales = "free_x", space = "free_x") +
   theme(strip.background = element_blank(), strip.text.x = element_blank()) +
-  labs(x = "Date", y = "Proportion", fill = "Household Size") + scale_fill_colorblind()
+  labs(x = "Date", y = "Proportion", fill = "Household Size") 
 
 ##not main variables
 

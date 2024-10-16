@@ -8,13 +8,14 @@ library(lubridate)
 library(cowplot)
 library(scales)
 library(ggpubr)
+library(here)
 
 #set cowplot theme
 theme_set(cowplot::theme_cowplot(font_size = 14) + theme(strip.background = element_blank(),
                                                          legend.box.margin = margin(l = 10, b = 10)))
 
 #set data path
-data_path <-"C:\\Users\\emiel\\Documents\\LSHTM\\Fellowship\\Project\\comix_mobility\\Data\\"
+data_path <- here("data")
 
 #import contact matrices and scaling factors 
 contact_matrices <- qs::qread(file.path(data_path, "contact_matrices_BE.qs"))
